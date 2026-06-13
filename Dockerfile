@@ -9,11 +9,18 @@ ARG NODE_VERSION=24.13.0-slim
 
 FROM node:${NODE_VERSION} AS dependencies
 
+# Prisma requires OpenSSL on Debian slim images
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
 # Copy package-related files first to leverage Docker's caching mechanism
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+
+# Prisma postinstall runs during dependency install and needs the schema
+COPY prisma ./prisma
+COPY prisma.config.ts ./
 
 # Install project dependencies with frozen lockfile for reproducible builds
 RUN --mount=type=cache,target=/root/.npm \
@@ -34,6 +41,8 @@ RUN --mount=type=cache,target=/root/.npm \
 # ============================================
 
 FROM node:${NODE_VERSION} AS builder
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -68,6 +77,8 @@ RUN --mount=type=cache,target=/app/.next/cache \
 # ============================================
 
 FROM node:${NODE_VERSION} AS runner
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
