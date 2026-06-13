@@ -1,0 +1,46 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.reviewer_form {
+  $color: rgba(0, 0, 0, 0.2);
+  $border: 0.1px solid $color;
+  width: 100%;
+  margin-top: clamp(2em, 5vw, 3em);
+
+  h5 {
+    margin-bottom: clamp(1em, 2vw, 1.2em);
+    text-align: center;
+    font-size: type.$h4;
+  }
+  form {
+    width: 100%;
+    .reviewer_info {
+      display: flex;
+      gap: 0.5rem;
+      @include mixin.responsive(640px) {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+
+    textarea,
+    input {
+      border: $border;
+      padding: 0.5rem;
+      background: transparent;
+    }
+    .btn_submit {
+      width: 100%;
+      padding: 0.5em 1em;
+      margin-top: clamp(0.75em, 2vw, 1em);
+      border: none;
+      background-color: mixin.$black;
+      color: mixin.$white;
+      border-radius: 0;
+    }
+  }
+}
+.post_review_form {
+    max-inline-size: 60em;
+
+}

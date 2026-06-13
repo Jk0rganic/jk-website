@@ -1,0 +1,11 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.rating_reviews{
+   display: flex;
+  align-items: center;
+  margin-bottom: .5em;
+  span{
+    font-weight: normal;
+  }
+}
+

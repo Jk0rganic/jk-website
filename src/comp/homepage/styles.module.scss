@@ -1,0 +1,200 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+$navbar-height: 5em;
+$linear: linear-gradient(rgba(0, 75, 35, 0.6), rgba(0, 75, 35, 0.7));
+$bg: url("https://res.cloudinary.com/dj200tags/images/v1765566065/engin-akyurt-g-m8EDc4X6Q-unsplash-1_30_11zon_14752e22/engin-akyurt-g-m8EDc4X6Q-unsplash-1_30_11zon_14752e22.webp")
+  center/cover no-repeat;
+
+//hero
+.hero {
+  padding: 0;
+  background: $linear, $bg;
+
+  :global(.container) {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding-top: $navbar-height;
+    min-height: calc(45rem - #{$navbar-height});
+    color: mixin.$white;
+    .content {
+      h1 {
+        font-family: var(--font-quintessential);
+        font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem);
+      }
+      a {
+        color: mixin.$black;
+        background: mixin.$white;
+      }
+    }
+  }
+}
+////six
+.six_sec {
+  :global(.container) {
+    @include mixin.gridbox(10rem);
+    .card {
+      text-align: center;
+      h2 {
+        font-size: type.$h4;
+        text-transform: capitalize;
+        margin-bottom: 0;
+      }
+      .img_box {
+        height: clamp(6em, 6.5vh, 8em);
+
+        img {
+          object-fit: contain;
+        }
+      }
+    }
+  }
+}
+
+/////one
+.one {
+  .explore {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2em;
+    h2 {
+      font-size: type.$h5;
+    }
+    a {
+      color: mixin.$black;
+      text-decoration: underline;
+    }
+  }
+  .card_wrapper {
+    // @include mixin.gridbox(20rem);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+
+    .card {
+      position: relative;
+      color: mixin.$black;
+      transition: 0.3s all ease-in-out;
+      overflow: hidden;
+      @include mixin.borderRadius(mixin.$radius);
+      :hover > img {
+        transform: scale(1.1);
+      }
+
+      h3 {
+        position: absolute;
+        bottom: clamp(0.25rem, 0.6vw, 0.4rem);
+        left: 50%;
+        width: clamp(95%, 95vw, 90%);
+        text-align: center;
+        z-index: 5;
+        background-color: mixin.$white;
+        transform: translateX(-50%);
+        padding: clamp(0.25rem, 0.8vw, 0.4rem) clamp(0.75rem, 2vw, 1rem);
+        border-radius: 10em;
+        font-size: type.$h5;
+      }
+      .img_box {
+        height: clamp(12rem, 18vw, 17.75rem);
+        img {
+          object-fit: cover;
+          transition: 0.3s all ease-in-out;
+        }
+      }
+    }
+  }
+  @include mixin.responsive($max: 881px) {
+    .card_wrapper {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @include mixin.responsive($max: 767px) {
+    .card_wrapper {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .explore {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+}
+
+////two
+.two {
+  h2 {
+    font-size: type.$h4;
+  }
+  .grid {
+    @include mixin.grid;
+    margin-top: clamp(1.2rem, 3vw, 1.5rem);
+  }
+}
+
+////four
+.four {
+  :global(.container) {
+    display: flex;
+    align-items: center;
+    .img_box {
+      width: 100%;
+      height: clamp(20rem, 40vw, 30rem);
+      img {
+        object-fit: contain;
+      }
+    }
+    .content {
+      h3 {
+        font-size: type.$h1;
+        margin-bottom: 1rem;
+      }
+      a {
+        background: mixin.$green;
+        color: mixin.$white;
+        border: none;
+        padding: 0.5rem 1rem;
+      }
+    }
+  }
+  @include mixin.responsive($max: 881px) {
+    :global(.container) {
+      flex-direction: column;
+      gap: 1rem;
+      .content {
+        width: 100%;
+      }
+    }
+  }
+}
+
+//three
+.three {
+  h3 {
+    font-size: type.$h4;
+  }
+  .grid {
+    margin-top: clamp(1.2rem, 3vw, 1.5rem);
+    @include mixin.grid;
+  }
+}
+//five
+.five {
+  $bg: url("https://res.cloudinary.com/dj200tags/images/v1765566460/quentin-mahe-mAW3jUP6G6E-unsplash_9_11zon_1173f409/quentin-mahe-mAW3jUP6G6E-unsplash_9_11zon_1173f409.webp")
+    center/cover no-repeat;
+  $linear: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7));
+  background: $linear, $bg;
+
+  :global(.container) {
+    min-height: clamp(16rem, 20vh, 20rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: mixin.$white;
+    h2 {
+      font-size: type.$h1;
+    }
+  }
+}

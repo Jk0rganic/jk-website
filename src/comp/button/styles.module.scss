@@ -1,0 +1,14 @@
+@use "@/scss/mixin.scss" as mixin;
+.btn {
+  display: inline-block;
+  color: mixin.$black;
+  font-weight: 400;
+  padding: 0.4em 1em;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 1.5em;
+  background-color: mixin.$green; 
+  color: mixin.$white;
+  @include mixin.borderRadius(0);
+  @include mixin.transition(all ease-in-out 0.3s);
+}

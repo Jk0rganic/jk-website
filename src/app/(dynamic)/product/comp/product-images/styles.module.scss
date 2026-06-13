@@ -1,0 +1,60 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.product_images {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 1em;
+  width: 100%;
+
+  .big_img {
+    height: clamp(18rem,100vh, 40rem);
+    img {
+
+      object-fit: cover;
+      mix-blend-mode: multiply;
+    }
+  }
+
+
+  
+
+  .gallery_images {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    gap: 0.5em;
+
+    .thumb_wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 4em;
+      max-height: 4em;
+      cursor: pointer;
+      overflow: hidden;
+
+      img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        display: block;
+      }
+    }
+
+    .selected {
+      opacity: 0.4;
+    }
+  }
+  @include mixin.responsive($max: 600px) {
+    flex-direction: column;
+    .big_img {
+      height: clamp(18rem, 20vh, 45rem);
+      img {
+        object-fit: cover;
+      }
+    }
+    .gallery_images {
+      flex-direction: row;
+      width: 100%;
+    }
+  }
+}

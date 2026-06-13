@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+model Account {
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "account_user_fk")
+
+  @@unique([provider, providerAccountId], map: "account_provider_unique")
+  @@index([userId], map: "account_user_idx")
+  @@map("accounts")
+}
+
+model Session {
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "session_user_fk")
+
+  @@index([userId], map: "session_user_idx")
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique @map("email")
+  phone         String?
+  role          String?   @default("user")
+  password      String?
+  image         String?
+  emailVerified DateTime? @map("email_verified")
+  accounts      Account[]
+  sessions      Session[]
+  loginAttempt  LoginAttempt?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  @@map("users")
+}
+
+model LoginAttempt {
+  userId       String    @id @map("user_id")
+  count        Int       @default(0)
+  lockoutUntil DateTime? @map("lockout_until")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "login_attempt_user_fk")
+
+  @@map("login_attempts")
+}
+
+model VerificationToken {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  token      String
+  tokenLink  String? // <-- make optional if you want
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token], map: "verification_token_unique")
+  @@map("verificationtokens")
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  checkoutId      String   @unique @map("checkout_id")
+  invoiceId       String?  @unique @map("invoice_id")
+  orderId         Int      @map("order_id")
+  status          String   @default("PENDING")
+  amount          Int
+  transactionRef  String?  @map("transaction_ref")
+  phoneNumber     String   @map("phone_number")
+  provider        String?
+  failureReason   String?  @map("failure_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([orderId], map: "payment_order_idx")
+  @@map("payments")
+}

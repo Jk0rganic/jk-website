@@ -1,0 +1,10 @@
+@use '@/scss/mixin.scss' as mixin;
+
+.skeleton_category{
+    .title{
+        height: 1.5rem;
+        width: 90%;
+        background-color: mixin.$skeleton-white;
+        @include mixin.borderRadius(1rem);
+    }
+}

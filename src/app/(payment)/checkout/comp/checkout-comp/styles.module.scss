@@ -1,0 +1,37 @@
+@use "@/scss/mixin.scss" as mixin;
+$padding: 1rem 0.5rem;
+$border-radius: 0.4rem;
+$background-color: rgb(255, 255, 255);
+.Check_Out {
+  margin-top: 2em;
+  :global(.container) {
+    // max-width: 1200px;
+
+    form {
+      display: flex;
+      gap: 1em;
+
+      .Check_out_form_left {
+        width: 100%;
+        padding: $padding;
+        border-radius: $border-radius;
+        background-color: $background-color;
+      }
+    }
+
+    .Check_out_form_right {
+      max-width: 27rem;
+      width: 100%;
+      padding: $padding;
+      border-radius: $border-radius;
+      background-color: $background-color;
+      height: fit-content;
+    }
+
+    @include mixin.responsive($max: 1024px) {
+      form {
+        flex-direction: column;
+      }
+    }
+  }
+}

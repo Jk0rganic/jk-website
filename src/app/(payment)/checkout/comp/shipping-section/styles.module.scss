@@ -1,0 +1,13 @@
+@use "@/scss/mixin.scss" as mixin;
+.shipping_address{
+    margin-bottom: 1rem;
+    .options{
+        label{
+            display: block;
+            margin-bottom: .4em;
+            input{
+                margin-right: 5px;
+            }
+        }
+    }
+}

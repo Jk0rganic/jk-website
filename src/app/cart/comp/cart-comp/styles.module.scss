@@ -1,0 +1,32 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.shopping_cart {
+  margin-top: 5em;
+  h4 {
+    margin-bottom: 1.5em;
+  }
+  .empty_cart {
+    display: flex;
+    flex-direction: column;
+    .shopping_icon_wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1em;
+    
+      p{
+        margin-bottom: 0;
+      }
+    }
+    a {
+      padding: 0.5rem 1rem;
+      color: mixin.$black;
+      width: fit-content;
+      text-decoration: none;
+      text-decoration: underline;
+   
+    }
+  }
+
+}
+

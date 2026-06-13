@@ -1,0 +1,21 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+$nav-box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.1);
+.footer {
+  padding-top: 2em;
+  box-shadow: $nav-box-shadow;
+  // @include mixin.container();
+
+  .rights {
+    margin-top: 1em;
+    border-top: 0.1px solid rgba(0, 0, 0, 0.2);
+    padding-top: 0.6rem;
+    p {
+      margin-inline: auto;
+      text-align: center;
+      margin-bottom: 0;
+      font-size: type.$small;
+    }
+  }
+}

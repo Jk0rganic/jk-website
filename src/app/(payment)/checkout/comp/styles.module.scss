@@ -1,0 +1,32 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.card_wrapper {
+  margin-bottom: 1.5em;
+  h5 {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+  }
+  .checkbox_customer_note {
+    input {
+      margin-right: 5px;
+    }
+  }
+  .user_names,
+  .shipping_info {
+    display: flex;
+    gap: 0.5rem;
+    @include mixin.responsive($max: 640px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+  .save_info{
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1em;
+  }
+
+}
+.last_card {
+  margin-bottom: 5px;
+}

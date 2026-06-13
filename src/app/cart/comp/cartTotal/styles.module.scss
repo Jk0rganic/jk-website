@@ -1,0 +1,65 @@
+@use "@/scss/mixin.scss" as mixin;
+
+$border: 0.1px solid rgba(0, 0, 0, 0.2);
+$border_radius: 0.4rem;
+.total_wrapper {
+  display: flex;
+  width: 100%;
+  margin-top: 1.5em;
+  justify-content: flex-end;
+  .total_price {
+    width: 100%;
+    max-width: 30em;
+    padding: 2em 1rem;
+    background-color: mixin.$pure-white;
+    border-radius: $border_radius;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1em;
+      .subtotal_row {
+        border-bottom: $border;
+      }
+      .total_row {
+        border-bottom: $border;
+        border-top: $border;
+        font-size: 1.2rem;
+
+        td {
+          &:nth-child(1) {
+            text-transform: uppercase;
+            color: rgb(0, 0, 0);
+          }
+        }
+      }
+      td {
+        padding: 10px 10px;
+        .heading {
+          font-size: 1.1rem;
+        }
+        .price {
+          font-size: 1rem;
+        }
+      }
+    }
+
+    .check_out_wrap {
+      p {
+        margin-bottom: 0.5rem;
+      }
+      a {
+        margin-bottom: 1rem;
+        color: mixin.$blue;
+      }
+      button {
+        width: 100%;
+        padding: 0.5rem;
+        color: mixin.$white;
+        background-color: mixin.$black;
+      }
+    }
+  }
+  @include mixin.responsive($max: 767px) {
+    justify-content: flex-start;
+  }
+}

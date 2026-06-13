@@ -1,0 +1,32 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as types;
+
+.one {
+  :global(.container) {
+    max-inline-size: 80em;
+
+    .cated {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5em;
+      opacity: 0.75;
+    }
+    .wrapper {
+      display: flex;
+      gap: clamp(1em, 3vw, 2em);
+      .content {
+        width: 100%;
+      }
+      @include mixin.responsive(880px) {
+        flex-direction: column;
+      }
+    }
+  }
+}
+
+.two {
+  padding-top: 0;
+  :global(.container) {
+    max-inline-size: 80em;
+  }
+}

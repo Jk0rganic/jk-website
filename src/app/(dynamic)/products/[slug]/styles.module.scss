@@ -1,0 +1,42 @@
+@use "@/scss/mixin.scss" as mixin;
+$border: 0.1px solid rgba(0, 0, 0, 0.2);
+
+.one {
+  :global(.container){
+   padding-top: 2.5em;
+   h2{
+    margin-bottom: 1.5em;
+    font-size: 1.2rem;
+   }
+    .wrapper {
+    display: flex;
+
+    .grid_wrapper {
+      width: 100%;
+      .grid {
+        @include mixin.grid;
+      }
+      .load_more {
+        margin-top: 2em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        button {
+          background: transparent;
+          width: 100%;
+          padding: 1em;
+          border-radius: 0;
+          border-top: $border;
+          border-bottom: $border;
+        }
+      }
+    }
+
+    @include mixin.responsive($max: 1024px) {
+      flex-direction: column;
+
+    }
+  }
+ }
+}

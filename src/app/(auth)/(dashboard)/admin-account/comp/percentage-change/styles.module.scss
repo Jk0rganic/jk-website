@@ -1,0 +1,21 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.percentage_change {
+  p {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: type.$small;
+  }
+  .up {
+    svg {
+      color: mixin.$green;
+    }
+  }
+  .down {
+    svg {
+      color: mixin.$red;
+    }
+  }
+}

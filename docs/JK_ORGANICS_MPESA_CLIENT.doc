@@ -1,0 +1,224 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>JK Organics — M-Pesa Integration Proposal</title>
+<!--[if gte mso 9]><xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+</w:WordDocument>
+</xml><![endif]-->
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #222; max-width: 7.5in; margin: 0 auto; padding: 0.75in; }
+  h1 { font-size: 22pt; color: #1a5c2e; text-align: center; margin-bottom: 0; }
+  .subtitle { text-align: center; font-size: 13pt; color: #444; margin-top: 4pt; }
+  .meta { text-align: center; font-size: 10pt; color: #666; margin-bottom: 24pt; }
+  h2 { font-size: 14pt; color: #1a5c2e; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 20pt; }
+  h3 { font-size: 12pt; color: #333; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 12pt 0; }
+  th, td { border: 1px solid #bbb; padding: 8pt 10pt; text-align: left; vertical-align: top; }
+  th { background: #f0f7f2; font-weight: bold; }
+  .highlight { background: #f9fdf9; border-left: 4px solid #1a5c2e; padding: 12pt 16pt; margin: 16pt 0; }
+  ul, ol { margin: 8pt 0; padding-left: 24pt; }
+  li { margin-bottom: 4pt; }
+  .checklist li { list-style: none; margin-left: -8pt; }
+  .footer { text-align: center; font-size: 9pt; color: #888; font-style: italic; margin-top: 32pt; border-top: 1px solid #ddd; padding-top: 12pt; }
+  .sign-table td { height: 36pt; }
+</style>
+</head>
+<body>
+
+<h1>M-Pesa Payment Integration</h1>
+<p class="subtitle"><strong>JK Organics E-Commerce Platform</strong></p>
+<p class="meta">Proposal &amp; Project Scope &nbsp;|&nbsp; June 2026</p>
+
+<h2>At a Glance</h2>
+<table>
+  <tr><th>Service</th><td>M-Pesa STK Push payment integration</td></tr>
+  <tr><th>Total Cost</th><td><strong>KES 14,000</strong> (one-time fee)</td></tr>
+  <tr><th>Timeline</th><td><strong>5 working days</strong> maximum</td></tr>
+  <tr><th>Scope</th><td>Plug-in M-Pesa into your live online store</td></tr>
+  <tr><th>Prepared for</th><td>JK Organics</td></tr>
+</table>
+
+<h2>Introduction</h2>
+<p>
+  This document outlines the M-Pesa payment integration for the JK Organics online store.
+  Once complete, your customers will be able to pay securely using M-Pesa directly at checkout —
+  alongside your existing <strong>Cash on Delivery</strong> option.
+</p>
+<p>
+  The integration uses Safaricom's official <strong>Daraja API (STK Push)</strong> — the same
+  technology used by leading Kenyan e-commerce platforms. Payments go directly to your registered
+  Paybill or Till number.
+</p>
+
+<h2>Important Assumption</h2>
+<div class="highlight">
+  <p><strong>This proposal assumes your JK Organics website is already deployed and fully operational</strong> —
+  including the online store, checkout, order management, hosting, and SSL certificate.</p>
+  <p>Our work is to <strong>plug in M-Pesa payments</strong> to the existing system: connect your Safaricom
+  credentials, configure the payment flow, test end-to-end, and go live. <strong>This is not a new website build.</strong></p>
+  <p>The quoted cost (KES 14,000) and timeline (5 days) apply when the prerequisites in this document
+  are ready before we begin.</p>
+</div>
+
+<h2>What You Will Get</h2>
+<p>After integration, your customers will be able to:</p>
+<ol>
+  <li>Select <strong>"Pay with M-Pesa"</strong> at checkout and enter their M-Pesa phone number.</li>
+  <li>Place their order — the order is saved in your store immediately.</li>
+  <li>Receive an <strong>M-Pesa prompt (STK Push)</strong> on their phone.</li>
+  <li>Enter their M-Pesa PIN to confirm payment.</li>
+  <li>See a <strong>confirmation page</strong> with their order details and M-Pesa receipt number.</li>
+</ol>
+<p>
+  If a payment fails, is cancelled, or times out, the customer can <strong>resend the M-Pesa prompt</strong>
+  without placing a new order. Your team will see paid orders marked clearly in the WooCommerce admin panel.
+</p>
+
+<h2>Customer Payment Flow</h2>
+<ul>
+  <li>Customer adds products to cart and proceeds to <strong>Checkout</strong>.</li>
+  <li>Customer fills in billing details, including <strong>M-Pesa phone number</strong>.</li>
+  <li>Customer selects <strong>Pay with M-Pesa</strong> and places the order.</li>
+  <li>M-Pesa payment prompt is sent to their phone.</li>
+  <li>Customer enters PIN on phone.</li>
+  <li><strong>On success:</strong> order is marked as paid and customer sees order confirmation.</li>
+  <li><strong>On failure:</strong> clear error message is shown with option to try again.</li>
+</ul>
+
+<h2>What We Need From JK Organics</h2>
+<p>Please have the following ready <strong>before Day 1</strong> of the integration:</p>
+<table>
+  <tr><th>#</th><th>Item</th><th>Details</th></tr>
+  <tr><td>1</td><td>Safaricom Daraja API account</td><td>Register at <em>developer.safaricom.co.ke</em> and create a production app</td></tr>
+  <tr><td>2</td><td>Consumer Key &amp; Secret</td><td>From your Daraja developer portal</td></tr>
+  <tr><td>3</td><td>Paybill or Till number</td><td>Your business M-Pesa shortcode</td></tr>
+  <tr><td>4</td><td>Lipa Na M-Pesa Online passkey</td><td>From Safaricom M-Pesa business portal</td></tr>
+  <tr><td>5</td><td>Live website URL (HTTPS)</td><td>Your store must be accessible on a secure domain</td></tr>
+  <tr><td>6</td><td>Test M-Pesa phone line</td><td>A number we can use for live payment testing</td></tr>
+  <tr><td>7</td><td>Hosting access</td><td>Ability to add configuration settings to your server (e.g. Vercel)</td></tr>
+</table>
+
+<h2>Project Timeline — 5 Working Days</h2>
+<p>The schedule below assumes your credentials and prerequisites are ready on Day 1,
+and that feedback is provided within the same working day.</p>
+<table>
+  <tr><th>Day</th><th>Focus</th><th>Outcome</th></tr>
+  <tr><td><strong>Day 1</strong></td><td>Setup &amp; credentials</td><td>M-Pesa credentials connected; system configured</td></tr>
+  <tr><td><strong>Day 2</strong></td><td>Backend integration</td><td>Payment requests and confirmations working</td></tr>
+  <tr><td><strong>Day 3</strong></td><td>Checkout &amp; payment screens</td><td>Full customer journey from cart to payment</td></tr>
+  <tr><td><strong>Day 4</strong></td><td>Testing &amp; quality checks</td><td>All payment scenarios tested (success, cancel, retry)</td></tr>
+  <tr><td><strong>Day 5</strong></td><td>Go-live &amp; handover</td><td><strong>M-Pesa live on JK Organics</strong>; team briefed</td></tr>
+</table>
+<p><em>Note: If delays are caused by missing Safaricom credentials or site access, the timeline pauses until those items are resolved.</em></p>
+
+<h2>Detailed Work Plan</h2>
+
+<h3>Phase 1 — Setup (Day 1)</h3>
+<ul>
+  <li>Confirm live website is running on HTTPS</li>
+  <li>Receive and securely configure M-Pesa credentials</li>
+  <li>Register payment callback URL with Safaricom</li>
+  <li>Confirm Paybill or Till payment type</li>
+</ul>
+
+<h3>Phase 2 — Payment Engine (Day 2)</h3>
+<ul>
+  <li>Connect M-Pesa STK Push to your order system</li>
+  <li>Set up automatic payment confirmation from Safaricom</li>
+  <li>Enable payment status tracking</li>
+  <li>Enable retry for failed or timed-out payments</li>
+</ul>
+
+<h3>Phase 3 — Customer Experience (Day 3)</h3>
+<ul>
+  <li>Add Pay with M-Pesa option on checkout</li>
+  <li>Build payment waiting page with clear instructions</li>
+  <li>Show payment success and failure messages</li>
+  <li>Ensure Cash on Delivery continues to work as before</li>
+</ul>
+
+<h3>Phase 4 — Testing (Day 4)</h3>
+<ul>
+  <li>Test successful payment end-to-end</li>
+  <li>Test customer cancellation on phone</li>
+  <li>Test payment timeout and retry</li>
+  <li>Verify orders appear correctly in your admin panel</li>
+</ul>
+
+<h3>Phase 5 — Launch (Day 5)</h3>
+<ul>
+  <li>Final live payment test on production</li>
+  <li>Brief your team on checking M-Pesa payments in admin</li>
+  <li>Handover documentation</li>
+  <li>Client sign-off</li>
+</ul>
+
+<h2>Responsibilities</h2>
+<table>
+  <tr><th>Task</th><th>JK Organics</th><th>Developer</th></tr>
+  <tr><td>Safaricom business account &amp; Paybill/Till</td><td>Yes</td><td></td></tr>
+  <tr><td>Daraja API credentials &amp; passkey</td><td>Yes</td><td></td></tr>
+  <tr><td>Website hosting &amp; domain</td><td>Yes</td><td></td></tr>
+  <tr><td>Provide test M-Pesa number</td><td>Yes</td><td></td></tr>
+  <tr><td>M-Pesa integration &amp; configuration</td><td></td><td>Yes</td></tr>
+  <tr><td>Payment testing (technical)</td><td></td><td>Yes</td></tr>
+  <tr><td>User acceptance testing</td><td>Yes</td><td></td></tr>
+  <tr><td>Final go-live approval</td><td>Yes</td><td></td></tr>
+</table>
+
+<h2>Investment</h2>
+<table>
+  <tr><th>Description</th><th>Amount (KES)</th></tr>
+  <tr><td>M-Pesa STK Push integration (setup, testing, go-live, handover)</td><td><strong>14,000</strong></td></tr>
+</table>
+
+<h3>Included in KES 14,000</h3>
+<ul>
+  <li>M-Pesa payment option on checkout</li>
+  <li>STK Push payment prompts to customer phones</li>
+  <li>Automatic order update when payment succeeds</li>
+  <li>Payment retry for failed or cancelled payments</li>
+  <li>Customer-friendly error messages</li>
+  <li>End-to-end testing and production go-live</li>
+  <li>Brief handover for your team</li>
+</ul>
+
+<h3>Not Included</h3>
+<ul>
+  <li>Safaricom Paybill/Till registration fees</li>
+  <li>Per-transaction M-Pesa charges (billed by Safaricom)</li>
+  <li>New website development or deployment</li>
+  <li>WordPress / WooCommerce setup</li>
+  <li>Ongoing maintenance after go-live (unless agreed separately)</li>
+</ul>
+
+<h2>Acceptance Checklist</h2>
+<p>The integration will be considered complete when all items below are confirmed:</p>
+<ul class="checklist">
+  <li>☐ &nbsp;Customers can pay with M-Pesa from checkout on the live site</li>
+  <li>☐ &nbsp;M-Pesa prompt arrives on the phone number entered at checkout</li>
+  <li>☐ &nbsp;Successful payments mark orders as paid with M-Pesa receipt number</li>
+  <li>☐ &nbsp;Failed or cancelled payments show a clear message and allow retry</li>
+  <li>☐ &nbsp;Cash on Delivery still works normally</li>
+  <li>☐ &nbsp;JK Organics team can verify payments in the admin panel</li>
+</ul>
+
+<h2>Sign-Off</h2>
+<table class="sign-table">
+  <tr><th>Role</th><th>Name</th><th>Signature</th><th>Date</th></tr>
+  <tr><td>JK Organics (Client)</td><td></td><td></td><td></td></tr>
+  <tr><td>Developer</td><td></td><td></td><td></td></tr>
+</table>
+
+<p class="footer">
+  This proposal is valid for the JK Organics e-commerce platform.<br>
+  Total integration cost: KES 14,000 &nbsp;|&nbsp; Maximum delivery: 5 working days &nbsp;|&nbsp; Assumes existing site deployment is complete.
+</p>
+
+</body>
+</html>

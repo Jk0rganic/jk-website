@@ -1,0 +1,75 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.orderPage {
+  h1 {
+    font-size: type.$h5;
+    margin-bottom: 1.2em;
+  }
+  .web {
+    @include mixin.responsive($max: 881px) {
+      display: none;
+    }
+  }
+  .mobile {
+    @include mixin.responsive($min: 881px) {
+      display: none;
+    }
+  }
+  .ordersTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-family: Arial, sans-serif;
+
+    th,
+    td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    thead {
+      background-color: #f4f4f4;
+
+      th {
+        font-weight: 600;
+        color: #333;
+      }
+    }
+
+    tbody tr {
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f1f7ff;
+      }
+    }
+
+    td a {
+      color: #0070f3;
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  .pagination {
+    display: flex;
+    justify-content: center;
+    justify-content: space-between;
+    margin-top: 1.5em;
+    button {
+      background-color: mixin.$green;
+      padding: 0.2rem 0.5rem;
+      color: mixin.$white;
+      border-radius: 0;
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

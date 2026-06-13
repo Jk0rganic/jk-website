@@ -1,0 +1,70 @@
+@use "@/scss/mixin.scss" as mixin;
+
+$border: 0.1px solid rgba(0, 0, 0, 0.15);
+$border-radius: 0.4rem;
+.cart_summary {
+  $padding: 0.8rem 0.5rem;
+  width: 100%;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    th,
+    td {
+      text-align: left;
+      padding: $padding;
+      border-bottom: $border;
+    }
+    th {
+      background-color: #f5f5f5;
+    }
+    tfoot {
+      font-weight: bold;
+    }
+    .label {
+      strong {
+        font-weight: 600;
+      }
+    }
+    .total {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+    .divider_row {
+      td {
+        border-top: none;
+      }
+      .divider {
+        margin: 0;
+      }
+    }
+  }
+  .coupon {
+    display: flex;
+    margin-top: 1rem;
+    input,
+    button {
+      padding: $padding;
+      background-color: mixin.$white;
+      color: mixin.$black;
+      border-radius: 0;
+      border: 0.1px solid rgba(0, 0, 0, 0.1);
+    }
+    input {
+      width: 100%;
+    }
+    button {
+      padding: 0 1rem;
+      background-color: rgb(207, 207, 207);
+    }
+  }
+  .btn_submit {
+    margin-top: 1.2em;
+    width: 100%;
+    padding: 1em;
+    color: mixin.$white;
+    background-color: mixin.$black;
+    font-weight: 600;
+    border-radius: 0.5rem;
+  }
+}

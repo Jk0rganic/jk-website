@@ -1,0 +1,44 @@
+@use "@/scss/mixin.scss" as mixin;
+$btn-row: 1px solid rgba(0, 0, 0, 0.2);
+$radius: 0.4rem;
+$font-size: 0.8rem;
+
+.form {
+  .btn {
+    width: 100%;
+    padding: 0.4rem 1em;
+    background-color: mixin.$black;
+    color: mixin.$white;
+    border-radius: 0;
+    margin-top: 1em;
+  }
+  .btn_wrapper {
+    display: flex;
+    justify-content: space-between;
+    .forgot {
+      text-align: end;
+      color: mixin.$blue;
+      text-decoration: none;
+      font-size: $font-size;
+    }
+    .sign_up {
+      font-size: $font-size;
+      display: flex;
+      gap: 5px;
+      a {
+        color: mixin.$blue;
+        text-decoration: none;
+      }
+    }
+  }
+  @include mixin.responsive($max: 640px) {
+    .btn_wrapper {
+      flex-direction: column-reverse;
+      justify-content: flex-start;
+
+      .forgot {
+        text-align: left;
+      }
+    }
+  }
+}

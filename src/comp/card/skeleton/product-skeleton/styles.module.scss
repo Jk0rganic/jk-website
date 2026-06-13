@@ -1,0 +1,31 @@
+@use "@/scss/mixin.scss" as mixin;
+
+$color: mixin.$skeleton-white;
+.card {
+  margin-bottom: 2em;
+  .img {
+    height: clamp(18rem, 25vw, 20.65rem);
+    background-color: $color;
+    margin-bottom: 1rem;
+    @include mixin.responsive($max: 767px) {
+      height: clamp(15rem, 15vw, 20.65rem);
+    }
+  }
+  .content {
+    padding: 0 0.5rem;
+    .category {
+      height: 1em;
+      max-width: 10em;
+      margin-bottom: 1rem;
+
+      background-color: $color;
+      @include mixin.borderRadius(0.5rem);
+    }
+    .title {
+      height: 1.7em;
+      width: 100%;
+      background-color: $color;
+      @include mixin.borderRadius(0.5rem);
+    }
+  }
+}

@@ -1,0 +1,28 @@
+@use "@/scss/mixin.scss" as mixin;
+$btn-row: 1px solid rgba(0, 0, 0, 0.2);
+$radius: 0.4rem;
+$font-size: 0.8rem;
+.form {
+  a {
+    color: mixin.$blue;
+    text-decoration: none;
+  }
+  .btn {
+    width: 100%;
+    padding: 0.4rem 1em;
+    background-color: mixin.$black;
+    color: mixin.$white;
+    border-radius: 0;
+    margin-top: 1em;
+  }
+  .sign_up {
+    font-size: $font-size;
+    display: flex;
+    gap: 5px;
+    margin-top: 1.5em;
+    a {
+      color: mixin.$blue;
+      text-decoration: none;
+    }
+  }
+}

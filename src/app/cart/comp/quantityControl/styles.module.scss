@@ -1,0 +1,15 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.quantity_control {
+    display: flex;
+    justify-content: space-between;
+    button {
+      padding: 0 10px;
+      font-size: 1rem;
+      @include mixin.borderRadius(0);
+    }
+    @include  mixin.responsive(767px){
+        margin-top: .8rem;
+        max-width: 8em;
+    }
+  }

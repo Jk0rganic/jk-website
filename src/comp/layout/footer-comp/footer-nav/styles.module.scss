@@ -1,0 +1,47 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.footer_nav {
+  .web_links {
+    ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+    }
+  }
+  .card {
+    h6 {
+      font-size: type.$h4;
+      margin-bottom: 0.8rem;
+    }
+    li {
+      margin-bottom: 0.4em;
+      font-size: type.$p;
+      opacity: 0.95;
+      a {
+        margin-bottom: 0.4em;
+        text-decoration: none;
+        color: inherit;
+      }
+    }
+  }
+
+  @include mixin.gridbox(18rem);
+  @include mixin.responsive($max: 600px) {
+    place-items: center;
+    text-align: center;
+    .card {
+      h6,
+      a,
+      p {
+        text-align: center;
+      }
+      ul {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5em;
+      }
+    }
+  }
+}

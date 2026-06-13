@@ -1,0 +1,36 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.one {
+  h3 {
+    font-size: type.$h3;
+    margin-bottom: 1.2em;
+  }
+  .container {
+    display: flex;
+    gap: 2rem;
+
+    .info {
+      width: 100%;
+      h4 {
+        font-size: type.$h3;
+        margin-bottom: 1em;
+      }
+      p,
+      a {
+        margin-bottom: 0.5em;
+        font-size: type.$p;
+        opacity: 0.98;
+      }
+
+      li {
+        display: flex;
+        gap: 0.5em;
+        padding: 0.2rem 0;
+      }
+    }
+    @include mixin.responsive($max: 880px) {
+      flex-direction: column;
+    }
+  }
+}

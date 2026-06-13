@@ -1,0 +1,11 @@
+@use "@/scss/mixin.scss" as mixin;
+.sec {
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(2em, 3vw, 6%) 0;
+  position: relative;
+
+  @include mixin.responsive($min: 90em) {
+    padding: clamp(2em, 2.5vw, 4%) 0;
+  }
+}

@@ -1,0 +1,27 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.price_box {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  .old_price {
+    text-decoration: line-through;
+    font-weight: 300;
+    color: mixin.$grey;
+  }
+  .new_price {
+    color: mixin.$price-color;
+  }
+  h5 {
+    font-weight: 400;
+    font-family: var(--font-body);
+  }
+  span {
+    padding: .22rem 0.5rem;
+    height: fit-content;
+    border-radius: 2em;
+    font-size: 0.8rem;
+    line-height: 1.1;
+    border: 0.1px solid rgba(0, 0, 0, 0.2);
+  }
+}

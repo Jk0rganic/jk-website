@@ -1,0 +1,55 @@
+import { GoogleTagManager } from "@next/third-parties/google";
+import { Quintessential, Inter, Cormorant_Garamond } from "next/font/google";
+import Navbar from "./navbar-comp/navbar";
+import { Providers } from "@/provider/provider";
+import LokomitiveScroll from "../lokomitiveScroll";
+import Footer from "./footer-comp/footer";
+import { Toaster } from "sonner";
+import FloatWhatapp from "../float-whatapp/float-whatapp";
+import { ReactNode } from "react";
+// Fonts
+const quintessential = Quintessential({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-quintessential",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-cormorant",
+});
+
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <html
+      lang="en"
+      className={`${inter.variable} ${quintessential.variable} ${cormorant.variable}`}
+    >
+      <body>
+        <Providers>
+          <Navbar />
+          <LokomitiveScroll>{children}</LokomitiveScroll>
+
+          <Footer />
+          <Toaster />
+        </Providers>
+        <FloatWhatapp />
+        <GoogleTagManager
+          gtmId={`${process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER}`}
+        />{" "}
+      </body>
+    </html>
+  );
+}

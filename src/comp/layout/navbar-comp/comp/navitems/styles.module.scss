@@ -1,0 +1,60 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.nav_items_wrapper {
+  .navItem {
+    display: inline-flex;
+    position: relative;
+    padding: 0 2em;
+    @include mixin.borderRadius(4em);
+  }
+  .toggle {
+    color: mixin.$green;
+    display: none;
+    padding: 0.5rem 5px;
+    cursor: pointer;
+  }
+
+  @include mixin.responsive($max: 880px) {
+    .logo {
+      max-width: 5em;
+    }
+    .toggle {
+      display: flex;
+    }
+    .navItem {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background-color: mixin.$white;
+      width: 100%;
+      height: 100vh;
+      position: absolute;
+      border-top: rgba(165, 165, 165, .25) 1px solid;
+      top: 100%;
+      padding: 2em;
+      z-index: 5;
+      left: 0;
+      visibility: hidden;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+      @include mixin.transition(all ease-in-out 0.25s);
+      @include mixin.borderRadius(0);
+      &:global(.active) {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+        transition: opacity 0.25s ease-in-out, visibility 0s linear 0s;
+      }
+      a {
+        font-size: type.$h2;
+        margin-bottom: .8em;
+        font-weight: 600;
+        letter-spacing: .3rem;
+        opacity: 0.95;
+      }
+    }
+  }
+}

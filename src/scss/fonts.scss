@@ -1,0 +1,71 @@
+@use "@/scss/typography.scss" as type;
+
+/* ---------------- TYPOGRAPHY RESET ---------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+.btn {
+  margin-bottom: clamp(0.6rem, 0.8vw + 0.4rem, 1.6rem);
+}
+
+/* ---------------- HEADINGS ---------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-nunito);
+  font-style: normal;
+  line-height: 1.2;
+  text-wrap: balance;
+  margin: 0 0 0.5em 0;
+  color: inherit;
+  font-weight: 400;
+}
+
+h1 {
+  font-size: type.$h1;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: type.$h2;
+  font-weight: 500;
+}
+
+h3 {
+  font-size: type.$h3;
+}
+
+h4 {
+  font-size: type.$h4;
+}
+
+h5 {
+  font-size: type.$h5;
+}
+
+h6 {
+  font-size: type.$h6;
+}
+
+/* ---------------- BODY TEXT ---------------- */
+
+p {
+  font-style: normal;
+  max-width: 75ch;
+  text-wrap: pretty;
+  opacity: 0.8;
+}
+
+span {
+  font-size: 0.75rem;
+  font-family: var(--font-nunito-sans);
+}

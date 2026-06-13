@@ -1,0 +1,22 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.auth_error {
+  :global(.container) {
+    margin-top: 3em;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1em;
+    }
+    a {
+      background-color: mixin.$black;
+      color: mixin.$white;
+      padding: 0.4rem 1em;
+      border-radius: 0.4rem;
+      width: fit-content;
+    }
+  }
+}

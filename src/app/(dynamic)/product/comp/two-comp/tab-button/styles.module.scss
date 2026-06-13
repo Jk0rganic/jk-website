@@ -1,0 +1,31 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.tab_button {
+  gap: 1em;
+  margin-bottom: 2em;
+  button {
+    padding: 0.4em 1em;
+    border-radius: 0.5em;
+    border: none;
+    cursor: pointer;
+    border-radius: 0;
+    background-color: transparent;
+    position: relative;
+    span {
+      position: absolute;
+      top: 0;
+      margin-left: 0.1rem;
+    }
+  }
+  .active {
+    border-bottom: 0.1px solid rgb(128, 128, 128, 0.2);
+  }
+  @include mixin.responsive($max: 640px) {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  @include mixin.responsive($min: 640px) {
+    display: flex;
+    justify-content: center;
+  }
+}

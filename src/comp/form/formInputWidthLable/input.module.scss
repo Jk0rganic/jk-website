@@ -1,0 +1,26 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.input_wrapper {
+  $light_red: rgba(255, 0, 0, 0.1);
+  $blue: rgba(0, 123, 255, 0.5);
+  $border: 0.1px solid rgba(0, 0, 0, 0.2);
+  margin-bottom: 1em;
+  width: 100%;
+  input {
+    width: 100%;
+    position: relative;
+    padding: 0.5rem 5px;
+    border: $border;
+    &:focus {
+      border-color: $blue;
+    }
+  }
+  .error_field {
+    color: mixin.$red;
+    padding: 0.2rem 0;
+  }
+  .input_error {
+    background-color: $light_red;
+    border-color: $light_red;
+  }
+}

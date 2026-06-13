@@ -1,0 +1,82 @@
+@use "@/scss/mixin.scss" as mixin;
+$navbar-height: 5em;
+
+//hero
+.hero {
+  padding: 0;
+  background: linear-gradient(rgba(0, 75, 35, 0.6), rgba(0, 75, 35, 0.7)),
+    url("https://darkgreen-kangaroo-709373.hostingersite.com/wp-content/uploads/2025/10/engin-akyurt-g-m8EDc4X6Q-unsplash-1.jpg")
+      center/cover no-repeat;
+  :global(.container) {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding-top: $navbar-height;
+    min-height: calc(45rem - #{$navbar-height});
+    color: mixin.$white;
+    .content {
+      h1 {
+        font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem);
+      }
+      a {
+        color: mixin.$white;
+        border: 1px solid mixin.$white;
+        border-left: none;
+      }
+    }
+  }
+}
+
+//one
+.one {
+  .explore {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+        margin-bottom: 1.2em;
+
+    a{
+      color: mixin.$black;
+      text-decoration: underline
+    }
+  }
+  .card_wrapper {
+    @include mixin.gridbox(20rem);
+    .card {
+      position: relative;
+      @include mixin.borderRadius(mixin.$radius);
+      h5 {
+        position: absolute;
+        bottom: 0.5rem;
+        left: 50%;
+        width: 90%;
+        text-align: center;
+        z-index: 5;
+        background-color: mixin.$white;
+        transform: translateX(-50%);
+        padding: 0.4rem 1rem;
+        border-radius: 10em;
+      }
+      .img_box {
+        max-height: 17.75rem;
+        height: 17.75rem;
+      }
+    }
+  }
+  @include mixin.responsive($max: 767px) {
+    .explore {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+}
+
+//
+.two {
+  .grid {
+    @include mixin.grid;
+    margin-top: 2rem;
+  }
+      
+
+}

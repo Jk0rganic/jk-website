@@ -1,0 +1,43 @@
+.details {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  background: rgba(27, 127, 58, 0.06);
+  border: 1px solid rgba(27, 127, 58, 0.15);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.35rem 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  dt {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: right;
+  }
+}
+
+.amount {
+  color: #1b7f3a;
+}
+
+.receipt {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.02em;
+}

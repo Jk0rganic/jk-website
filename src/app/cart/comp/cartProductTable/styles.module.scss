@@ -1,0 +1,70 @@
+@use "@/scss/mixin.scss" as mixin;
+$border: 0.1px solid rgba(0, 0, 0, 0.2);
+$border_radius: 0.4rem;
+$font-size: clamp(0.95rem, 1vw + 0.6rem, 1.1rem);
+
+.card_table {
+  .product_table {
+    background-color: mixin.$pure-white;
+    width: 100%;
+    border-collapse: collapse; // Ensures a cleaner look for table borders
+    .product_details {
+      .img_box {
+        max-height: 4em;
+        height: 3em;
+        @include mixin.borderRadius(0);
+      }
+    }
+
+    th {
+      border-bottom: $border;
+      text-align: left;
+      font-weight: 600;
+      font-size: $font-size;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      vertical-align: middle;
+      border-left: $border;
+    }
+
+    td,
+    h6 {
+      margin: 0;
+      font-size: $font-size;
+
+      color: #333;
+    }
+    .remove_button {
+      padding: 6px;
+    }
+    .item_tittle {
+      color: #000000;
+    }
+  }
+  .web {
+    display: table;
+    border: $border;
+    border-bottom: none;
+    .fit_content {
+      max-width: fit-content;
+      width: 5em;
+      button {
+        background: transparent;
+      }
+    }
+    td {
+      border-bottom: $border;
+    }
+  }
+  .mobile {
+    display: none;
+  }
+  @include mixin.responsive($max: 767px) {
+    .web {
+      display: none;
+    }
+  }
+}

@@ -1,0 +1,14 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.reviews {
+  .review_header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+    h6 {
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+  }
+}

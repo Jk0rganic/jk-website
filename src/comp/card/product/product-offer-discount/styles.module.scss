@@ -1,0 +1,12 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.price_box {
+  display: block;
+  background-color: mixin.$white;
+  @include mixin.borderRadius(1rem);
+  span {
+    font-size: 0.75rem;
+      padding: 0 0.5rem;
+
+  }
+}

@@ -1,0 +1,8 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.one {
+  .card_wrapper {
+    @include mixin.grid;
+  }
+}

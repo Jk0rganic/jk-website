@@ -1,0 +1,14 @@
+@use "@/scss/mixin.scss" as mixin;
+
+
+.additional_information{
+
+    .wrapper{
+        display: flex;
+        gap: 1em;
+        ul{
+               display: flex;
+        gap: 1em;
+        }
+    }
+}

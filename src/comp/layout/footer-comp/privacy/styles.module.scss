@@ -1,0 +1,18 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.privacy_cop {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  a {
+    color: mixin.$black;
+    font-size: type.$small;
+
+    opacity: 0.75rem;
+  }
+
+  @include mixin.responsive($max: 640px) {
+    justify-content: center;
+  }
+}

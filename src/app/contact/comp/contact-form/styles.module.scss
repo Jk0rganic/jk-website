@@ -1,0 +1,26 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.one {
+  $border: 0.1px solid rgba(0, 0, 0, 0.2);
+  width: 100%;
+  form {
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 1.5rem);
+    border: $border;
+    max-width: 800px;
+    margin-inline: auto;
+
+    button {
+      padding: 0.5rem 1rem;
+      background: mixin.$green;
+      color: mixin.$white;
+      @include mixin.borderRadius(0);
+    }
+    .inputs_email {
+      display: flex;
+      gap: 0.4rem;
+      @include mixin.responsive($max: 767px) {
+        flex-direction: column;
+      }
+    }
+  }
+}

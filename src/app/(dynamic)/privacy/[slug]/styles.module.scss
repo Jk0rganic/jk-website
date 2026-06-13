@@ -1,0 +1,31 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as types;
+
+.one {
+  :global(.container) {
+    max-width: 800px;
+    h1 {
+      font-size: types.$h4;
+    }
+    h2 {
+      font-size: types.$h5;
+    }
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-size: types.$h6;
+    }
+    p {
+      font-size: types.$p;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin-top: 1em;
+    }
+  }
+}

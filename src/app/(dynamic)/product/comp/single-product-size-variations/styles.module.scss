@@ -1,0 +1,26 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+.size {
+  margin-bottom: 1.5em;
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .option {
+    border: 1px solid #ddd;
+    border-radius: 0px;
+    padding: 0.1rem 0.3rem;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    :hover {
+      border-color: mixin.$black;
+    }
+  }
+
+  .active {
+    border-color: mixin.$green;
+  }
+}

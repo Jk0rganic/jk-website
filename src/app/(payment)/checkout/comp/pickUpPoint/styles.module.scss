@@ -1,0 +1,32 @@
+.pick_point {
+  margin-bottom: 0.8em;
+
+  h5 {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+  }
+
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .checkbox {
+    display: flex;
+    align-items: flex-start; // keep items top-aligned
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+
+    input {
+      margin-top: 0.25rem; // 🔑 pushes checkbox to the top
+      flex-shrink: 0;
+    }
+
+
+    p {
+      margin: 0.2rem 0 0;
+      font-size: 0.95rem;
+      opacity: 0.85;
+    }
+  }
+}

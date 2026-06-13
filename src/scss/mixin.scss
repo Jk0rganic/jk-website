@@ -1,0 +1,92 @@
+$max-width: 90em;
+$white: #eeeeee;
+$pure-white: #ffffff;
+$blue: rgb(2, 93, 197);
+$skeleton-white: #dbdee2;
+$red: hsl(0 84.2% 60.2%);
+$grey: #666;
+$black: #1c1c1c;
+$green: #249346;
+$yellow: #f6eb1d;
+$radius: 0.4rem;
+$nav-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+$price-color: rgb(220, 152, 20);
+
+@mixin linearGradient($color1, $color2, $url) {
+  background-image: linear-gradient($color1, $color2), url($url);
+  background-size: cover;
+}
+
+@mixin transition($duration) {
+  transition: $duration all ease-in-out;
+}
+@mixin transform {
+  transform: scale($scale);
+}
+@mixin borderRadius($radius) {
+  border-radius: ($radius);
+}
+
+@mixin flexbox($direction, $gap, $align: null, $justify: null) {
+  display: flex;
+  flex-direction: $direction;
+  gap: $gap;
+  @if $align != null {
+    align-items: $align;
+  }
+  @if $justify != null {
+    justify-content: $justify;
+  }
+}
+
+@mixin gridbox($width, $gap: 1rem) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min($width, 100%), 1fr));
+  gap: $gap;
+}
+
+// 1280, 1440, 768, 1024, 768, 640, 480
+@mixin responsive($max: null, $min: null) {
+  @if $min != null and $max != null {
+    @media (min-width: $min) and (max-width: $max) {
+      @content;
+    }
+  } @else if $min != null {
+    @media (min-width: $min) {
+      @content;
+    }
+  } @else if $max != null {
+    @media (max-width: $max) {
+      @content;
+    }
+  }
+}
+
+@mixin grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+
+  @include responsive($max: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @include responsive($max: 767px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  // @include responsive($max: 600px) {
+  //   grid-template-columns: 1fr;
+  // }
+}
+
+@mixin container {
+  max-width: $max-width;
+  margin-inline: auto;
+  @include responsive($max: 90em) {
+    padding-inline: 4%;
+  }
+  @include responsive($max: 640px) {
+    padding: 0 2.5%;
+  }
+}

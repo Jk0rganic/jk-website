@@ -1,0 +1,39 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.details_page {
+  max-width: 400px;
+
+  h1 {
+    font-size: type.$h4;
+    margin-bottom: 1em;
+  }
+
+  .read_only_form {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    max-width: 400px;
+    margin-top: 1em;
+
+    .form_group {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      label {
+        font-size: 0.75rem;
+      }
+      input {
+        padding: 0.5em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        width: 100%;
+      }
+      small {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+      }
+    }
+  }
+}

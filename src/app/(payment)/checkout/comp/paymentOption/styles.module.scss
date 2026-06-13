@@ -1,0 +1,47 @@
+.payment_option {
+  padding: 1rem 0.5rem;
+  margin-bottom: 1.5em;
+
+  border: 0.1px solid rgba(0, 0, 0, 0.2);
+  h5 {
+    margin-bottom: 1.2rem;
+    font-size: 1.3rem;
+  }
+  .img {
+    max-width: 4em;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+  .checkbox {
+    margin-bottom: 0.8rem;
+    font-size: 1.05rem;
+    color: black;
+    display: flex;
+    input {
+      margin-right: 5px;
+    }
+  }
+  .error {
+    color: red;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+  .online_box {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+
+  .payment_details_card {
+    margin-bottom: 0.75rem;
+  }
+
+  .notice {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin-bottom: 0.5rem;
+  }
+
+  .helper {
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}

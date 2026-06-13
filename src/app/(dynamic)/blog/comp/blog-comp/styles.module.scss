@@ -1,0 +1,15 @@
+@use "@//scss/mixin.scss" as mixin;
+@use "@//scss/typography.scss" as type;
+
+.reviews_blog {
+  h5 {
+    margin-bottom: clamp(1em, 1.5vw, 1.6em);
+  }
+  li {
+    .review_author {
+      display: flex;
+      gap: 0.5rem;
+      width: fit-content;
+    }
+  }
+}

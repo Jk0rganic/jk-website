@@ -1,0 +1,10 @@
+@use "@/scss/mixin.scss" as mixin;
+.form {
+  button {
+    width: 100%;
+    padding: 0.4rem 1em;
+    background-color: mixin.$black;
+    color: mixin.$white;
+    border-radius: 0;
+  }
+}

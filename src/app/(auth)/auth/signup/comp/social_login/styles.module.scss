@@ -1,0 +1,67 @@
+@use "@/scss/mixin.scss" as mixin;
+$input: rgba(0, 0, 0, 0.2);
+$btn-row: 1px solid rgba(0, 0, 0, 0.2);
+.social_wrapper {
+  .or {
+    display: flex;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    span {
+      width: 100%;
+      font-size: 1rem;
+      text-transform: lowercase;
+      text-align: center;
+      position: relative;
+      margin-bottom: 0.5rem;
+      &::after {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0;
+        top: 50%;
+        width: 45%;
+        height: 0.1px;
+        background: $input;
+        z-index: 1;
+        opacity: 0.5;
+      }
+      &::before {
+        content: "";
+        position: absolute;
+        display: block;
+        right: 0;
+        top: 50%;
+        width: 45%;
+        height: 0.1px;
+        background: $input;
+        z-index: 1;
+        opacity: 0.5;
+      }
+    }
+  }
+  .form {
+    margin-bottom: 0.8rem;
+    border: $btn-row;
+    button {
+      text-transform: capitalize;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      background: none;
+      border: none;
+      outline: none;
+      padding: 0.5rem 1rem;
+      width: 100%;
+    }
+    .img_box {
+      max-width: 2rem;
+      height: clamp(1.2rem, 2vw, 1.8rem);
+      img {
+        mix-blend-mode: multiply;
+        object-fit: contain;
+      }
+    }
+  }
+}

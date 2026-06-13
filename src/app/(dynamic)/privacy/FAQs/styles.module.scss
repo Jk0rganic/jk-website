@@ -1,0 +1,45 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+$font-size: clamp(1.25rem, 3vw + 1rem, 1.424rem); // use clamp here instead of button
+
+.faqs {
+:global(.container) {
+  max-width: 45em;
+      span {
+    font-size: type.$h6;
+  }
+  p{
+    margin-left: 2em;
+  }
+  .faq_question {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-weight: 600;
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .icon {
+    font-weight: bold;
+    width: 24px;
+    display: inline-block;
+    text-align: center;
+  }
+  .link {
+  color: mixin.$blue;
+  text-decoration: underline;
+  font-weight: 500;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+  }
+}

@@ -1,0 +1,16 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.account_container {
+  margin-top: 2.6em;
+  :global(.container) {
+    display: flex;
+    gap: 2em;
+    .account_content {
+      width: 100%;
+    }
+    @include mixin.responsive($max: 768px) {
+      flex-direction: column;
+      gap: 0.5em;
+    }
+  }
+}

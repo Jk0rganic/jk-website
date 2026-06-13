@@ -1,0 +1,11 @@
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  .tag {
+    display: inline-block;
+    font-weight: 200;
+    color: #2d3501;
+  }
+}

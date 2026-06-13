@@ -1,0 +1,52 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.card {
+  position: relative;
+  width: 100%;
+  padding-bottom: 1.5em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); // subtle, clean shadow
+  height: fit-content;
+  a {
+    color: mixin.$black;
+  }
+  .absolute {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    .new_badge {
+      font-size: 0.75rem;
+      padding: 0 0.5rem;
+      color: mixin.$green;
+      background-color: mixin.$white;
+      @include mixin.borderRadius(1rem);
+    }
+  }
+
+  .img_box {
+    height: clamp(18rem, 25vw, 20.65rem);
+    @include mixin.borderRadius(0);
+
+    @include mixin.responsive($max: 767px) {
+      height: clamp(15rem, 15vw, 20.65rem);
+    }
+  }
+  .content {
+    margin-top: 1rem;
+    padding: 0 0.5rem;
+
+    h3 {
+      font-size: type.$h6;
+      font-family: var(--font-heading);
+      text-wrap: initial;
+    }
+  }
+
+  @include mixin.responsive($min: 880px) {
+    max-width: 30rem;
+  }
+}

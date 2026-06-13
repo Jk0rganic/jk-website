@@ -1,0 +1,27 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+.addresses_page {
+  h1 {
+    font-size: type.$h4;
+    margin-bottom: 1em;
+  }
+  .address_container {
+    display: flex;
+    gap: 2em;
+    .address_section {
+      flex: 1;
+      a {
+        color: mixin.$black;
+        margin-bottom: 0.8rem;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+    @include mixin.responsive($max: 768px) {
+      flex-direction: column;
+      gap: 0.5em;
+    }
+  }
+}

@@ -1,0 +1,18 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.category {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin-bottom: 1em;
+  button {
+    background: transparent;
+  
+  }
+    .active {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+  }
+}

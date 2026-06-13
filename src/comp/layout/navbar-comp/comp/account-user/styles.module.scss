@@ -1,0 +1,5 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.link {
+   color: mixin.$black;
+}

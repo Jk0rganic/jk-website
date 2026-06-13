@@ -1,0 +1,53 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+.size {
+  padding: 0 0.5rem;
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .option {
+    border: 1px solid #ddd;
+    border-radius: 0.4rem;
+    padding: 0.1rem 0.3rem;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    :hover {
+      border-color: mixin.$black;
+    }
+  }
+  .price_box {
+    margin-top: 1rem;
+    display: flex;
+    gap: clamp(0.4rem, 1vw, 1rem);
+    .old_price {
+      text-decoration: line-through;
+      color: mixin.$grey;
+      font-weight: 300;
+    }
+    .new_price {
+      color: mixin.$price-color;
+      font-size: clamp(0.875rem, 2vw, 1rem);
+    }
+    @include mixin.responsive($max: 640px) {
+      flex-direction: column;
+      .old_price {
+        margin-bottom: 0;
+      }
+    }
+  }
+  h5 {
+    font-family: var(--font-body);
+    font-size: clamp(0.8rem, 1.6vw, 0.9rem);
+    margin-bottom: clamp(0.75rem, 1.5vw, 1rem);
+    font-weight: 400;
+  }
+
+  .active {
+    border-color: mixin.$green;
+  }
+}

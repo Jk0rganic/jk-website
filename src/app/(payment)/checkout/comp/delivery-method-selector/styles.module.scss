@@ -1,0 +1,17 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.delivery{
+    margin-bottom: 1rem;
+    .checkbox_wrapper{
+        display: flex;
+        justify-content: space-between;
+        
+    label{
+        display: block;
+        margin-bottom: .4em;
+        input{
+            margin-right: 5px;
+        }
+    }
+}
+}

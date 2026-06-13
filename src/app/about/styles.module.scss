@@ -1,0 +1,47 @@
+@use "@/scss/mixin.scss" as mixin;
+.two {
+  :global(.container) {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: clamp(1em, 3vw, 2em);
+    .img_box {
+      height: clamp(20rem, 50vh, 40rem);
+      filter: grayscale(100%);
+    }
+    .content {
+      width: 100%;
+    }
+    @include mixin.responsive($max: 880px) {
+      flex-direction: column-reverse;
+      .img_box {
+        height: clamp(20rem, 40vh, 30rem);
+      }
+      .articles {
+        margin-top: 1.5em;
+        &:nth-child(1) {
+          margin-top: 0;
+        }
+      }
+    }
+  }
+}
+
+//one
+.one {
+  :global(.container) {
+    display: flex;
+    gap: 2em;
+    a {
+      margin-bottom: 0.8rem;
+    }
+    @include mixin.responsive($max: 880px) {
+      flex-direction: column;
+    }
+  }
+}
+
+.three {
+  :global(.container) {
+    padding-top: 5em;
+  }
+}

@@ -1,0 +1,15 @@
+@use "@/scss/mixin.scss" as mixin;
+.social_media_links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  img {
+    width: 2em;
+    mix-blend-mode: multiply;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    &:hover {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+  }
+}

@@ -1,0 +1,75 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as type;
+
+$icon-size: 1.4em;
+
+.one {
+  @include mixin.gridbox(10rem);
+  margin-bottom: 2em;
+  .card {
+    padding: 0.5rem;
+    h2 {
+      display: flex;
+      justify-content: space-between;
+      flex-direction: row-reverse;
+      gap: 0.5em;
+      text-transform: capitalize;
+      font-size: type.$h5;
+
+      svg {
+        color: mixin.$price-color;
+        width: $icon-size;
+        height: $icon-size;
+      }
+    }
+    h3 {
+      font-family: var(--font-body);
+    }
+  }
+}
+
+.two {
+  .top {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1em;
+
+    select {
+      padding: 0.3em 0.5em;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .statistic {
+      h4 {
+        font-size: type.$h5;
+      }
+      h5 {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        margin: 0;
+        font-size: type.$h4;
+
+        .price {
+          font-weight: 600;
+        }
+        span {
+          font-weight: 300;
+          font-size: inherit;
+        }
+
+        .up {
+          color: #16a34a; // green
+        }
+
+        .down {
+          color: #dc2626; // red
+        }
+      }
+    }
+  }
+}

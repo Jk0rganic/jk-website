@@ -1,0 +1,47 @@
+@use "@/scss/mixin.scss" as mixin;
+@use "@/scss/typography.scss" as types;
+
+$border: 0.1px solid rgba(0, 0, 0, 0.2);
+.order_details {
+  max-width: 50em;
+  margin-inline: auto;
+  table {
+    width: 100%;
+    // border: $border;
+    // padding: 1em 0;
+    border-collapse: collapse;
+    th {
+      text-align: left;
+      background-color: rgba(0, 0, 0, 0.1);
+      font-size: 1.15rem;
+    }
+    th,
+    td {
+      border: $border;
+      padding: 0.8em 1em;
+    }
+    .product_name {
+      opacity: 0.8;
+    }
+    .total {
+      td {
+        font-size: types.$h6;
+        font-weight: 500;
+      }
+    }
+  }
+  h2 {
+    margin-bottom: 1.5rem;
+    font-size: types.$h4;
+  }
+  h3 {
+    margin-top: 2rem;
+    font-size: types.$h5;
+  }
+  p {
+    opacity: 0.8;
+    strong {
+      color: mixin.$green;
+    }
+  }
+}

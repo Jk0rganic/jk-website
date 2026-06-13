@@ -1,0 +1,69 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.verify_wrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+
+  .verify_btn {
+    width: 100%;
+    padding: 0.6rem 1em;
+    background-color: mixin.$black;
+    color: mixin.$white;
+    border: none;
+    border-radius: 0.25rem;
+    margin-top: 1.5em;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  input[type="email"] {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+  }
+
+  .otp_wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .otp_inputs {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 20rem;
+
+      .otp_input {
+        width: 3rem;
+        height: 3rem;
+        text-align: center;
+        font-size: 1.5rem;
+        border: 1px solid #ccc;
+        border-radius: 0.25rem;
+        transition: border-color 0.2s ease;
+
+        &:focus {
+          border-color: mixin.$black;
+          outline: none;
+          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
+  }
+
+  .error {
+    color: red;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+}

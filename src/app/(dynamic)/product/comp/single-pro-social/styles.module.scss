@@ -1,0 +1,12 @@
+.singleProSocial {
+  display: flex;
+  gap: 1rem;
+margin-top: 1.5em;
+  .iconLink {
+    color: #555;
+    transition: color 0.2s;
+    &:hover {
+      color: #000;
+    }
+  }
+}

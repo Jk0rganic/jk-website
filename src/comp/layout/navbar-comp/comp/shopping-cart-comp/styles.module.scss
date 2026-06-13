@@ -1,0 +1,17 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.cart {
+  position: relative;
+  padding: rem;
+  color: mixin.$black;
+  padding: 0.5rem;
+  @include mixin.borderRadius(50%);
+  cursor: pointer;
+  span {
+    position: absolute;
+    font-size: 0.65rem;
+    top: -5px;
+    right: -5px;
+    font-family: var(--font-body);
+  }
+}

@@ -1,0 +1,20 @@
+@use "@/scss/mixin.scss" as mixin;
+
+.rating {
+  display: flex;
+  line-height: 0; 
+
+  .fullStar,
+  .halfStar {
+    color: mixin.$black;
+  }
+  .emptyStar {
+    color: gray;
+  }
+  .fullStar,
+  .halfStar,
+  .emptyStar {
+    margin-right: 0.1rem;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+  }
+}
