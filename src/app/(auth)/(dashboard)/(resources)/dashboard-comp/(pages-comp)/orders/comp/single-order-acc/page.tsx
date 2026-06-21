@@ -1,6 +1,7 @@
 import k from "./styles.module.scss";
 import { formatPrice } from "@/utils/format-price";
 import { maskPhone, maskEmail } from "@/utils/mask";
+import OrderPaymentStatusPoller from "@/app/(payment)/payment/comp/order-payment-status-poller";
 
 export default function SingleOrderAccount({
   order,
@@ -31,6 +32,11 @@ export default function SingleOrderAccount({
 
   return (
     <div className={k.order_details}>
+      <OrderPaymentStatusPoller
+        orderId={order.id}
+        orderStatus={status}
+        paymentMethodTitle={payment_method_title}
+      />
       <p>
         Order<strong> #{order.id}</strong> was placed on{" "}
         <strong>{orderDate}</strong> and is currently <strong>{status}</strong>.

@@ -19,6 +19,7 @@ import TermsAndConditionsSection from "../terms-and-conditions-section";
 import CartSummarySection from "../cart-summary-section/cart-summary-section";
 import { GET_SHIPPING_ZONES } from "../pickUpPoint/graphql";
 import { buildOrderPayload } from "../../lib/OrderBuilder";
+import { buildShippingZoneOptions, COLLECT_AT_SHOP_ZONE } from "../../lib/shipping-zones";
 import { getOrderRedirectPath } from "@/lib/checkout/get-order-redirect";
 import {
   checkOutSchema,
@@ -83,6 +84,8 @@ export default function CheckOutComp() {
 
   const deliveryMethod = watch("delivery_method");
   const selectedZone = watch("shippingZone");
+  const isCollectAtShop =
+    deliveryMethod === "shipping" && selectedZone === COLLECT_AT_SHOP_ZONE;
 
   const { data, loading, error }: any = useApolloFetcher(GET_SHIPPING_ZONES);
 
@@ -93,9 +96,12 @@ export default function CheckOutComp() {
         Number(zone.shippingMethods[0]?.cost.replace(/[^0-9]/g, "")) || 0,
     })) || [];
 
+  const shippingZonesWithCollect = buildShippingZoneOptions(deliveryZones);
+
   const shippingCost =
     deliveryMethod === "shipping" && selectedZone
-      ? deliveryZones.find((z: any) => z.zone === selectedZone)?.fee_ksh || 0
+      ? shippingZonesWithCollect.find((z: any) => z.zone === selectedZone)
+          ?.fee_ksh || 0
       : 0;
 
   const orderTotal =
@@ -168,16 +174,13 @@ export default function CheckOutComp() {
           body: JSON.stringify({
             orderId: order.id,
             amount: Number(order.total ?? orderPayload.total),
-            firstName: formData.billing_first_name,
-            lastName: formData.billing_last_name,
-            email: formData.email,
             phone: formData.billing_phone,
           }),
         });
 
         const checkout = await checkoutRes.json();
         if (!checkoutRes.ok) {
-          toast.error(checkout.message || "Could not start online payment.");
+          toast.error(checkout.message || "Could not start M-Pesa payment.");
           toast.warning(
             `Order #${order.id} was created but payment was not started. You can retry on the next screen.`,
             { duration: 8000 },
@@ -186,14 +189,11 @@ export default function CheckOutComp() {
           return;
         }
 
-        if (checkout.checkoutUrl) {
-          clearCart();
-          clearPendingOrder();
-          window.location.href = checkout.checkoutUrl;
-          return;
-        }
-
-        throw new Error("No checkout URL returned");
+        clearCart();
+        clearPendingOrder();
+        toast.success("Check your phone for the M-Pesa payment prompt.");
+        router.push(`/payment?orderId=${order.id}`);
+        return;
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to initiate online payment";
@@ -217,14 +217,14 @@ export default function CheckOutComp() {
             register={register}
             errors={errors}
             deliveryMethod={deliveryMethod}
-            shippingZones={deliveryZones}
+            shippingZones={shippingZonesWithCollect}
             setValue={setValue}
             loading={loading}
             error={error}
             watch={watch}
           />
 
-          {deliveryMethod === "shipping" && (
+          {deliveryMethod === "shipping" && !isCollectAtShop && (
             <ShippingSection
               watch={watch}
               setValue={setValue}

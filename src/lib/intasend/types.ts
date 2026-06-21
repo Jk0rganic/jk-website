@@ -7,10 +7,9 @@ export type IntaSendInvoiceState =
   | "COMPLETE"
   | "RETRY";
 
-export interface IntaSendCheckoutResponse {
+export interface IntaSendStkPushResponse {
   id: string;
-  url: string;
-  invoice_id?: string;
+  invoice: IntaSendInvoice;
 }
 
 export interface IntaSendInvoice {

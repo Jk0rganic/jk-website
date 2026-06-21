@@ -102,11 +102,18 @@ export default function AddToCart({
   return (
     <div className={k.cart_box}>
       {cartCount > 0 ? (
-        <CartButtons
-          cartCount={cartCount}
-          onAdd={handleIncrease}
-          onRemove={handleDecrease}
-        />
+        <>
+          <CartButtons
+            cartCount={cartCount}
+            onAdd={handleIncrease}
+            onRemove={handleDecrease}
+          />
+          <div className={k.btn_wrapper}>
+            <Link href="/cart" className={k.proceed_to_cart}>
+              Proceed to cart
+            </Link>
+          </div>
+        </>
       ) : (
         <>
           <AddToCartButton onAdd={handleAdd} />

@@ -4,6 +4,7 @@ import {
   getPaymentStatusByCheckoutId,
 } from "@/lib/intasend/client";
 import { syncPaymentFromInvoice } from "@/lib/intasend/sync-payment";
+import { getPaymentFailureDetails } from "@/lib/intasend/get-payment-failure-message";
 import prisma from "@/lib/prisma";
 
 function getTransactionRef(invoice: {
@@ -11,6 +12,22 @@ function getTransactionRef(invoice: {
   invoice_id?: string;
 }) {
   return invoice.mpesa_reference || invoice.invoice_id || null;
+}
+
+function buildFailurePayload(
+  failureReason: string | null | undefined,
+  invoiceState?: string | null,
+) {
+  const { message, kind } = getPaymentFailureDetails(
+    failureReason,
+    invoiceState as Parameters<typeof getPaymentFailureDetails>[1],
+  );
+
+  return {
+    failureReason: failureReason ?? null,
+    failureMessage: message,
+    failureKind: kind,
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -42,7 +59,7 @@ export async function GET(req: NextRequest) {
         invoiceId: payment.invoiceId,
         transactionRef: payment.transactionRef,
         provider: payment.provider,
-        failureReason: payment.failureReason,
+        ...buildFailurePayload(payment.failureReason),
         amount: payment.amount,
         phoneNumber: payment.phoneNumber,
       });
@@ -64,7 +81,10 @@ export async function GET(req: NextRequest) {
       invoiceId: statusResponse.invoice.invoice_id,
       transactionRef: getTransactionRef(statusResponse.invoice),
       provider: statusResponse.invoice.provider ?? null,
-      failureReason: statusResponse.invoice.failed_reason ?? null,
+      ...buildFailurePayload(
+        statusResponse.invoice.failed_reason,
+        statusResponse.invoice.state,
+      ),
       amount: payment.amount,
       phoneNumber: payment.phoneNumber,
     });

@@ -2,6 +2,15 @@ import { mapIntaSendState } from "@/lib/intasend/types";
 import { updateOrder } from "@/lib/fetch/updateOrder";
 import prisma from "@/lib/prisma";
 
+function resolveFailureReason(
+  state: Parameters<typeof mapIntaSendState>[0],
+  failedReason?: string | null,
+) {
+  if (failedReason?.trim()) return failedReason.trim();
+  if (state === "CANCELED") return "Request cancelled by user";
+  return null;
+}
+
 function getTransactionRef(invoice: {
   mpesa_reference?: string;
   invoice_id?: string;
@@ -26,6 +35,10 @@ export async function syncPaymentFromInvoice(
 ) {
   const status = mapIntaSendState(invoice.state);
   const transactionRef = getTransactionRef(invoice);
+  const failureReason = resolveFailureReason(
+    invoice.state,
+    invoice.failed_reason,
+  );
 
   if (payment.status === status && status !== "SUCCESS") {
     return status;
@@ -38,7 +51,7 @@ export async function syncPaymentFromInvoice(
       invoiceId: invoice.invoice_id,
       provider: invoice.provider ?? null,
       transactionRef,
-      failureReason: invoice.failed_reason ?? null,
+      failureReason: failureReason ?? null,
     },
   });
 

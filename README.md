@@ -107,9 +107,11 @@ INTASEND_PUBLIC_KEY=
 INTASEND_SECRET_KEY=
 INTASEND_TEST=true
 INTASEND_WEBHOOK_CHALLENGE=
+CRON_SECRET=
 NEXT_PUBLIC_APP_URL=
 
 # IntaSend dashboard: set webhook URL to {NEXT_PUBLIC_APP_URL}/api/intasend/webhook
+# Vercel cron hits /api/intasend/reconcile every 5 minutes (set CRON_SECRET in Vercel)
 
 SMTP_HOST=
 SMTP_PORT=

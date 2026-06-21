@@ -35,7 +35,7 @@ export default function PaymentOption({
           value="pay_online"
           {...register("paymentMethod")}
         />
-        Pay online (M-Pesa, card, bank)
+        Pay online (M-Pesa)
       </label>
 
       {paymentMethod === "pay_online" && (
@@ -46,8 +46,8 @@ export default function PaymentOption({
             className={k.payment_details_card}
           />
           <p className={k.notice}>
-            You will be redirected to a secure IntaSend checkout to pay with
-            M-Pesa, card, or bank transfer.
+            An M-Pesa payment prompt will be sent to your phone. Enter your PIN
+            to complete payment without leaving this site.
           </p>
           {!billingPhone?.trim() && (
             <p className={k.helper}>

@@ -37,34 +37,6 @@ $border: 0.1px solid rgba(0, 0, 0, 0.2);
             }
           }
         }
-        .secured_check_out {
-          display: flex;
-          text-align: center;
-          flex-direction: column;
-          align-items: center;
-          background-color: $background;
-          border: 0.1px solid rgba(0, 0, 0, 0.2);
-          padding: 1rem 0.5em;
-          margin-top: 2.2em;
-          position: relative;
-          h3 {
-            background-color: $background;
-            padding: 0 0.5em;
-            top: -1.7rem;
-            font-size: type.$h6;
-            transform: translateY(1rem);
-            width: fit-content;
-            position: absolute;
-          }
-          .img_box {
-            height: 2em;
-            width: 100%;
-            img {
-              mix-blend-mode: multiply;
-              object-fit: contain;
-            }
-          }
-        }
       }
       @include mixin.responsive($max: 880px) {
         flex-direction: column;

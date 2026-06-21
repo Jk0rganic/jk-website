@@ -1,3 +1,5 @@
+import { COLLECT_AT_SHOP_ZONE } from "./shipping-zones";
+
 interface BuildOrderPayloadProps {
   data: CheckoutFormType;
   cartDetails: NonNullable<CheckoutFormType["cartDetails"]>;
@@ -6,6 +8,7 @@ interface BuildOrderPayloadProps {
   shippingCost: NonNullable<CheckoutFormType["shippingCost"]>;
   shippingMethodTitle?: CheckoutFormType["shippingMethodTitle"];
 }
+
 export const buildOrderPayload = ({
   data,
   cartDetails,
@@ -52,19 +55,24 @@ export const buildOrderPayload = ({
   let shipping: Partial<CheckoutFormType["shipping"]> = {};
   let shipping_lines: CheckoutFormType["shipping_lines"] = [];
   const pickupMeta: CheckoutFormType["meta_data"] = [];
+  const isCollectAtShop =
+    deliveryMethod === "shipping" &&
+    shippingMethodTitle === COLLECT_AT_SHOP_ZONE;
 
   if (deliveryMethod === "shipping") {
-    shipping = data.useDifferentShipping
-      ? {
-          first_name: data.shipping_first_name || "",
-          last_name: data.shipping_last_name || "",
-          address_1: data.shipping_address_1 || "",
-          city: data.shipping_city || "",
-          postcode: data.shipping_postcode || "",
-          phone: data.shipping_phone || "",
-          country: "KE",
-        }
-      : billing;
+    shipping = isCollectAtShop
+      ? billing
+      : data.useDifferentShipping
+        ? {
+            first_name: data.shipping_first_name || "",
+            last_name: data.shipping_last_name || "",
+            address_1: data.shipping_address_1 || "",
+            city: data.shipping_city || "",
+            postcode: data.shipping_postcode || "",
+            phone: data.shipping_phone || "",
+            country: "KE",
+          }
+        : billing;
 
     const itemsSummary = cartDetails
       .map(
@@ -73,14 +81,22 @@ export const buildOrderPayload = ({
       )
       .join(", ");
 
-    shipping_lines = [
-      {
-        method_id: "flat_rate",
-        method_title: shippingMethodTitle || "Shipping Fee",
-        total: shippingCost.toFixed(2),
-        meta_data: [{ key: "Items", value: itemsSummary }],
-      },
-    ];
+    shipping_lines = isCollectAtShop
+      ? [
+          {
+            method_id: "local_pickup",
+            method_title: COLLECT_AT_SHOP_ZONE,
+            total: "0.00",
+          },
+        ]
+      : [
+          {
+            method_id: "flat_rate",
+            method_title: shippingMethodTitle || "Shipping Fee",
+            total: shippingCost.toFixed(2),
+            meta_data: [{ key: "Items", value: itemsSummary }],
+          },
+        ];
   }
 
   if (deliveryMethod === "pickup") {

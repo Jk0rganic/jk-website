@@ -3,8 +3,7 @@ import k from "./styles.module.scss";
 import { useEffect, useMemo } from "react";
 import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
-
-
+import { COLLECT_AT_SHOP_OPTION, COLLECT_AT_SHOP_ZONE } from "../../lib/shipping-zones";
 
 type BillingSectionProps = Pick<
   CheckoutFormProps,
@@ -33,13 +32,7 @@ export default function PickUpPoint({
     [],
   );
 
-  const stableShippingZones = useMemo(
-    () =>
-      shippingZones?.filter(
-        (zone) => zone.zone !== "Locations not covered by your other zones",
-      ) || [],
-    [shippingZones],
-  );
+  const stableShippingZones = useMemo(() => shippingZones, [shippingZones]);
 
   // Auto-set default values after async data loads
   useEffect(() => {
@@ -105,6 +98,9 @@ export default function PickUpPoint({
                   <p>
                     <strong>Fee:</strong> Ksh {zone.fee_ksh}
                   </p>
+                  {zone.zone === COLLECT_AT_SHOP_ZONE ? (
+                    <p>{COLLECT_AT_SHOP_OPTION.address}</p>
+                  ) : null}
                 </div>
               </label>
             );

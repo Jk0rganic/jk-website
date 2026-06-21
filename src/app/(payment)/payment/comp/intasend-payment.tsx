@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import PaymentDetails from "@/comp/payment-details/payment-details";
 import Section from "@/comp/section/section";
 import { getOrderRedirectPath } from "@/lib/checkout/get-order-redirect";
+import type { PaymentFailureKind } from "@/lib/intasend/get-payment-failure-message";
+import { getPollIntervalMs } from "@/lib/intasend/poll-config";
 import k from "./styles.module.scss";
 
 type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
@@ -18,12 +20,11 @@ interface StatusResponse {
   transactionRef?: string | null;
   provider?: string | null;
   failureReason?: string | null;
+  failureMessage?: string | null;
+  failureKind?: PaymentFailureKind | null;
   amount: number;
   phoneNumber?: string;
 }
-
-const POLL_INTERVAL_MS = 3000;
-const TIMEOUT_MS = 180_000;
 
 export default function IntaSendPayment({
   searchParams,
@@ -36,16 +37,30 @@ export default function IntaSendPayment({
   const { orderId, checkoutId } = use(searchParams);
   const router = useRouter();
   const [status, setStatus] = useState<PaymentStatus>("PENDING");
+  const [timedOut, setTimedOut] = useState(false);
   const [userMessage, setUserMessage] = useState<string | null>(null);
+  const [failureKind, setFailureKind] = useState<PaymentFailureKind | null>(
+    null,
+  );
   const [transactionRef, setTransactionRef] = useState<string | null>(null);
   const [provider, setProvider] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
 
   const notifiedRef = useRef(false);
   const terminalRef = useRef(false);
   const startedAtRef = useRef(Date.now());
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timedOutRef = useRef(false);
+
+  const clearPollTimer = useCallback(() => {
+    if (pollTimerRef.current) {
+      clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+  }, []);
 
   const notifyOnce = useCallback((type: "success" | "error", message: string) => {
     if (notifiedRef.current) return;
@@ -54,93 +69,183 @@ export default function IntaSendPayment({
     else toast.error(message, { duration: 6000 });
   }, []);
 
-  const handleTerminalStatus = useCallback(
+  const applyStatusResponse = useCallback((data: StatusResponse) => {
+    setAmount(data.amount);
+    setPhoneNumber(data.phoneNumber ?? null);
+    setStatus(data.status);
+    setUserMessage(data.failureMessage ?? data.failureReason ?? null);
+    setFailureKind(data.failureKind ?? null);
+    setTransactionRef(data.transactionRef ?? null);
+    setProvider(data.provider ?? null);
+    return data;
+  }, []);
+
+  const handleSuccess = useCallback(
     (data: StatusResponse) => {
-      if (terminalRef.current) return;
+      terminalRef.current = true;
+      setTimedOut(false);
+      timedOutRef.current = false;
+      notifyOnce(
+        "success",
+        data.transactionRef
+          ? `Payment received — reference ${data.transactionRef}`
+          : "Payment received successfully!",
+      );
 
-      setStatus(data.status);
-      setUserMessage(data.failureReason ?? null);
-      setTransactionRef(data.transactionRef ?? null);
-      setProvider(data.provider ?? null);
-
-      if (data.status === "SUCCESS") {
-        terminalRef.current = true;
-        notifyOnce(
-          "success",
-          data.transactionRef
-            ? `Payment received — reference ${data.transactionRef}`
-            : "Payment received successfully!",
-        );
-
-        fetch("/api/session")
-          .then((res) => res.json())
-          .then((session) => {
-            const isLoggedIn = Boolean(session?.user?.email);
-            router.push(getOrderRedirectPath(data.orderId, isLoggedIn));
-          })
-          .catch(() => {
-            router.push(getOrderRedirectPath(data.orderId, false));
-          });
-        return;
-      }
-
-      if (data.status === "FAILED") {
-        terminalRef.current = true;
-        notifyOnce(
-          "error",
-          data.failureReason || "Payment was not completed.",
-        );
-      }
+      fetch("/api/session")
+        .then((res) => res.json())
+        .then((session) => {
+          const isLoggedIn = Boolean(session?.user?.email);
+          router.push(getOrderRedirectPath(data.orderId, isLoggedIn));
+        })
+        .catch(() => {
+          router.push(getOrderRedirectPath(data.orderId, false));
+        });
     },
     [notifyOnce, router],
   );
 
-  const pollStatus = useCallback(async () => {
-    if (!orderId || terminalRef.current) return;
+  const handleFailed = useCallback(
+    (data: StatusResponse) => {
+      terminalRef.current = true;
+      setTimedOut(false);
+      timedOutRef.current = false;
+      notifyOnce(
+        "error",
+        data.failureMessage ||
+          data.failureReason ||
+          "Payment was not completed.",
+      );
+    },
+    [notifyOnce],
+  );
+
+  const fetchStatus = useCallback(async () => {
+    if (!orderId) return null;
 
     const query = checkoutId
       ? `checkoutId=${encodeURIComponent(checkoutId)}`
       : `orderId=${encodeURIComponent(orderId)}`;
 
-    try {
-      const res = await fetch(`/api/intasend/status?${query}`);
-      const data = (await res.json()) as StatusResponse;
+    const res = await fetch(`/api/intasend/status?${query}`);
+    const data = (await res.json()) as StatusResponse;
 
-      if (!res.ok) {
-        if (!notifiedRef.current) {
-          toast.error(
-            (data as { message?: string }).message ||
-              "Could not check payment status.",
-          );
-        }
+    if (!res.ok) {
+      throw new Error(
+        (data as { message?: string }).message ||
+          "Could not check payment status.",
+      );
+    }
+
+    return applyStatusResponse(data);
+  }, [applyStatusResponse, checkoutId, orderId]);
+
+  const pollStatus = useCallback(async () => {
+    if (!orderId || terminalRef.current) return;
+
+    try {
+      const data = await fetchStatus();
+      if (!data) return;
+
+      if (data.status === "SUCCESS") {
+        handleSuccess(data);
         return;
       }
 
-      setAmount(data.amount);
-      setPhoneNumber(data.phoneNumber ?? null);
-      handleTerminalStatus(data);
+      if (data.status === "FAILED") {
+        handleFailed(data);
+        return;
+      }
 
-      if (
-        !terminalRef.current &&
-        Date.now() - startedAtRef.current >= TIMEOUT_MS
-      ) {
+      const elapsed = Date.now() - startedAtRef.current;
+      const nextInterval = getPollIntervalMs(elapsed);
+
+      if (nextInterval === null) {
         terminalRef.current = true;
-        setStatus("FAILED");
-        const timeoutMessage =
-          "Payment verification timed out. If you completed payment, check your order page shortly.";
-        setUserMessage(timeoutMessage);
-        notifyOnce("error", timeoutMessage);
+        timedOutRef.current = true;
+        setTimedOut(true);
+        setStatus("PENDING");
+        setUserMessage(
+          "Automatic checks paused. Use “Check payment status” if you already paid.",
+        );
+        return;
       }
-    } catch {
-      if (!terminalRef.current && Date.now() - startedAtRef.current >= TIMEOUT_MS) {
+
+      clearPollTimer();
+      pollTimerRef.current = setTimeout(() => {
+        void pollStatus();
+      }, nextInterval);
+    } catch (error) {
+      const elapsed = Date.now() - startedAtRef.current;
+      const nextInterval = getPollIntervalMs(elapsed);
+
+      if (nextInterval === null) {
         terminalRef.current = true;
-        setStatus("FAILED");
-        const message = "Unable to verify payment status. Please try again.";
-        setUserMessage(message);
-        notifyOnce("error", message);
+        timedOutRef.current = true;
+        setTimedOut(true);
+        setStatus("PENDING");
+        setUserMessage("Unable to verify payment status. Try checking again.");
+        notifyOnce("error", "Unable to verify payment status. Try checking again.");
+        return;
       }
+
+      clearPollTimer();
+      pollTimerRef.current = setTimeout(() => {
+        void pollStatus();
+      }, nextInterval);
     }
-  }, [checkoutId, handleTerminalStatus, notifyOnce, orderId]);
+  }, [clearPollTimer, fetchStatus, handleFailed, handleSuccess, notifyOnce, orderId]);
+
+  const resumePolling = useCallback(() => {
+    clearPollTimer();
+    notifiedRef.current = false;
+    terminalRef.current = false;
+    timedOutRef.current = false;
+    startedAtRef.current = Date.now();
+    setTimedOut(false);
+    setStatus("PENDING");
+    setUserMessage(null);
+    setFailureKind(null);
+    void pollStatus();
+  }, [clearPollTimer, pollStatus]);
+
+  const handleCheckStatus = async () => {
+    if (!orderId) return;
+
+    setIsChecking(true);
+    clearPollTimer();
+    notifiedRef.current = false;
+    terminalRef.current = false;
+
+    try {
+      const data = await fetchStatus();
+      if (!data) return;
+
+      if (data.status === "SUCCESS") {
+        handleSuccess(data);
+        return;
+      }
+
+      if (data.status === "FAILED") {
+        handleFailed(data);
+        return;
+      }
+
+      setTimedOut(false);
+      setStatus("PENDING");
+      setUserMessage(null);
+      toast.message("Payment is still pending on M-Pesa.");
+      resumePolling();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not check payment status.";
+      toast.error(message);
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const handleRetry = async () => {
     if (!orderId) {
@@ -149,11 +254,6 @@ export default function IntaSendPayment({
     }
 
     setIsRetrying(true);
-    notifiedRef.current = false;
-    terminalRef.current = false;
-    startedAtRef.current = Date.now();
-    setStatus("PENDING");
-    setUserMessage(null);
 
     try {
       const res = await fetch("/api/intasend/retry", {
@@ -165,18 +265,15 @@ export default function IntaSendPayment({
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-        return;
-      }
-
-      throw new Error("No checkout URL returned");
+      resumePolling();
+      toast.success("M-Pesa prompt sent. Check your phone.");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Could not restart payment.";
       toast.error(message);
       setStatus("FAILED");
       setUserMessage(message);
+      setTimedOut(false);
       terminalRef.current = true;
       notifiedRef.current = true;
     } finally {
@@ -191,14 +288,50 @@ export default function IntaSendPayment({
       return;
     }
 
-    pollStatus();
-    const interval = setInterval(pollStatus, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [orderId, pollStatus, router]);
+    resumePolling();
+
+    const onResume = () => {
+      if (document.visibilityState !== "visible" || terminalRef.current) return;
+      void fetchStatus().then((data) => {
+        if (!data) return;
+        if (data.status === "SUCCESS") {
+          handleSuccess(data);
+          return;
+        }
+        if (data.status === "FAILED") {
+          handleFailed(data);
+          return;
+        }
+        if (timedOutRef.current) {
+          resumePolling();
+        }
+      });
+    };
+
+    document.addEventListener("visibilitychange", onResume);
+    window.addEventListener("focus", onResume);
+
+    return () => {
+      clearPollTimer();
+      document.removeEventListener("visibilitychange", onResume);
+      window.removeEventListener("focus", onResume);
+    };
+  }, [
+    clearPollTimer,
+    fetchStatus,
+    handleFailed,
+    handleSuccess,
+    orderId,
+    resumePolling,
+    router,
+  ]);
 
   if (!orderId) {
     return null;
   }
+
+  const showWaiting = status === "PENDING" && !timedOut;
+  const showTimedOut = status === "PENDING" && timedOut;
 
   return (
     <Section className={k.payment_page}>
@@ -207,8 +340,12 @@ export default function IntaSendPayment({
           {status === "SUCCESS"
             ? "Payment received"
             : status === "FAILED"
-              ? "Payment not completed"
-              : "Confirming payment"}
+              ? failureKind === "cancelled"
+                ? "Payment cancelled"
+                : "Payment not completed"
+              : showTimedOut
+                ? "Still waiting for payment"
+                : "Waiting for payment"}
         </h1>
 
         <PaymentDetails
@@ -220,22 +357,51 @@ export default function IntaSendPayment({
           className={k.summary}
         />
 
-        {status === "PENDING" && (
+        {showWaiting && (
           <>
             <div className={k.spinner} aria-hidden />
             <p className={k.message}>
-              We are confirming your payment. This usually takes a few seconds
-              after you complete checkout on IntaSend.
+              Check your phone for the M-Pesa payment prompt and enter your PIN
+              to complete payment.
             </p>
             <p className={k.hint}>
-              If you have not paid yet, return to checkout and try again.
+              This page updates automatically when M-Pesa reports your payment
+              status.
             </p>
+          </>
+        )}
+
+        {showTimedOut && (
+          <>
+            <p className={k.message}>{userMessage}</p>
+            <p className={k.hint}>
+              A background check also runs every few minutes if you leave this
+              page.
+            </p>
+            <div className={k.actions}>
+              <button
+                type="button"
+                className={k.retry_btn}
+                onClick={handleCheckStatus}
+                disabled={isChecking}
+              >
+                {isChecking ? "Checking…" : "Check payment status"}
+              </button>
+              <button
+                type="button"
+                className={k.secondary_btn}
+                onClick={handleRetry}
+                disabled={isRetrying}
+              >
+                {isRetrying ? "Sending…" : "Send M-Pesa prompt again"}
+              </button>
+            </div>
           </>
         )}
 
         {status === "SUCCESS" && (
           <p className={k.success}>
-            Payment confirmed. Redirecting to your order…
+            Payment received. Redirecting to your order…
           </p>
         )}
 
@@ -247,11 +413,19 @@ export default function IntaSendPayment({
             <div className={k.actions}>
               <button
                 type="button"
+                className={k.check_btn}
+                onClick={handleCheckStatus}
+                disabled={isChecking}
+              >
+                {isChecking ? "Checking…" : "Check payment status"}
+              </button>
+              <button
+                type="button"
                 className={k.retry_btn}
                 onClick={handleRetry}
                 disabled={isRetrying}
               >
-                {isRetrying ? "Redirecting…" : "Try payment again"}
+                {isRetrying ? "Sending…" : "Send M-Pesa prompt again"}
               </button>
               <button
                 type="button"

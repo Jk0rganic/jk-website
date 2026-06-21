@@ -67,6 +67,21 @@
   }
 }
 
+.check_btn {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.95rem;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
 .secondary_btn {
   padding: 0.65rem 1.25rem;
   border: 1px solid rgba(0, 0, 0, 0.2);

@@ -5,7 +5,6 @@ import { useMemo, useState, useCallback } from "react";
 import k from "./styles.module.scss";
 
 import Section from "@/comp/section/section";
-import ImgBox from "@/comp/imgbox/ImgBox";
 
 import { decodeHTML } from "@/utils/decode-html";
 
@@ -139,16 +138,6 @@ export default function One({ product }: Props) {
           </div>
 
           <ProductTags productTags={tags} />
-
-          <div className={k.secured_check_out}>
-            <h4>Guaranteed Safe Checkout</h4>
-
-            <ImgBox
-              className={k.img_box}
-              imageSrc="https://res.cloudinary.com/dj200tags/images/v1767809824/lipa-na-mpesa-seeklogo/lipa-na-mpesa-seeklogo.png"
-              alt="Safe Checkout"
-            />
-          </div>
         </Article>
       </div>
     </Section>
