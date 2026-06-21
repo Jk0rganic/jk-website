@@ -4,11 +4,14 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 
 import styles from "./styles.module.scss";
-import OrderStatus from "../../../../orderStatus";
+import displayStyles from "../order-display/styles.module.scss";
 import { formatDate } from "@/utils/formatDate";
+import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import {
+  OrderPaymentBadge,
+  OrderStatusBadge,
+} from "../order-display/order-display";
 import { PendingPaymentLink } from "../pending-payment/pending-payment";
-import pendingStyles from "../pending-payment/styles.module.scss";
-import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -33,12 +36,11 @@ export default function PaginationOrders({
     return orders.slice(start, end);
   }, [orders, currentPage]);
 
-  // reset page if orders change (important edge case fix)
   useMemo(() => {
     if (currentPage > totalPages) {
       setCurrentPage(1);
     }
-  }, [totalPages]);
+  }, [totalPages, currentPage]);
 
   if (!orders.length) {
     return <p>You have no orders yet.</p>;
@@ -48,91 +50,96 @@ export default function PaginationOrders({
     <div className={styles.orderPage}>
       <h1>Your Orders ({orders.length})</h1>
 
-      {/* DESKTOP TABLE */}
       <table className={`${styles.ordersTable} ${styles.web}`}>
         <thead>
           <tr>
             <th>Order #</th>
             <th>Date</th>
-            <th>Status</th>
+            <th>Order status</th>
             <th>Payment</th>
             <th>Total</th>
-            <th>View</th>
+            <th />
           </tr>
         </thead>
 
         <tbody>
           {paginatedOrders.map((order) => {
-            const awaitingPayment = isOrderAwaitingPayment(order);
+            const display = getOrderDisplayInfo(order);
 
             return (
-            <tr key={order.id}>
-              <td>#{order.id}</td>
-              <td>{formatDate(order.date_created)}</td>
-              <td>
-                <OrderStatus status={order.status} />
-                {awaitingPayment && (
-                  <span className={pendingStyles.pending_badge}>
-                    Unpaid
-                  </span>
-                )}
-              </td>
-              <td>
-                {awaitingPayment ? (
-                  <PendingPaymentLink orderId={order.id} />
-                ) : (
-                  <span>—</span>
-                )}
-              </td>
-              <td>
-                {order.total} {order.currency}
-              </td>
-              <td>
-                <Link href={`${link}${order.id}`}>View</Link>
-              </td>
-            </tr>
+              <tr key={order.id}>
+                <td>#{order.id}</td>
+                <td>{formatDate(order.date_created)}</td>
+                <td>
+                  <OrderStatusBadge
+                    label={display.orderLabel}
+                    hint={display.orderHint}
+                    tone={display.orderTone}
+                  />
+                </td>
+                <td>
+                  {display.awaitingPayment ? (
+                    <PendingPaymentLink orderId={order.id} />
+                  ) : (
+                    <OrderPaymentBadge
+                      label={display.paymentLabel}
+                      tone={display.paymentTone}
+                    />
+                  )}
+                </td>
+                <td>
+                  {order.total} {order.currency}
+                </td>
+                <td>
+                  <Link href={`${link}${order.id}`}>View</Link>
+                </td>
+              </tr>
             );
           })}
         </tbody>
       </table>
 
-      {/* MOBILE TABLE */}
       <table className={`${styles.ordersTable} ${styles.mobile}`}>
         <thead>
           <tr>
-            <th>Order #</th>
-            <th>View</th>
+            <th>Order</th>
+            <th />
           </tr>
         </thead>
 
         <tbody>
           {paginatedOrders.map((order) => {
-            const awaitingPayment = isOrderAwaitingPayment(order);
+            const display = getOrderDisplayInfo(order);
 
             return (
-            <tr key={order.id}>
-              <td>
-                #{order.id} — {formatDate(order.date_created)}
-                {awaitingPayment && (
-                  <span className={pendingStyles.pending_badge}>
-                    Payment pending
-                  </span>
-                )}
-              </td>
-              <td>
-                {awaitingPayment ? (
-                  <PendingPaymentLink orderId={order.id} />
-                ) : (
+              <tr key={order.id}>
+                <td>
+                  <strong>#{order.id}</strong> · {formatDate(order.date_created)}
+                  <div className={displayStyles.mobile_meta}>
+                    <OrderStatusBadge
+                      label={display.orderLabel}
+                      hint={display.orderHint}
+                      tone={display.orderTone}
+                    />
+                    {display.awaitingPayment ? (
+                      <PendingPaymentLink orderId={order.id} />
+                    ) : (
+                      <OrderPaymentBadge
+                        label={display.paymentLabel}
+                        tone={display.paymentTone}
+                      />
+                    )}
+                  </div>
+                </td>
+                <td>
                   <Link href={`${link}${order.id}`}>View</Link>
-                )}
-              </td>
-            </tr>
+                </td>
+              </tr>
             );
           })}
         </tbody>
       </table>
 
-      {/* PAGINATION */}
       <div className={styles.pagination}>
         <button
           type="button"

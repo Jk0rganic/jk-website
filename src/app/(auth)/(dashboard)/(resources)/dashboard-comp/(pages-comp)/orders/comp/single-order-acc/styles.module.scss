@@ -44,4 +44,28 @@ $border: 0.1px solid rgba(0, 0, 0, 0.2);
       color: mixin.$green;
     }
   }
+  .order_header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    h2 {
+      margin: 0 0 0.35rem;
+      font-size: types.$h4;
+    }
+  }
+  .placed_on {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .summary {
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+  h3 {
+    margin-top: 2rem;
+    font-size: types.$h5;
+  }
 }

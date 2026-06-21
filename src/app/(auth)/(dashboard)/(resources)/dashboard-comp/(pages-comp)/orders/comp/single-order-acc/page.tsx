@@ -2,8 +2,15 @@ import k from "./styles.module.scss";
 import { formatPrice } from "@/utils/format-price";
 import { maskPhone, maskEmail } from "@/utils/mask";
 import OrderPaymentStatusPoller from "@/app/(payment)/payment/comp/order-payment-status-poller";
-import { PendingPaymentBanner } from "../pending-payment/pending-payment";
-import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
+import {
+  OrderPaidBanner,
+  PendingPaymentBanner,
+} from "../pending-payment/pending-payment";
+import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import {
+  OrderPaymentBadge,
+  OrderStatusBadge,
+} from "../order-display/order-display";
 
 export default function SingleOrderAccount({
   order,
@@ -30,14 +37,15 @@ export default function SingleOrderAccount({
     needs_payment,
   } = order;
 
-  const orderDate = new Date(date_created).toLocaleDateString();
-  const awaitingPayment = isOrderAwaitingPayment({
+  const display = getOrderDisplayInfo({
     status,
     payment_method,
     payment_method_title,
     date_paid,
     needs_payment,
   });
+
+  const orderDate = new Date(date_created).toLocaleDateString();
   const shippingLines = order?.shipping_lines?.[0];
   const shippingTotal = shippingLines?.total || 0;
   const shippingTitle = shippingLines?.method_title || "N/A";
@@ -50,19 +58,32 @@ export default function SingleOrderAccount({
         orderStatus={status}
         paymentMethodTitle={payment_method_title}
       />
-      {awaitingPayment && (
+
+      <div className={k.order_header}>
+        <div>
+          <h2>Order #{order.id}</h2>
+          <p className={k.placed_on}>Placed on {orderDate}</p>
+        </div>
+        <OrderStatusBadge
+          label={display.orderLabel}
+          hint={display.orderHint}
+          tone={display.orderTone}
+        />
+      </div>
+
+      {display.awaitingPayment && (
         <PendingPaymentBanner
           orderId={order.id}
           total={total}
           currency={currency}
         />
       )}
-      <p>
-        Order<strong> #{order.id}</strong> was placed on{" "}
-        <strong>{orderDate}</strong> and is currently <strong>{status}</strong>.
-      </p>
 
-      <h2>Order details</h2>
+      {display.isPaidOnline && status === "processing" && <OrderPaidBanner />}
+
+      <p className={k.summary}>{display.summaryLine}</p>
+
+      <h3>Order details</h3>
       <table>
         <thead>
           <tr>
@@ -111,6 +132,17 @@ export default function SingleOrderAccount({
               <strong>Payment method:</strong>
             </td>
             <td>{payment_method_title}</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Payment status:</strong>
+            </td>
+            <td>
+              <OrderPaymentBadge
+                label={display.paymentLabel}
+                tone={display.paymentTone}
+              />
+            </td>
           </tr>
         </tbody>
       </table>
