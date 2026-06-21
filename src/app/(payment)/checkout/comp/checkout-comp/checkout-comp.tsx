@@ -39,6 +39,7 @@ async function fetchIsLoggedIn(): Promise<boolean> {
 export default function CheckOutComp() {
   const router = useRouter();
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const { cartDetails, totalPrice, clearCart, cartCount } = useCartStore();
   const { clearPendingOrder } = usePendingOrderStore();
@@ -70,6 +71,7 @@ export default function CheckOutComp() {
         const user = data?.user;
         if (!user?.email) return;
 
+        setIsLoggedIn(true);
         setSessionEmail(user.email);
         setValue("email", user.email);
 
@@ -158,6 +160,19 @@ export default function CheckOutComp() {
     }
 
     if (payMethod === "pay_online") {
+      const loggedIn = Boolean(sessionEmail) || (await fetchIsLoggedIn());
+
+      if (!loggedIn) {
+        const infoToSave = { ...formData };
+        delete infoToSave.saveInfo;
+        setSavedUserInfo(infoToSave);
+        toast.message("Sign in to continue with M-Pesa payment.");
+        router.push(
+          `/auth/signin?callbackUrl=${encodeURIComponent("/checkout")}`,
+        );
+        return;
+      }
+
       try {
         const res = await fetch("/api/create-order", {
           method: "POST",
@@ -239,6 +254,7 @@ export default function CheckOutComp() {
             errors={errors}
             watch={watch}
             orderTotal={orderTotal}
+            isLoggedIn={isLoggedIn}
           />
         </div>
 

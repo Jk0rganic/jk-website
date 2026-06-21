@@ -10,6 +10,7 @@ type TermsAndConditionsSectionProps = Pick<
   "register" | "control" | "errors" | "watch"
 > & {
   orderTotal: number;
+  isLoggedIn?: boolean;
 };
 
 export default function TermsAndConditionsSection({
@@ -18,6 +19,7 @@ export default function TermsAndConditionsSection({
   errors,
   watch,
   orderTotal,
+  isLoggedIn = false,
 }: TermsAndConditionsSectionProps) {
   return (
     <>
@@ -27,6 +29,7 @@ export default function TermsAndConditionsSection({
         errors={errors}
         watch={watch}
         orderTotal={orderTotal}
+        isLoggedIn={isLoggedIn}
       />
       <AdditionInformation register={register} errors={errors} />
       <div className="checkbox_terms">

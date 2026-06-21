@@ -2,7 +2,11 @@ import k from "./styles.module.scss";
 import { doSocialLogin } from "./action";
 import ImgBox from "@/comp/imgbox/ImgBox";
 
-export function SocialMediaLogin() {
+export function SocialMediaLogin({
+  callbackUrl = "/account",
+}: {
+  callbackUrl?: string;
+}) {
   return (
     <div className={k.social_wrapper}>
       <div className={k.or}>
@@ -10,6 +14,7 @@ export function SocialMediaLogin() {
       </div>
 
       <form className={k.form} action={doSocialLogin}>
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
         <button type="submit" name="action" value="google">
           <ImgBox
             className={k.img_box}

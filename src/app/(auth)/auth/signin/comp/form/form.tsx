@@ -20,7 +20,11 @@ interface FormData {
   password: string;
 }
 
-export default function SignInForm() {
+export default function SignInForm({
+  callbackUrl = "/",
+}: {
+  callbackUrl?: string;
+}) {
   const router = useRouter();
 
   const [isPending, startTransition] = useTransition();
@@ -48,7 +52,7 @@ export default function SignInForm() {
 
         reset();
 
-        router.push("/");
+        router.push(callbackUrl);
       } catch (error) {
         console.error(error);
 

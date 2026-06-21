@@ -94,12 +94,11 @@ export default function IntaSendPayment({
 
       fetch("/api/session")
         .then((res) => res.json())
-        .then((session) => {
-          const isLoggedIn = Boolean(session?.user?.email);
-          router.push(getOrderRedirectPath(data.orderId, isLoggedIn));
+        .then(() => {
+          router.push(getOrderRedirectPath(data.orderId, true));
         })
         .catch(() => {
-          router.push(getOrderRedirectPath(data.orderId, false));
+          router.push(getOrderRedirectPath(data.orderId, true));
         });
     },
     [notifyOnce, router],

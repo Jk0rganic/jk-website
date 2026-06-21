@@ -9,6 +9,7 @@ type PaymentOptionProps = Pick<
   "register" | "control" | "errors" | "watch"
 > & {
   orderTotal: number;
+  isLoggedIn?: boolean;
 };
 
 export default function PaymentOption({
@@ -17,6 +18,7 @@ export default function PaymentOption({
   errors,
   watch,
   orderTotal,
+  isLoggedIn = false,
 }: PaymentOptionProps) {
   const paymentMethod = watch("paymentMethod");
   const billingPhone = useWatch({
@@ -49,6 +51,12 @@ export default function PaymentOption({
             An M-Pesa payment prompt will be sent to your phone. Enter your PIN
             to complete payment without leaving this site.
           </p>
+          {!isLoggedIn && (
+            <p className={k.helper}>
+              Sign in is required for M-Pesa payment. You will be asked to sign
+              in when you confirm your order.
+            </p>
+          )}
           {!billingPhone?.trim() && (
             <p className={k.helper}>
               Enter your phone number in the billing section above.

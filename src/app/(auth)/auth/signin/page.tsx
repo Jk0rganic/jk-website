@@ -4,10 +4,18 @@ import k from "./styles.module.scss";
 import { SocialMediaLogin } from "../signup/comp/social_login/socialLogin";
 import { seoMeta } from "@/utils/seo/seoMeta";
 import ReUseLogo from "./comp/re-use-logo/re-use-logo";
+import { getSafeCallbackUrl } from "@/lib/auth/get-safe-callback-url";
 
 export const metadata = seoMeta.signin;
 
-export default function signin() {
+export default async function signin({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const { callbackUrl } = await searchParams;
+  const safeCallbackUrl = getSafeCallbackUrl(callbackUrl, "/");
+
   return (
     <section className={k.login}>
       <div className={k.form_wrapper}>
@@ -20,9 +28,9 @@ export default function signin() {
             what’s new.
           </p>
         </div>
-        <SignInForm />
+        <SignInForm callbackUrl={safeCallbackUrl} />
 
-        <SocialMediaLogin />
+        <SocialMediaLogin callbackUrl={safeCallbackUrl} />
       </div>
       <ImgBox
         className={k.img_box}

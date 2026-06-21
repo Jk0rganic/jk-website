@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
 import { seoMeta } from "@/utils/seo/seoMeta";
+import { getSession } from "@/lib/auth/getSession";
 import IntaSendPayment from "./comp/intasend-payment";
 
 export const metadata = seoMeta.checkout;
 
-export default function PaymentPage({
+export default async function PaymentPage({
   searchParams,
 }: {
   searchParams: Promise<{
@@ -11,5 +13,21 @@ export default function PaymentPage({
     checkoutId?: string;
   }>;
 }) {
+  const params = await searchParams;
+  const session = await getSession();
+
+  if (!session?.user?.email) {
+    const query = new URLSearchParams();
+    if (params.orderId) query.set("orderId", params.orderId);
+    if (params.checkoutId) query.set("checkoutId", params.checkoutId);
+    const paymentPath = query.toString()
+      ? `/payment?${query.toString()}`
+      : "/payment";
+
+    redirect(
+      `/auth/signin?callbackUrl=${encodeURIComponent(paymentPath)}`,
+    );
+  }
+
   return <IntaSendPayment searchParams={searchParams} />;
 }
