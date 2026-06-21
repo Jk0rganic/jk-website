@@ -38,7 +38,10 @@ declare global {
     | "shipping"
     | "line_items"
     | "shipping_lines"
+    | "payment_method"
     | "payment_method_title"
+    | "date_paid"
+    | "needs_payment"
   >;
 
   type OrderSummary = Pick<

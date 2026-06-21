@@ -2,6 +2,8 @@ import k from "./styles.module.scss";
 import { formatPrice } from "@/utils/format-price";
 import { maskPhone, maskEmail } from "@/utils/mask";
 import OrderPaymentStatusPoller from "@/app/(payment)/payment/comp/order-payment-status-poller";
+import { PendingPaymentBanner } from "../pending-payment/pending-payment";
+import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 
 export default function SingleOrderAccount({
   order,
@@ -21,10 +23,21 @@ export default function SingleOrderAccount({
     line_items,
     billing,
     total,
+    currency,
     payment_method_title,
+    payment_method,
+    date_paid,
+    needs_payment,
   } = order;
 
   const orderDate = new Date(date_created).toLocaleDateString();
+  const awaitingPayment = isOrderAwaitingPayment({
+    status,
+    payment_method,
+    payment_method_title,
+    date_paid,
+    needs_payment,
+  });
   const shippingLines = order?.shipping_lines?.[0];
   const shippingTotal = shippingLines?.total || 0;
   const shippingTitle = shippingLines?.method_title || "N/A";
@@ -37,6 +50,13 @@ export default function SingleOrderAccount({
         orderStatus={status}
         paymentMethodTitle={payment_method_title}
       />
+      {awaitingPayment && (
+        <PendingPaymentBanner
+          orderId={order.id}
+          total={total}
+          currency={currency}
+        />
+      )}
       <p>
         Order<strong> #{order.id}</strong> was placed on{" "}
         <strong>{orderDate}</strong> and is currently <strong>{status}</strong>.

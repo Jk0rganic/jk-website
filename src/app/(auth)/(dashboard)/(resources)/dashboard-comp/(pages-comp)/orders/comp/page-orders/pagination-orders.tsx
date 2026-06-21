@@ -6,6 +6,9 @@ import Link from "next/link";
 import styles from "./styles.module.scss";
 import OrderStatus from "../../../../orderStatus";
 import { formatDate } from "@/utils/formatDate";
+import { PendingPaymentLink } from "../pending-payment/pending-payment";
+import pendingStyles from "../pending-payment/styles.module.scss";
+import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -52,18 +55,34 @@ export default function PaginationOrders({
             <th>Order #</th>
             <th>Date</th>
             <th>Status</th>
+            <th>Payment</th>
             <th>Total</th>
             <th>View</th>
           </tr>
         </thead>
 
         <tbody>
-          {paginatedOrders.map((order) => (
+          {paginatedOrders.map((order) => {
+            const awaitingPayment = isOrderAwaitingPayment(order);
+
+            return (
             <tr key={order.id}>
               <td>#{order.id}</td>
               <td>{formatDate(order.date_created)}</td>
               <td>
                 <OrderStatus status={order.status} />
+                {awaitingPayment && (
+                  <span className={pendingStyles.pending_badge}>
+                    Unpaid
+                  </span>
+                )}
+              </td>
+              <td>
+                {awaitingPayment ? (
+                  <PendingPaymentLink orderId={order.id} />
+                ) : (
+                  <span>—</span>
+                )}
               </td>
               <td>
                 {order.total} {order.currency}
@@ -72,7 +91,8 @@ export default function PaginationOrders({
                 <Link href={`${link}${order.id}`}>View</Link>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
 
@@ -86,16 +106,29 @@ export default function PaginationOrders({
         </thead>
 
         <tbody>
-          {paginatedOrders.map((order) => (
+          {paginatedOrders.map((order) => {
+            const awaitingPayment = isOrderAwaitingPayment(order);
+
+            return (
             <tr key={order.id}>
               <td>
                 #{order.id} — {formatDate(order.date_created)}
+                {awaitingPayment && (
+                  <span className={pendingStyles.pending_badge}>
+                    Payment pending
+                  </span>
+                )}
               </td>
               <td>
-                <Link href={`${link}${order.id}`}>View</Link>
+                {awaitingPayment ? (
+                  <PendingPaymentLink orderId={order.id} />
+                ) : (
+                  <Link href={`${link}${order.id}`}>View</Link>
+                )}
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
 

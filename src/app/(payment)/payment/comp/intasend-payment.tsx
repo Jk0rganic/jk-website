@@ -12,6 +12,8 @@ import k from "./styles.module.scss";
 
 type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
 
+type FetchStatusResult = StatusResponse | "NOT_FOUND";
+
 interface StatusResponse {
   status: PaymentStatus;
   orderId: number;
@@ -48,6 +50,7 @@ export default function IntaSendPayment({
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [needsPaymentStart, setNeedsPaymentStart] = useState(false);
 
   const notifiedRef = useRef(false);
   const terminalRef = useRef(false);
@@ -119,7 +122,7 @@ export default function IntaSendPayment({
     [notifyOnce],
   );
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (): Promise<FetchStatusResult | null> => {
     if (!orderId) return null;
 
     const query = checkoutId
@@ -128,6 +131,10 @@ export default function IntaSendPayment({
 
     const res = await fetch(`/api/intasend/status?${query}`);
     const data = (await res.json()) as StatusResponse;
+
+    if (res.status === 404) {
+      return "NOT_FOUND";
+    }
 
     if (!res.ok) {
       throw new Error(
@@ -145,6 +152,16 @@ export default function IntaSendPayment({
     try {
       const data = await fetchStatus();
       if (!data) return;
+
+      if (data === "NOT_FOUND") {
+        terminalRef.current = true;
+        setNeedsPaymentStart(true);
+        setStatus("PENDING");
+        setUserMessage(
+          "Payment has not been started for this order. Send an M-Pesa prompt to pay.",
+        );
+        return;
+      }
 
       if (data.status === "SUCCESS") {
         handleSuccess(data);
@@ -202,6 +219,7 @@ export default function IntaSendPayment({
     timedOutRef.current = false;
     startedAtRef.current = Date.now();
     setTimedOut(false);
+    setNeedsPaymentStart(false);
     setStatus("PENDING");
     setUserMessage(null);
     setFailureKind(null);
@@ -220,6 +238,15 @@ export default function IntaSendPayment({
       const data = await fetchStatus();
       if (!data) return;
 
+      if (data === "NOT_FOUND") {
+        setNeedsPaymentStart(true);
+        terminalRef.current = true;
+        setUserMessage(
+          "Payment has not been started for this order. Send an M-Pesa prompt to pay.",
+        );
+        return;
+      }
+
       if (data.status === "SUCCESS") {
         handleSuccess(data);
         return;
@@ -231,6 +258,7 @@ export default function IntaSendPayment({
       }
 
       setTimedOut(false);
+      setNeedsPaymentStart(false);
       setStatus("PENDING");
       setUserMessage(null);
       toast.message("Payment is still pending on M-Pesa.");
@@ -292,7 +320,7 @@ export default function IntaSendPayment({
     const onResume = () => {
       if (document.visibilityState !== "visible" || terminalRef.current) return;
       void fetchStatus().then((data) => {
-        if (!data) return;
+        if (!data || data === "NOT_FOUND") return;
         if (data.status === "SUCCESS") {
           handleSuccess(data);
           return;
@@ -329,8 +357,8 @@ export default function IntaSendPayment({
     return null;
   }
 
-  const showWaiting = status === "PENDING" && !timedOut;
-  const showTimedOut = status === "PENDING" && timedOut;
+  const showWaiting = status === "PENDING" && !timedOut && !needsPaymentStart;
+  const showTimedOut = status === "PENDING" && timedOut && !needsPaymentStart;
 
   return (
     <Section className={k.payment_page}>
@@ -342,6 +370,8 @@ export default function IntaSendPayment({
               ? failureKind === "cancelled"
                 ? "Payment cancelled"
                 : "Payment not completed"
+              : needsPaymentStart
+                ? "Payment pending"
               : showTimedOut
                 ? "Still waiting for payment"
                 : "Waiting for payment"}
@@ -355,6 +385,32 @@ export default function IntaSendPayment({
           provider={provider}
           className={k.summary}
         />
+
+        {needsPaymentStart && (
+          <>
+            <p className={k.message}>
+              {userMessage ||
+                "Send an M-Pesa prompt to your phone to pay for this order."}
+            </p>
+            <div className={k.actions}>
+              <button
+                type="button"
+                className={k.retry_btn}
+                onClick={handleRetry}
+                disabled={isRetrying}
+              >
+                {isRetrying ? "Sending…" : "Pay with M-Pesa"}
+              </button>
+              <button
+                type="button"
+                className={k.secondary_btn}
+                onClick={() => router.push(`/account/orders/${orderId}`)}
+              >
+                Back to order
+              </button>
+            </div>
+          </>
+        )}
 
         {showWaiting && (
           <>
