@@ -15,7 +15,7 @@ export default async function AccountLayout({
 
   if (!session) {
     redirect("/auth/signin");
-  } else if (session.user.role === "min_admin") {
+  } else if (session.user.role === "min_admin" || session.user.role === "super_admin") {
     redirect("/admin-account");
   } else if (session.user.role !== "user") {
     redirect("/");

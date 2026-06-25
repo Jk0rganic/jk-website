@@ -1,0 +1,49 @@
+.shell {
+  --admin-sidebar-w: 260px;
+  --admin-topbar-h: 64px;
+  --admin-accent: var(--brand-green);
+  --admin-accent-dark: var(--brand-green-mid);
+  --admin-accent-soft: var(--brand-green-soft);
+  --admin-sidebar: #004b23;
+  --admin-sidebar-hover: rgba(255, 255, 255, 0.08);
+  --admin-bg: var(--brand-cream);
+  --admin-surface: var(--brand-white);
+  --admin-border: rgba(28, 28, 28, 0.1);
+  --admin-text: var(--brand-black);
+  --admin-muted: #666666;
+  --admin-shadow: var(--brand-shadow-nav);
+  --admin-radius: var(--brand-radius);
+  --admin-radius-sm: var(--brand-radius);
+
+  display: flex;
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--admin-sidebar-w);
+  transition: margin-left 0.25s ease;
+}
+
+.content {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1400px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .main {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+}

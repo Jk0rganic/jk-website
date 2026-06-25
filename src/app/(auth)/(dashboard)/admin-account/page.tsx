@@ -1,8 +1,8 @@
 import { seoMeta } from "@/utils/seo/seoMeta";
-import DashboardPageAdmin from "./comp/accountPage/accountPage";
+import AdminDashboard from "./components/dashboard/admin-dashboard";
 
 export const metadata = seoMeta.account;
 
 export default function Page() {
-  return <DashboardPageAdmin />;
+  return <AdminDashboard />;
 }

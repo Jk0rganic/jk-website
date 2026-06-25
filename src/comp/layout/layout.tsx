@@ -1,11 +1,7 @@
 import { GoogleTagManager } from "@next/third-parties/google";
 import { Quintessential, Inter, Cormorant_Garamond } from "next/font/google";
-import Navbar from "./navbar-comp/navbar";
 import { Providers } from "@/provider/provider";
-import LokomitiveScroll from "../lokomitiveScroll";
-import Footer from "./footer-comp/footer";
-import { Toaster } from "sonner";
-import FloatWhatapp from "../float-whatapp/float-whatapp";
+import AppChrome from "./app-chrome";
 import { ReactNode } from "react";
 // Fonts
 const quintessential = Quintessential({
@@ -39,16 +35,11 @@ export default function Layout({ children }: LayoutProps) {
     >
       <body>
         <Providers>
-          <Navbar />
-          <LokomitiveScroll>{children}</LokomitiveScroll>
-
-          <Footer />
-          <Toaster />
+          <AppChrome>{children}</AppChrome>
         </Providers>
-        <FloatWhatapp />
         <GoogleTagManager
           gtmId={`${process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER}`}
-        />{" "}
+        />
       </body>
     </html>
   );

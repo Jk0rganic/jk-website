@@ -1,8 +1,8 @@
 import { seoMeta } from "@/utils/seo/seoMeta";
-import OrdersPage from "../../(resources)/dashboard-comp/(pages-comp)/orders/orderPage";
+import AdminOrdersPage from "./comp/admin-orders-page";
 
-export const metadata = seoMeta.orders; // ✅ Direct match to key in seoMeta
+export const metadata = seoMeta.orders;
 
 export default function Page() {
-  return <OrdersPage link="/admin-account/orders/" />;
+  return <AdminOrdersPage />;
 }

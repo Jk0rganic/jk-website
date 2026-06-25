@@ -14,9 +14,12 @@ import {
 
 export default function SingleOrderAccount({
   order,
+  variant = "customer",
 }: {
   order: DashboardOrder | null;
+  variant?: "customer" | "admin";
 }) {
+  const isAdmin = variant === "admin";
   if (!order)
     return (
       <div className={k.order_details}>
@@ -53,11 +56,13 @@ export default function SingleOrderAccount({
 
   return (
     <div className={k.order_details}>
-      <OrderPaymentStatusPoller
-        orderId={order.id}
-        orderStatus={status}
-        paymentMethodTitle={payment_method_title}
-      />
+      {!isAdmin && (
+        <OrderPaymentStatusPoller
+          orderId={order.id}
+          orderStatus={status}
+          paymentMethodTitle={payment_method_title}
+        />
+      )}
 
       <div className={k.order_header}>
         <div>
@@ -66,12 +71,12 @@ export default function SingleOrderAccount({
         </div>
         <OrderStatusBadge
           label={display.orderLabel}
-          hint={display.orderHint}
+          hint={isAdmin ? undefined : display.orderHint}
           tone={display.orderTone}
         />
       </div>
 
-      {display.awaitingPayment && (
+      {!isAdmin && display.awaitingPayment && (
         <PendingPaymentBanner
           orderId={order.id}
           total={total}
@@ -79,9 +84,25 @@ export default function SingleOrderAccount({
         />
       )}
 
-      {display.isPaidOnline && status === "processing" && <OrderPaidBanner />}
+      {isAdmin && display.awaitingPayment && (
+        <div className={k.admin_payment_notice}>
+          <strong>Payment outstanding</strong>
+          <p>
+            The customer has not completed M-Pesa payment for this order. They
+            can pay from their account or the payment link sent at checkout.
+          </p>
+        </div>
+      )}
 
-      <p className={k.summary}>{display.summaryLine}</p>
+      {!isAdmin && display.isPaidOnline && status === "processing" && (
+        <OrderPaidBanner />
+      )}
+
+      <p className={k.summary}>
+        {isAdmin && display.awaitingPayment
+          ? "This order is on hold until the customer pays."
+          : display.summaryLine}
+      </p>
 
       <h3>Order details</h3>
       <table>
@@ -147,7 +168,7 @@ export default function SingleOrderAccount({
         </tbody>
       </table>
 
-      <h3>Billing address</h3>
+      <h3>{isAdmin ? "Customer details" : "Billing address"}</h3>
       <p>
         {billing.first_name} {billing.last_name}
         <br />
@@ -158,9 +179,9 @@ export default function SingleOrderAccount({
         {billing.state}
         {billing.postcode}
         <br />
-        {maskPhone(billing.phone)}
+        {isAdmin ? billing.phone : maskPhone(billing.phone)}
         <br />
-        {maskEmail(billing.email)}
+        {isAdmin ? billing.email : maskEmail(billing.email)}
       </p>
     </div>
   );

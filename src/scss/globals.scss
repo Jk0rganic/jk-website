@@ -1,6 +1,7 @@
 @use "@/scss/mixin.scss" as mixin;
 @use "@/scss/fonts.scss";
 @use "@/scss/sections.scss";
+@use "@/scss/brand-tokens.scss";
 
 :root {
   --font-nunito: var(--font-heading);

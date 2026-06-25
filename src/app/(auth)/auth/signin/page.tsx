@@ -5,6 +5,8 @@ import { SocialMediaLogin } from "../signup/comp/social_login/socialLogin";
 import { seoMeta } from "@/utils/seo/seoMeta";
 import ReUseLogo from "./comp/re-use-logo/re-use-logo";
 import { getSafeCallbackUrl } from "@/lib/auth/get-safe-callback-url";
+import { getAdminSignInUrl } from "@/lib/auth/admin-login";
+import { redirect } from "next/navigation";
 
 export const metadata = seoMeta.signin;
 
@@ -14,6 +16,11 @@ export default async function signin({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const { callbackUrl } = await searchParams;
+
+  if (callbackUrl?.startsWith("/admin-account")) {
+    redirect(getAdminSignInUrl(callbackUrl));
+  }
+
   const safeCallbackUrl = getSafeCallbackUrl(callbackUrl, "/");
 
   return (

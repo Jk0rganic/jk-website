@@ -1,27 +1,104 @@
-@use "@/scss/mixin.scss" as mixin;
-@use "@/scss/typography.scss" as type;
-
-.addresses_page {
+.page {
   h1 {
-    font-size: type.$h4;
-    margin-bottom: 1em;
+    margin-bottom: 0.25rem;
   }
-  .address_container {
-    display: flex;
-    gap: 2em;
-    .address_section {
-      flex: 1;
-      a {
-        color: mixin.$black;
-        margin-bottom: 0.8rem;
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-    }
-    @include mixin.responsive($max: 768px) {
-      flex-direction: column;
-      gap: 0.5em;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 1.25rem;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.card {
+  background: #f8faf8;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  span {
+    color: #666;
+    font-size: 0.875rem;
+  }
+
+  strong {
+    font-size: 1.25rem;
+  }
+}
+
+.filters {
+  margin-bottom: 1rem;
+
+  select {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  thead {
+    background: #f4f4f4;
+  }
+
+  a {
+    color: #0070f3;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.neutral {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.error {
+  color: #b91c1c;
 }

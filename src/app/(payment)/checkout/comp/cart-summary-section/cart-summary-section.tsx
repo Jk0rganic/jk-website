@@ -1,23 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import k from "./styles.module.scss";
-import { fetchWoo } from "@/lib/fetch/fetchRest";
 import { formatPrice } from "@/utils/format-price";
+import type { CheckoutCoupon } from "@/lib/checkout/coupon";
 
-interface Coupon {
-  code: string;
-  amount: string;
-  discount_type: "percent" | "fixed_cart";
-  status: string;
-}
-
-interface BuildOrderPayloadProps {
+interface CartSummarySectionProps {
   cartDetails: NonNullable<CheckoutFormType["cartDetails"]>;
   deliveryMethod: CheckoutFormType["delivery_method"];
   shippingCost: NonNullable<CheckoutFormType["shippingCost"]>;
   isSubmitting: boolean;
+  itemsTotal: number;
+  discount: number;
+  grandTotal: number;
+  activeCoupon: CheckoutCoupon | null;
+  onCouponApplied: (coupon: CheckoutCoupon) => void;
+  onCouponRemoved: () => void;
 }
 
 export default function CartSummarySection({
@@ -25,42 +24,18 @@ export default function CartSummarySection({
   deliveryMethod = "shipping",
   shippingCost = 160,
   isSubmitting = false,
-}: BuildOrderPayloadProps) {
+  itemsTotal,
+  discount,
+  grandTotal,
+  activeCoupon,
+  onCouponApplied,
+  onCouponRemoved,
+}: CartSummarySectionProps) {
   const [couponInput, setCouponInput] = useState("");
-  const [activeCoupon, setActiveCoupon] = useState<Coupon | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const itemCount = cartDetails.length;
-
-  const itemsTotal = useMemo(
-    () =>
-      cartDetails.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0,
-      ),
-    [cartDetails],
-  );
-
-  const discount = useMemo(() => {
-    if (!activeCoupon) return 0;
-
-    const couponAmountNum = Number(activeCoupon.amount) || 0;
-    let discountAmount = 0;
-
-    switch (activeCoupon.discount_type) {
-      case "percent":
-        discountAmount = (itemsTotal * couponAmountNum) / 100;
-        break;
-      case "fixed_cart":
-        discountAmount = couponAmountNum;
-        break;
-    }
-
-    return Math.min(discountAmount, itemsTotal);
-  }, [activeCoupon, itemsTotal]);
-
   const deliveryFee = deliveryMethod === "shipping" ? shippingCost : 0;
-  const grandTotal = Math.max(0, itemsTotal + deliveryFee - discount);
 
   const applyCoupon = async () => {
     const code = couponInput.trim();
@@ -69,31 +44,38 @@ export default function CartSummarySection({
     try {
       setIsApplyingCoupon(true);
 
-      const data = await fetchWoo<Coupon[]>(
-        `coupons?code=${encodeURIComponent(code)}`,
-      );
-      const couponData = data?.[0];
+      const res = await fetch("/api/checkout/coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          itemsTotal,
+        }),
+      });
 
-      if (!couponData) {
-        toast.error("Invalid coupon code");
-        setActiveCoupon(null);
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Invalid coupon code");
+        onCouponRemoved();
         return;
       }
 
-      if (couponData.status !== "publish") {
-        toast.error("Coupon is not active");
-        return;
-      }
-
-      setActiveCoupon(couponData);
+      onCouponApplied(data.coupon);
       toast.success("Coupon applied successfully!");
     } catch (error) {
       console.error("Coupon error:", error);
-      setActiveCoupon(null);
+      onCouponRemoved();
       toast.error("Unable to apply coupon");
     } finally {
       setIsApplyingCoupon(false);
     }
+  };
+
+  const removeCoupon = () => {
+    setCouponInput("");
+    onCouponRemoved();
+    toast.message("Coupon removed");
   };
 
   return (
@@ -144,15 +126,25 @@ export default function CartSummarySection({
           placeholder="Enter coupon code"
           value={couponInput}
           onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-          disabled={isSubmitting || isApplyingCoupon}
+          disabled={isSubmitting || isApplyingCoupon || Boolean(activeCoupon)}
         />
-        <button
-          type="button"
-          onClick={applyCoupon}
-          disabled={!couponInput.trim() || isSubmitting || isApplyingCoupon}
-        >
-          {isApplyingCoupon ? "Applying..." : "Apply"}
-        </button>
+        {activeCoupon ? (
+          <button
+            type="button"
+            onClick={removeCoupon}
+            disabled={isSubmitting || isApplyingCoupon}
+          >
+            Remove
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={applyCoupon}
+            disabled={!couponInput.trim() || isSubmitting || isApplyingCoupon}
+          >
+            {isApplyingCoupon ? "Applying..." : "Apply"}
+          </button>
+        )}
       </div>
 
       <button

@@ -56,6 +56,14 @@ export const seoMeta = {
     robots: "noindex, nofollow",
   }),
 
+  adminSignin: siteMetadata({
+    title: "Admin Sign In",
+    description: "Staff sign in for the JK Organics admin panel.",
+    url: "/auth/admin/signin",
+    keywords: "JK Organics admin login",
+    robots: "noindex, nofollow",
+  }),
+
   signup: siteMetadata({
     title: "Sign Up",
     description:

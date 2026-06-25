@@ -11,6 +11,7 @@ export default function robots() {
         "/admin",
         "/account",
         "/admin-account",
+        "/auth/admin",
       ],
     },
     sitemap: "https://www.jkorganics.co.ke/sitemap.xml",

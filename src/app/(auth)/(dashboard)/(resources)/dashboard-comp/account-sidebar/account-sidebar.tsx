@@ -21,14 +21,19 @@ export default function AccountSidebar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const userAdmin = user?.role === "min_admin";
+  const userAdmin = user?.role === "min_admin" || user?.role === "super_admin";
+  const userSuperAdmin = user?.role === "super_admin";
   const userUser = user?.role === "user";
 
   const menuItems = userAdmin
     ? [
         { label: "Dashboard", href: "/admin-account" },
         { label: "Orders", href: "/admin-account/orders" },
+        { label: "Products", href: "/admin-account/products" },
         { label: "Payments", href: "/admin-account/payments" },
+        ...(userSuperAdmin
+          ? [{ label: "Team", href: "/admin-account/team" }]
+          : []),
         { label: "Account details", href: "/admin-account/details" },
       ]
     : userUser

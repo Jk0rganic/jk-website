@@ -1,0 +1,26 @@
+:root {
+  --brand-name: "JK Organics";
+  --brand-green: #249346;
+  --brand-green-dark: #004b23;
+  --brand-green-mid: #1a6b34;
+  --brand-green-light: #2fad58;
+  --brand-green-soft: #e8f5ec;
+  --brand-black: #1c1c1c;
+  --brand-cream: #eeeeee;
+  --brand-white: #ffffff;
+  --brand-price: rgb(220, 152, 20);
+  --brand-gradient: linear-gradient(
+    135deg,
+    #004b23 0%,
+    #1a6b34 48%,
+    #249346 100%
+  );
+  --brand-gradient-sidebar: linear-gradient(
+    180deg,
+    #004b23 0%,
+    #0f2e1a 55%,
+    #122218 100%
+  );
+  --brand-shadow-nav: 0 1px 1px rgba(0, 0, 0, 0.1);
+  --brand-radius: 0.4rem;
+}

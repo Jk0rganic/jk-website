@@ -6,7 +6,7 @@ import k from "./styles.module.scss";
 import { User } from "lucide-react";
 
 interface SessionUser {
-  role: "user" | "min_admin";
+  role: "user" | "min_admin" | "super_admin";
 }
 
 export default function AccountUser() {
@@ -41,7 +41,7 @@ export default function AccountUser() {
           My Account
         </Link>
       )}
-      {user.role === "min_admin" && (
+      {(user.role === "min_admin" || user.role === "super_admin") && (
         <Link className={k.link} href="/admin-account">
           Admin Account
         </Link>

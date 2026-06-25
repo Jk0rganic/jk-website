@@ -22,8 +22,12 @@ export async function doSocialLogin(formData: FormData) {
 }
 
 export async function logoutAll() {
+  await logoutTo("/auth/signin");
+}
+
+export async function logoutTo(redirectTo: string) {
   await signOut({
-    redirectTo: "/auth/signin",
+    redirectTo,
   });
 
   revalidatePath("/");

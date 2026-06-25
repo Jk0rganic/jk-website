@@ -2,6 +2,7 @@ import { auth } from "./action/auth/auth";
 import { cache } from "react";
 
 export type SessionUser = {
+  id: string;
   email: string;
   role: string;
   name?: string;
@@ -15,10 +16,11 @@ export type Session = {
 const cachedAuth = cache(async (): Promise<Session | null> => {
   const session = await auth();
 
-  if (!session?.user) return null;
+  if (!session?.user?.id) return null;
 
   return {
     user: {
+      id: session.user.id,
       email: session.user.email || "",
       role: session.user.role,
       name: session.user.name,

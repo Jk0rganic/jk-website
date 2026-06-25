@@ -1,6 +1,6 @@
 import { fetchWoo } from "@/lib/fetch/fetchRest";
 import { seoMeta } from "@/utils/seo/seoMeta";
-import SingleOrderAccount from "../../../(resources)/dashboard-comp/(pages-comp)/orders/comp/single-order-acc/page";
+import AdminSingleOrder from "../comp/admin-single-order";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const { id } = await params;
@@ -12,5 +12,5 @@ export default async function order({ params }: { params: { id: string } }) {
   const { id } = await params;
   const order: DashboardOrder | null = await fetchWoo(`orders/${id}`);
 
-  return <SingleOrderAccount order={order} />;
+  return <AdminSingleOrder order={order} />;
 }

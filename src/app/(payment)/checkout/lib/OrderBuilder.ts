@@ -7,6 +7,7 @@ interface BuildOrderPayloadProps {
   deliveryMethod: CheckoutFormType["delivery_method"];
   shippingCost: NonNullable<CheckoutFormType["shippingCost"]>;
   shippingMethodTitle?: CheckoutFormType["shippingMethodTitle"];
+  couponCode?: string;
 }
 
 export const buildOrderPayload = ({
@@ -16,6 +17,7 @@ export const buildOrderPayload = ({
   deliveryMethod,
   shippingCost,
   shippingMethodTitle,
+  couponCode,
 }: BuildOrderPayloadProps) => {
   const line_items: LineItem[] = cartDetails.map((item) => ({
     product_id: item.databaseId,
@@ -109,7 +111,7 @@ export const buildOrderPayload = ({
     ];
   }
 
-  return {
+  const payload: Record<string, unknown> = {
     payment_method: data.paymentMethod === "pay_online" ? "intasend" : "cod",
     payment_method_title:
       data.paymentMethod === "pay_online" ? "Online Payment" : "Cash on Delivery",
@@ -120,11 +122,18 @@ export const buildOrderPayload = ({
     line_items,
     shipping_lines,
     customer_note: data.customer_note || "",
-    total:
-      deliveryMethod === "shipping" ? totalPrice + shippingCost : totalPrice,
     meta_data: [
       { key: "_terms_agreed", value: data.termsAgreement ? "yes" : "no" },
       ...pickupMeta,
     ],
   };
+
+  if (couponCode) {
+    payload.coupon_lines = [{ code: couponCode }];
+  } else {
+    payload.total =
+      deliveryMethod === "shipping" ? totalPrice + shippingCost : totalPrice;
+  }
+
+  return payload;
 };

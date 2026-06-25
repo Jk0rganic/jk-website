@@ -1,0 +1,106 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section {
+  background: var(--admin-surface, #fff);
+  border: 1px solid var(--admin-border, #e8ebe9);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 20, 16, 0.06);
+
+  h2 {
+    margin-bottom: 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+}
+
+.help {
+  color: #6b7280;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+
+  span {
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+
+  input,
+  textarea,
+  select {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #e8ebe9;
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+  }
+
+  em {
+    color: #b91c1c;
+    font-size: 0.82rem;
+    font-style: normal;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  button {
+    background: var(--brand-green);
+    color: var(--brand-white);
+    border: none;
+    padding: 0.7rem 1.15rem;
+    border-radius: var(--brand-radius);
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: capitalize;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.dangerButton {
+  background: #fff !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+
+.codePreview {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  background: #f3f6f4;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+}

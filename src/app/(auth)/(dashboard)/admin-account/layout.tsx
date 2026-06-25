@@ -1,13 +1,12 @@
-import k from "./styles.module.scss";
-import Section from "@/comp/section/section";
 import { getSession } from "@/lib/auth/getSession";
-import { fetchWoo } from "@/lib/fetch/fetchRest";
 import { redirect } from "next/navigation";
-
+import { fetchAdminOrders } from "@/lib/admin/fetch-admin-orders";
+import { isAdminRole } from "@/lib/admin/roles";
+import { getAdminSignInUrl } from "@/lib/auth/admin-login";
 import AccountProvider from "../(resources)/dashboard-utils/account-context";
-import AccountSidebar from "../(resources)/dashboard-comp/account-sidebar/account-sidebar";
+import AdminShell from "./components/shell/admin-shell";
 
-export default async function AccountLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,39 +14,27 @@ export default async function AccountLayout({
   const session = await getSession();
 
   if (!session) {
-    redirect("/auth/signin");
+    redirect(getAdminSignInUrl());
   }
 
-  const user = session.user;
-
-  const isAdmin = user.role === "min_admin";
-
-  if (!isAdmin) {
-    redirect("/account/dashboard");
+  if (!isAdminRole(session.user.role)) {
+    redirect("/account");
   }
 
   let orders: DashboardOrder[] = [];
 
   try {
-    if (user.email) {
-      orders = await fetchWoo(
-        `orders?customer=${encodeURIComponent(user.email)}`,
-      );
-    }
+    orders = await fetchAdminOrders();
   } catch (error) {
-    console.error("Failed to fetch orders:", error);
+    console.error("Failed to fetch admin orders:", error);
     orders = [];
   }
 
   return (
-    <Section className={k.account_container}>
-      <AccountSidebar />
-
-      <main className={k.account_content}>
-        <AccountProvider session={session} orders={orders}>
-          {children}
-        </AccountProvider>
-      </main>
-    </Section>
+    <AdminShell user={session.user}>
+      <AccountProvider session={session} orders={orders}>
+        {children}
+      </AccountProvider>
+    </AdminShell>
   );
 }

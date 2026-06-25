@@ -9,7 +9,9 @@
     "postinstall": "pnpm exec prisma generate",
     "start": "next start ",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -43,6 +45,7 @@
     "recharts": "^3.8.1",
     "rxjs": "^7.8.2",
     "sass": "^1.100.0",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
@@ -56,6 +59,7 @@
     "@types/react-dom": "^19.2.3",
     "babel-plugin-react-compiler": "1.0.0",
     "tsx": "^4.22.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BRAND_LOGO_URL } from "@/lib/brand";
 import k from "./styles.module.scss";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,7 +22,7 @@ export default function Navbar() {
         <Link href="/" className={k.logo} aria-label="Digital Metadata Logo">
           <Image
             className={k.img}
-            src="https://res.cloudinary.com/dj200tags/images/w_2560,h_1077,c_scale/v1768223605/JK-new-tag-line-Logo-1-1-3/JK-new-tag-line-Logo-1-1-3.webp"
+            src={BRAND_LOGO_URL}
             alt="jk organics Logo"
             width={100}
             height={100}

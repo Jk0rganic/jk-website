@@ -22,6 +22,11 @@ import { buildOrderPayload } from "../../lib/OrderBuilder";
 import { buildShippingZoneOptions, COLLECT_AT_SHOP_ZONE } from "../../lib/shipping-zones";
 import { getOrderRedirectPath } from "@/lib/checkout/get-order-redirect";
 import {
+  calculateCouponDiscount,
+  getCheckoutTotal,
+  type CheckoutCoupon,
+} from "@/lib/checkout/coupon";
+import {
   checkOutSchema,
   type CheckOutSchemaType,
 } from "@/utils/zod/checkout-schema/checkout-schema";
@@ -40,6 +45,7 @@ export default function CheckOutComp() {
   const router = useRouter();
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeCoupon, setActiveCoupon] = useState<CheckoutCoupon | null>(null);
 
   const { cartDetails, totalPrice, clearCart, cartCount } = useCartStore();
   const { clearPendingOrder } = usePendingOrderStore();
@@ -106,8 +112,15 @@ export default function CheckOutComp() {
           ?.fee_ksh || 0
       : 0;
 
-  const orderTotal =
-    deliveryMethod === "shipping" ? totalPrice + shippingCost : totalPrice;
+  const deliveryFee = deliveryMethod === "shipping" ? shippingCost : 0;
+  const discount = calculateCouponDiscount(activeCoupon, totalPrice);
+  const orderTotal = getCheckoutTotal(totalPrice, deliveryFee, discount);
+
+  useEffect(() => {
+    if (!cartCount) {
+      setActiveCoupon(null);
+    }
+  }, [cartCount]);
 
   const onSubmit: SubmitHandler<CheckOutSchemaType> = async (formData: any) => {
     if (!Object.keys(cartDetails).length) {
@@ -130,6 +143,7 @@ export default function CheckOutComp() {
       deliveryMethod,
       shippingCost,
       shippingMethodTitle: selectedZone,
+      couponCode: activeCoupon?.code,
     });
 
     const payMethod = formData.paymentMethod;
@@ -150,6 +164,7 @@ export default function CheckOutComp() {
         toast.success("Order placed successfully!");
         clearCart();
         clearPendingOrder();
+        setActiveCoupon(null);
 
         router.push(getOrderRedirectPath(order.id, isLoggedIn));
         return;
@@ -206,6 +221,7 @@ export default function CheckOutComp() {
 
         clearCart();
         clearPendingOrder();
+        setActiveCoupon(null);
         toast.success("Check your phone for the M-Pesa payment prompt.");
         router.push(`/payment?orderId=${order.id}`);
         return;
@@ -264,6 +280,12 @@ export default function CheckOutComp() {
             deliveryMethod={deliveryMethod}
             shippingCost={shippingCost}
             isSubmitting={isSubmitting}
+            itemsTotal={totalPrice}
+            discount={discount}
+            grandTotal={orderTotal}
+            activeCoupon={activeCoupon}
+            onCouponApplied={setActiveCoupon}
+            onCouponRemoved={() => setActiveCoupon(null)}
           />
         </div>
       </form>
