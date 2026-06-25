@@ -8,7 +8,7 @@ import {
   type AdminCoupon,
 } from "@/lib/admin/coupon-service";
 import { PageHeader } from "../components/ui/page-header";
-import ui from "../../components/ui/admin-ui.module.scss";
+import ui from "../components/ui/admin-ui.module.scss";
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<AdminCoupon[]>([]);
