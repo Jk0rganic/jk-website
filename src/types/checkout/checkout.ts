@@ -38,6 +38,11 @@ export type CheckoutFormType = {
   shipping_phone?: string;
   shipping_email?: string;
   useDifferentShipping?: boolean;
+  county?: string;
+  delivery_subtype?: "door_to_door" | "parcel_office";
+  parcel_town?: string;
+  parcel_office_id?: string;
+  pickupPoint?: string;
   delivery_method: "shipping" | "pickup";
   paymentMethod: "pay_online" | "pay_on_delivery";
   customer_note?: string;

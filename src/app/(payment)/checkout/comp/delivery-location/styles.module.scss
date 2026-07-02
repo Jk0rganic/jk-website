@@ -1,0 +1,65 @@
+.delivery_location {
+  margin-bottom: 1.5em;
+
+  h5 {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    font-size: 1rem;
+    background: #fff;
+  }
+
+  .select_error {
+    border-color: #c0392b;
+  }
+
+  .error {
+    display: block;
+    margin-top: 0.35rem;
+    color: #c0392b;
+    font-size: 0.85rem;
+  }
+
+  .notice {
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .door_notice {
+    background: #f0f9f4;
+    border: 1px solid #b8e0c8;
+  }
+
+  .parcel_notice {
+    background: #f5f8ff;
+    border: 1px solid #c5d4f5;
+  }
+
+  .fee {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}

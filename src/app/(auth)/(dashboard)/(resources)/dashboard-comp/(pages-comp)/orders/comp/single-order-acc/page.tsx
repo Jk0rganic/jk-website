@@ -11,6 +11,10 @@ import {
   OrderPaymentBadge,
   OrderStatusBadge,
 } from "../order-display/order-display";
+import {
+  formatDeliveryTypeLabel,
+  getOrderDeliveryInfo,
+} from "@/lib/checkout/order-delivery-info";
 
 export default function SingleOrderAccount({
   order,
@@ -38,7 +42,13 @@ export default function SingleOrderAccount({
     payment_method,
     date_paid,
     needs_payment,
+    shipping,
+    meta_data,
+    customer_note,
   } = order;
+
+  const deliveryInfo = getOrderDeliveryInfo(meta_data);
+  const deliveryTypeLabel = formatDeliveryTypeLabel(deliveryInfo.type);
 
   const display = getOrderDisplayInfo({
     status,
@@ -124,9 +134,25 @@ export default function SingleOrderAccount({
             </tr>
           ))}
           <tr>
-            <td className={k.product_name}>Delivery Location</td>
-            <td className={k.product_name}>{shippingTitle}</td>
+            <td className={k.product_name}>Delivery method</td>
+            <td className={k.product_name}>
+              {deliveryTypeLabel || shippingTitle}
+            </td>
           </tr>
+          {deliveryInfo.parcelOfficeName ? (
+            <tr>
+              <td className={k.product_name}>Parcel office</td>
+              <td className={k.product_name}>
+                {deliveryInfo.parcelOfficeName}
+                {deliveryInfo.parcelOfficeAddress ? (
+                  <>
+                    <br />
+                    {deliveryInfo.parcelOfficeAddress}
+                  </>
+                ) : null}
+              </td>
+            </tr>
+          ) : null}
           <tr>
             <td className={k.product_name}>Delivery fee</td>
             <td className={k.product_name}>{formatPrice(shippingTotal)}</td>
@@ -183,6 +209,34 @@ export default function SingleOrderAccount({
         <br />
         {isAdmin ? billing.email : maskEmail(billing.email)}
       </p>
+
+      {(shipping?.address_1 || deliveryInfo.type === "parcel_office") && (
+        <>
+          <h3>Delivery address</h3>
+          <p>
+            {shipping.first_name} {shipping.last_name}
+            <br />
+            {shipping.address_1}
+            <br />
+            {shipping.city}
+            {shipping.state ? (
+              <>
+                <br />
+                {shipping.state}
+              </>
+            ) : null}
+            <br />
+            {isAdmin ? shipping.phone : maskPhone(shipping.phone || billing.phone)}
+          </p>
+        </>
+      )}
+
+      {customer_note ? (
+        <>
+          <h3>Delivery notes</h3>
+          <p>{customer_note}</p>
+        </>
+      ) : null}
     </div>
   );
 }

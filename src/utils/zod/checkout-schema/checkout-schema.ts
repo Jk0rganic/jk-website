@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { findParcelOffice, isDoorToDoorCounty } from "@/data/kenya-delivery";
 
 const requiredString = (msg: string) => z.string().min(1, msg);
 const optionalString = z.string().optional();
@@ -8,6 +9,10 @@ export const checkOutSchema = z
     email: requiredString("Email address is required").email("Enter a valid email address"),
     shippingZone: optionalString,
     pickupPoint: optionalString,
+    county: optionalString,
+    delivery_subtype: z.enum(["door_to_door", "parcel_office"]).optional(),
+    parcel_town: optionalString,
+    parcel_office_id: optionalString,
 
     // Billing
     billing_first_name: requiredString("First name is required"),
@@ -53,7 +58,64 @@ export const checkOutSchema = z
       }
     }
 
-    if (data.delivery_method !== "shipping" || !data.useDifferentShipping) return;
+    if (data.delivery_method === "pickup") {
+      if (!data.pickupPoint?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please select a pick-up point",
+          path: ["pickupPoint"],
+        });
+      }
+      return;
+    }
+
+    if (data.delivery_method !== "shipping") return;
+
+    if (!data.county?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please select your county",
+        path: ["county"],
+      });
+      return;
+    }
+
+    if (isDoorToDoorCounty(data.county)) {
+      if (!data.billing_address_1?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Street address is required for door-to-door delivery",
+          path: ["billing_address_1"],
+        });
+      }
+    } else {
+      if (!data.parcel_town?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please select your town / stage area",
+          path: ["parcel_town"],
+        });
+      }
+      if (!data.parcel_office_id?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please select a parcel office",
+          path: ["parcel_office_id"],
+        });
+      } else if (
+        data.county &&
+        data.parcel_office_id &&
+        !findParcelOffice(data.county, data.parcel_office_id)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please select a valid parcel office",
+          path: ["parcel_office_id"],
+        });
+      }
+    }
+
+    if (!data.useDifferentShipping) return;
 
     const requiredShippingKeys = [
       "shipping_first_name",
@@ -70,6 +132,14 @@ export const checkOutSchema = z
           path: [key],
         });
       }
+    }
+
+    if (isDoorToDoorCounty(data.county ?? "") && !data.shipping_address_1?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Street address is required",
+        path: ["shipping_address_1"],
+      });
     }
   });
 

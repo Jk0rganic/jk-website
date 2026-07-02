@@ -42,6 +42,8 @@ declare global {
     | "payment_method_title"
     | "date_paid"
     | "needs_payment"
+    | "meta_data"
+    | "customer_note"
   >;
 
   type OrderSummary = Pick<

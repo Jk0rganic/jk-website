@@ -1,16 +1,27 @@
 import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
+import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
 import k from "./styles.module.scss";
 import { FormInput } from "@/comp/form/formInput/formInput";
 
-type BillingAddressProps = Pick<CheckoutFormProps, "register" | "errors">;
+type BillingAddressProps = Pick<CheckoutFormProps, "register" | "errors"> & {
+  deliveryMethod: CheckOutSchemaType["delivery_method"];
+  deliverySubtype?: CheckOutSchemaType["delivery_subtype"];
+};
 
 export default function BillingAddress({
   register,
   errors,
+  deliveryMethod,
+  deliverySubtype,
 }: BillingAddressProps) {
+  const isDoorToDoor =
+    deliveryMethod === "shipping" && deliverySubtype === "door_to_door";
+  const isParcelOffice =
+    deliveryMethod === "shipping" && deliverySubtype === "parcel_office";
+
   return (
     <div className={k.card_wrapper}>
-      <h5>Billing Address</h5>
+      <h5>{isParcelOffice ? "Your Details" : "Billing Address"}</h5>
       <div className={k.user_names}>
         <FormInput
           type="text"
@@ -28,19 +39,25 @@ export default function BillingAddress({
         />
       </div>
       <div className={k.shipping_info}>
-        <FormInput
-          type="text"
-          name="billing_address_1"
-          register={register}
-          errors={errors}
-          placeholder="Street address (optional) "
-        />
+        {!isParcelOffice ? (
+          <FormInput
+            type="text"
+            name="billing_address_1"
+            register={register}
+            errors={errors}
+            placeholder={
+              isDoorToDoor
+                ? "Street address, estate & landmarks *"
+                : "Street address (optional)"
+            }
+          />
+        ) : null}
         <FormInput
           type="text"
           name="billing_city"
           register={register}
           errors={errors}
-          placeholder="Town / City"
+          placeholder={isParcelOffice ? "Your town / city *" : "Town / City *"}
         />
       </div>
       <div className={k.shipping_info}>
@@ -49,15 +66,17 @@ export default function BillingAddress({
           name="billing_phone"
           register={register}
           errors={errors}
-          placeholder="Phone Number"
+          placeholder="Phone Number *"
         />
-        <FormInput
-          type="number"
-          name="billing_postcode"
-          register={register}
-          errors={errors}
-          placeholder="Postcode / ZIP (optional)"
-        />
+        {!isParcelOffice ? (
+          <FormInput
+            type="number"
+            name="billing_postcode"
+            register={register}
+            errors={errors}
+            placeholder="Postcode / ZIP (optional)"
+          />
+        ) : null}
       </div>
       <div className={k.save_info}>
         <input type="checkbox" id="saveInfo" {...register("saveInfo")} />

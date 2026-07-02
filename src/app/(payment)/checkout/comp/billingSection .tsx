@@ -3,6 +3,7 @@ import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-sc
 import ExclusiveEmail from "./exclusiveEmail";
 import PickUpPoint from "./pickUpPoint/pickUpPoint";
 import BillingAddress from "./billingAddress";
+import DeliveryLocationSelector from "./delivery-location/deliveryLocationSelector";
 
 type BillingSectionProps = Pick<
   CheckoutFormProps,
@@ -10,6 +11,7 @@ type BillingSectionProps = Pick<
 > & {
   deliveryMethod: CheckOutSchemaType["delivery_method"];
   shippingZones: NonNullable<CheckoutFormType["shippingZone"]>[];
+  deliverySubtype?: CheckOutSchemaType["delivery_subtype"];
 };
 
 export default function BillingSection({
@@ -21,22 +23,38 @@ export default function BillingSection({
   loading,
   error,
   watch,
+  deliverySubtype,
 }: BillingSectionProps) {
   return (
     <>
       <ExclusiveEmail register={register} errors={errors} />
-      <BillingAddress register={register} errors={errors} />
 
-      <PickUpPoint
+      {deliveryMethod === "shipping" ? (
+        <DeliveryLocationSelector
+          register={register}
+          errors={errors}
+          setValue={setValue}
+          watch={watch}
+          shippingZones={shippingZones}
+        />
+      ) : null}
+
+      <BillingAddress
         register={register}
         errors={errors}
         deliveryMethod={deliveryMethod}
-        shippingZones={shippingZones}
-        setValue={setValue}
-        loading={loading}
-        error={error}
-        watch={watch}
+        deliverySubtype={deliverySubtype}
       />
+
+      {deliveryMethod === "pickup" ? (
+        <PickUpPoint
+          register={register}
+          setValue={setValue}
+          loading={loading}
+          error={error}
+          watch={watch}
+        />
+      ) : null}
     </>
   );
 }

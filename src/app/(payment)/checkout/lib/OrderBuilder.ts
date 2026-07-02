@@ -1,4 +1,5 @@
-import { COLLECT_AT_SHOP_ZONE } from "./shipping-zones";
+import { findParcelOffice } from "@/data/kenya-delivery";
+import { getZoneNameForSubtype } from "./delivery-zones";
 
 interface BuildOrderPayloadProps {
   data: CheckoutFormType;
@@ -9,6 +10,13 @@ interface BuildOrderPayloadProps {
   shippingMethodTitle?: CheckoutFormType["shippingMethodTitle"];
   couponCode?: string;
 }
+
+const PICKUP_POINT_DETAILS = {
+  id: "stanbank_nairobi",
+  name: "Nairobi CBD Pickup – Stanbank House",
+  address:
+    "Stanbank House, Moi Avenue, Next to Archives, 6th Floor, Shop B613, Nairobi",
+};
 
 export const buildOrderPayload = ({
   data,
@@ -52,19 +60,54 @@ export const buildOrderPayload = ({
     phone: data.billing_phone,
     email: data.email,
     country: "KE",
+    ...(data.county ? { state: data.county } : {}),
   };
 
   let shipping: Partial<CheckoutFormType["shipping"]> = {};
   let shipping_lines: CheckoutFormType["shipping_lines"] = [];
-  const pickupMeta: CheckoutFormType["meta_data"] = [];
-  const isCollectAtShop =
-    deliveryMethod === "shipping" &&
-    shippingMethodTitle === COLLECT_AT_SHOP_ZONE;
+  const deliveryMeta: CheckoutFormType["meta_data"] = [];
 
   if (deliveryMethod === "shipping") {
-    shipping = isCollectAtShop
-      ? billing
-      : data.useDifferentShipping
+    const subtype = data.delivery_subtype ?? "door_to_door";
+    const methodTitle =
+      shippingMethodTitle ?? getZoneNameForSubtype(subtype);
+
+    if (subtype === "parcel_office" && data.county && data.parcel_office_id) {
+      const parcel = findParcelOffice(data.county, data.parcel_office_id);
+      const office = parcel?.office;
+
+      shipping = {
+        first_name: data.billing_first_name,
+        last_name: data.billing_last_name,
+        address_1: office
+          ? `${office.name} – ${office.address}`
+          : data.billing_address_1 || "",
+        city: data.parcel_town || data.billing_city,
+        postcode: data.billing_postcode || "",
+        phone: data.billing_phone,
+        country: "KE",
+        state: data.county,
+      };
+
+      deliveryMeta.push(
+        { key: "_delivery_type", value: "parcel_office" },
+        { key: "_county", value: data.county },
+        { key: "_parcel_town", value: data.parcel_town || "" },
+        {
+          key: "_parcel_office_id",
+          value: data.parcel_office_id,
+        },
+        {
+          key: "_parcel_office_name",
+          value: office?.name || "",
+        },
+        {
+          key: "_parcel_office_address",
+          value: office?.address || "",
+        },
+      );
+    } else {
+      shipping = data.useDifferentShipping
         ? {
             first_name: data.shipping_first_name || "",
             last_name: data.shipping_last_name || "",
@@ -73,8 +116,15 @@ export const buildOrderPayload = ({
             postcode: data.shipping_postcode || "",
             phone: data.shipping_phone || "",
             country: "KE",
+            state: data.county || "",
           }
         : billing;
+
+      deliveryMeta.push(
+        { key: "_delivery_type", value: "door_to_door" },
+        ...(data.county ? [{ key: "_county", value: data.county }] : []),
+      );
+    }
 
     const itemsSummary = cartDetails
       .map(
@@ -83,23 +133,17 @@ export const buildOrderPayload = ({
       )
       .join(", ");
 
-    shipping_lines = isCollectAtShop
-      ? [
-          {
-            method_id: "local_pickup",
-            method_title: COLLECT_AT_SHOP_ZONE,
-            total: "0.00",
-          },
-        ]
-      : [
-          {
-            method_id: "flat_rate",
-            method_title: shippingMethodTitle || "Shipping Fee",
-            total: shippingCost.toFixed(2),
-            meta_data: [{ key: "Items", value: itemsSummary }],
-          },
-        ];
+    shipping_lines = [
+      {
+        method_id: "flat_rate",
+        method_title: methodTitle,
+        total: shippingCost.toFixed(2),
+        meta_data: [{ key: "Items", value: itemsSummary }],
+      },
+    ];
   }
+
+  const pickupMeta: CheckoutFormType["meta_data"] = [];
 
   if (deliveryMethod === "pickup") {
     shipping_lines = [
@@ -109,6 +153,11 @@ export const buildOrderPayload = ({
         total: "0.00",
       },
     ];
+    pickupMeta.push(
+      { key: "_pickup_point_id", value: PICKUP_POINT_DETAILS.id },
+      { key: "_pickup_point_name", value: PICKUP_POINT_DETAILS.name },
+      { key: "_pickup_point_address", value: PICKUP_POINT_DETAILS.address },
+    );
   }
 
   const payload: Record<string, unknown> = {
@@ -124,6 +173,7 @@ export const buildOrderPayload = ({
     customer_note: data.customer_note || "",
     meta_data: [
       { key: "_terms_agreed", value: data.termsAgreement ? "yes" : "no" },
+      ...deliveryMeta,
       ...pickupMeta,
     ],
   };

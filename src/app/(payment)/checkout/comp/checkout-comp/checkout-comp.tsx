@@ -19,7 +19,11 @@ import TermsAndConditionsSection from "../terms-and-conditions-section";
 import CartSummarySection from "../cart-summary-section/cart-summary-section";
 import { GET_SHIPPING_ZONES } from "../pickUpPoint/graphql";
 import { buildOrderPayload } from "../../lib/OrderBuilder";
-import { buildShippingZoneOptions, COLLECT_AT_SHOP_ZONE } from "../../lib/shipping-zones";
+import {
+  filterWooShippingZones,
+  getDeliveryFee,
+} from "../../lib/delivery-zones";
+import { getDeliverySubtype } from "@/data/kenya-delivery";
 import { getOrderRedirectPath } from "@/lib/checkout/get-order-redirect";
 import {
   calculateCouponDiscount,
@@ -91,26 +95,31 @@ export default function CheckOutComp() {
   }, [setValue]);
 
   const deliveryMethod = watch("delivery_method");
-  const selectedZone = watch("shippingZone");
-  const isCollectAtShop =
-    deliveryMethod === "shipping" && selectedZone === COLLECT_AT_SHOP_ZONE;
+  const selectedCounty = watch("county");
+  const deliverySubtype = watch("delivery_subtype");
 
   const { data, loading, error }: any = useApolloFetcher(GET_SHIPPING_ZONES);
 
-  const deliveryZones =
+  const wooShippingZones =
     data?.shippingZones?.map((zone: any) => ({
       zone: zone.name,
       fee_ksh:
         Number(zone.shippingMethods[0]?.cost.replace(/[^0-9]/g, "")) || 0,
     })) || [];
 
-  const shippingZonesWithCollect = buildShippingZoneOptions(deliveryZones);
+  const deliveryZones = filterWooShippingZones(wooShippingZones);
 
-  const shippingCost =
-    deliveryMethod === "shipping" && selectedZone
-      ? shippingZonesWithCollect.find((z: any) => z.zone === selectedZone)
-          ?.fee_ksh || 0
-      : 0;
+  const shippingCost = (() => {
+    if (deliveryMethod !== "shipping" || !selectedCounty) return 0;
+    const subtype = getDeliverySubtype(selectedCounty);
+    return getDeliveryFee(deliveryZones, subtype).fee;
+  })();
+
+  const selectedZone = (() => {
+    if (deliveryMethod !== "shipping" || !selectedCounty) return undefined;
+    const subtype = getDeliverySubtype(selectedCounty);
+    return getDeliveryFee(deliveryZones, subtype).zoneName;
+  })();
 
   const deliveryFee = deliveryMethod === "shipping" ? shippingCost : 0;
   const discount = calculateCouponDiscount(activeCoupon, totalPrice);
@@ -248,14 +257,15 @@ export default function CheckOutComp() {
             register={register}
             errors={errors}
             deliveryMethod={deliveryMethod}
-            shippingZones={shippingZonesWithCollect}
+            shippingZones={wooShippingZones}
+            deliverySubtype={deliverySubtype}
             setValue={setValue}
             loading={loading}
             error={error}
             watch={watch}
           />
 
-          {deliveryMethod === "shipping" && !isCollectAtShop && (
+          {deliveryMethod === "shipping" && deliverySubtype === "door_to_door" && (
             <ShippingSection
               watch={watch}
               setValue={setValue}

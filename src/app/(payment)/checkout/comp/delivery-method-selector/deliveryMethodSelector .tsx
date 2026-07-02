@@ -22,7 +22,7 @@ export default function DeliveryMethodSelector({ register }: Props) {
             {...register("delivery_method")}
             defaultChecked
           />
-          Ship to my address
+          Ship to my address (Kenya)
         </label>
         <Truck size={size} />
       </div>
