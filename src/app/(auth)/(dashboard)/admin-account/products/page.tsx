@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Package } from "lucide-react";
+import { toast } from "sonner";
 import { formatPrice } from "@/utils/format-price";
 import {
   formatStockCount,
@@ -51,6 +52,7 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadProducts() {
@@ -127,6 +129,36 @@ export default function AdminProductsPage() {
     other: k.badgeOther,
   } as const;
 
+  async function handleDeleteProduct(product: ProductInventoryItem) {
+    const confirmed = window.confirm(
+      `Delete "${product.name}"? This removes it from WooCommerce and cannot be undone.`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingProductId(product.id);
+
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete product");
+      }
+
+      setProducts((current) => current.filter((item) => item.id !== product.id));
+      toast.success(`Deleted ${product.name}`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete product",
+      );
+    } finally {
+      setDeletingProductId(null);
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -195,7 +227,7 @@ export default function AdminProductsPage() {
                     <th>Price</th>
                     <th>Stock</th>
                     <th>Status</th>
-                    <th />
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,13 +266,23 @@ export default function AdminProductsPage() {
                             {publishStatus.label}
                           </span>
                         </td>
-                        <td>
+                        <td className={k.actionsCell}>
                           <Link
                             href={`/admin-account/products/${product.id}`}
-                            className={k.detailsLink}
+                            className={k.actionLink}
                           >
                             Details
                           </Link>
+                          <button
+                            type="button"
+                            className={k.deleteAction}
+                            onClick={() => handleDeleteProduct(product)}
+                            disabled={deletingProductId === product.id}
+                          >
+                            {deletingProductId === product.id
+                              ? "Deleting"
+                              : "Delete"}
+                          </button>
                         </td>
                       </tr>
                     );

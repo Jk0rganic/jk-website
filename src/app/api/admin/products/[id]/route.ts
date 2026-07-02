@@ -93,3 +93,31 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return Response.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(_request: Request, { params }: RouteParams) {
+  const { error, status } = await requireAdminSession();
+
+  if (error) {
+    return Response.json({ error }, { status });
+  }
+
+  const { id } = await params;
+  const productId = Number(id);
+
+  if (!Number.isFinite(productId)) {
+    return Response.json({ error: "Invalid product id" }, { status: 400 });
+  }
+
+  try {
+    await fetchWoo(`products/${productId}?force=true`, {
+      method: "DELETE",
+      noCache: true,
+    });
+
+    return Response.json({ success: true });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to delete product";
+    return Response.json({ error: message }, { status: 500 });
+  }
+}

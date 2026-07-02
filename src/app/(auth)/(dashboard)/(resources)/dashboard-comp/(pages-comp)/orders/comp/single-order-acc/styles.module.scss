@@ -65,6 +65,43 @@ $border: 0.1px solid rgba(0, 0, 0, 0.2);
     line-height: 1.5;
   }
 
+  .fulfillment_summary {
+    background: #f8faf8;
+    border: 1px solid #dfe7df;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.15rem;
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0.85rem;
+      font-size: types.$h6;
+    }
+
+    dl {
+      display: grid;
+      gap: 0.75rem;
+      margin: 0;
+    }
+
+    div {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    dt {
+      color: #4b5563;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 0;
+      line-height: 1.45;
+    }
+  }
+
   .admin_payment_notice {
     background: #fffbeb;
     border: 1px solid #fde68a;

@@ -49,6 +49,10 @@ export default function SingleOrderAccount({
 
   const deliveryInfo = getOrderDeliveryInfo(meta_data);
   const deliveryTypeLabel = formatDeliveryTypeLabel(deliveryInfo.type);
+  const deliveryPhone = shipping.phone || billing.phone;
+  const deliveryAddress = shipping.address_1 || billing.address_1;
+  const deliveryCity = shipping.city || billing.city;
+  const deliveryCounty = deliveryInfo.county || shipping.state || billing.state;
 
   const display = getOrderDisplayInfo({
     status,
@@ -113,6 +117,64 @@ export default function SingleOrderAccount({
           ? "This order is on hold until the customer pays."
           : display.summaryLine}
       </p>
+
+      {isAdmin ? (
+        <section className={k.fulfillment_summary}>
+          <h3>Fulfillment details</h3>
+          <dl>
+            <div>
+              <dt>Delivery type</dt>
+              <dd>{deliveryTypeLabel || shippingTitle}</dd>
+            </div>
+            {deliveryCounty ? (
+              <div>
+                <dt>County</dt>
+                <dd>{deliveryCounty}</dd>
+              </div>
+            ) : null}
+            {deliveryInfo.parcelTown ? (
+              <div>
+                <dt>Town / stage area</dt>
+                <dd>{deliveryInfo.parcelTown}</dd>
+              </div>
+            ) : null}
+            {deliveryInfo.parcelOfficeName ? (
+              <div>
+                <dt>Parcel office</dt>
+                <dd>
+                  {deliveryInfo.parcelOfficeName}
+                  {deliveryInfo.parcelOfficeAddress ? (
+                    <>
+                      <br />
+                      {deliveryInfo.parcelOfficeAddress}
+                    </>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
+            {deliveryAddress ? (
+              <div>
+                <dt>Delivery address</dt>
+                <dd>
+                  {deliveryAddress}
+                  {deliveryCity ? (
+                    <>
+                      <br />
+                      {deliveryCity}
+                    </>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
+            {deliveryPhone ? (
+              <div>
+                <dt>Delivery phone</dt>
+                <dd>{deliveryPhone}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
 
       <h3>Order details</h3>
       <table>

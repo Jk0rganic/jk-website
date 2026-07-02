@@ -10,10 +10,13 @@ import {
 } from "@/data/kenya-delivery";
 
 describe("kenya delivery helpers", () => {
-  it("treats Nairobi area counties as door-to-door", () => {
+  it("treats only Nairobi as door-to-door", () => {
     expect(isDoorToDoorCounty("Nairobi")).toBe(true);
-    expect(isDoorToDoorCounty("Kiambu")).toBe(true);
+    expect(isDoorToDoorCounty("Kiambu")).toBe(false);
+    expect(isDoorToDoorCounty("Machakos")).toBe(false);
+    expect(isDoorToDoorCounty("Kajiado")).toBe(false);
     expect(getDeliverySubtype("Kisumu")).toBe("parcel_office");
+    expect(getDeliverySubtype("Kiambu")).toBe("parcel_office");
   });
 });
 

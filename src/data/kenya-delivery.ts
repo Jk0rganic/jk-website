@@ -16,13 +16,8 @@ export type ParcelCounty = {
   towns: ParcelTown[];
 };
 
-/** Counties that receive door-to-door delivery (Nairobi and immediate environs). */
-export const DOOR_TO_DOOR_COUNTIES = [
-  "Nairobi",
-  "Kiambu",
-  "Machakos",
-  "Kajiado",
-] as const;
+/** Counties that receive door-to-door delivery. */
+export const DOOR_TO_DOOR_COUNTIES = ["Nairobi"] as const;
 
 export const KENYA_COUNTIES = [
   "Baringo",

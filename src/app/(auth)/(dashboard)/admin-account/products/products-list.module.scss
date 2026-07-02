@@ -185,7 +185,14 @@
   color: #4b5563;
 }
 
-.detailsLink {
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  white-space: nowrap;
+}
+
+.actionLink {
   color: #249346;
   font-weight: 600;
   font-size: 0.88rem;
@@ -193,6 +200,26 @@
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+.deleteAction {
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
   }
 }
 
