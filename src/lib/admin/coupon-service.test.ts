@@ -6,6 +6,7 @@ import {
 } from "@/lib/checkout/coupon";
 import { couponFormSchema } from "./coupon-schema";
 import {
+  couponToFormValues,
   formValuesToWooCouponPayload,
   mapWooCoupon,
   summarizeCoupons,
@@ -91,6 +92,25 @@ describe("couponFormSchema", () => {
       expect(result.data.code).toBe("WELCOME10");
     }
   });
+
+  it("accepts WooCommerce coupon restriction fields", () => {
+    const result = couponFormSchema.safeParse({
+      code: "welcome10",
+      discountType: "percent",
+      amount: "10",
+      published: true,
+      maximumAmount: "2500",
+      usageLimitPerUser: "1",
+      individualUse: true,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.maximumAmount).toBe("2500");
+      expect(result.data.usageLimitPerUser).toBe("1");
+      expect(result.data.individualUse).toBe(true);
+    }
+  });
 });
 
 describe("formValuesToWooCouponPayload", () => {
@@ -103,6 +123,9 @@ describe("formValuesToWooCouponPayload", () => {
       published: true,
       usageLimit: "100",
       minimumAmount: "500",
+      maximumAmount: "2500",
+      usageLimitPerUser: "1",
+      individualUse: true,
       expiresAt: "2026-12-31",
     });
 
@@ -112,9 +135,11 @@ describe("formValuesToWooCouponPayload", () => {
       amount: "20",
       description: "Launch promo",
       status: "publish",
-      individual_use: false,
+      individual_use: true,
       usage_limit: 100,
+      usage_limit_per_user: 1,
       minimum_amount: "500",
+      maximum_amount: "2500",
       date_expires: "2026-12-31T23:59:59",
     });
   });
@@ -131,13 +156,41 @@ describe("mapWooCoupon", () => {
       date_expires: null,
       usage_count: 2,
       usage_limit: 50,
+      usage_limit_per_user: 2,
       status: "publish",
-      individual_use: false,
+      individual_use: true,
       minimum_amount: "0",
+      maximum_amount: "5000",
     });
 
     expect(coupon.discountLabel).toBe("10% off");
     expect(coupon.active).toBe(true);
+    expect(coupon.maximumAmount).toBe("5000");
+    expect(coupon.usageLimitPerUser).toBe("2");
+    expect(coupon.individualUse).toBe(true);
     expect(summarizeCoupons([coupon]).active).toBe(1);
+  });
+
+  it("maps restriction fields back to edit form values", () => {
+    const formValues = couponToFormValues({
+      id: 4,
+      code: "WELCOME10",
+      amount: "10",
+      discountType: "percent",
+      discountLabel: "10% off",
+      description: "Welcome offer",
+      expiresAt: null,
+      usageCount: 2,
+      usageLimit: 50,
+      active: true,
+      minimumAmount: "0",
+      maximumAmount: "5000",
+      usageLimitPerUser: "2",
+      individualUse: true,
+    });
+
+    expect(formValues.maximumAmount).toBe("5000");
+    expect(formValues.usageLimitPerUser).toBe("2");
+    expect(formValues.individualUse).toBe(true);
   });
 });

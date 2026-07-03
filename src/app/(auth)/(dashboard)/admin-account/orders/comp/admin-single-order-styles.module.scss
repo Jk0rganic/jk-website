@@ -45,3 +45,170 @@
     }
   }
 }
+
+.quickAction,
+.quickForm {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+  padding-top: 1rem;
+
+  strong {
+    display: block;
+    color: #111827;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    color: #4b5563;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+.quickForm {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(12rem, 1.4fr) auto;
+  gap: 0.75rem;
+  width: 100%;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-weight: 600;
+  }
+
+  input {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 0.55rem 0.65rem;
+  }
+
+  button {
+    align-self: end;
+  }
+}
+
+.notesPanel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+
+.notesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  h3 {
+    margin: 0;
+  }
+
+  span {
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    min-height: 5.5rem;
+    padding: 0.75rem;
+    resize: vertical;
+  }
+}
+
+.noteFormFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  button {
+    background: #166534;
+    color: #fff;
+    border: none;
+    padding: 0.55rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.noteItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.75rem;
+
+  p {
+    color: #1f2937;
+    margin: 0.45rem 0 0;
+    white-space: pre-wrap;
+  }
+}
+
+.noteMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+
+  span {
+    color: #166534;
+    font-weight: 700;
+  }
+}
+
+.empty {
+  color: #6b7280;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .quickAction {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

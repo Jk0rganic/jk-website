@@ -10,6 +10,7 @@ export type WooCoupon = {
   date_expires: string | null;
   usage_count: number;
   usage_limit: number | null;
+  usage_limit_per_user?: number | null;
   status: string;
   individual_use: boolean;
   minimum_amount: string;
@@ -28,6 +29,9 @@ export type AdminCoupon = {
   usageLimit: number | null;
   active: boolean;
   minimumAmount: string;
+  maximumAmount: string;
+  usageLimitPerUser: string;
+  individualUse: boolean;
 };
 
 export function mapWooCoupon(coupon: WooCoupon): AdminCoupon {
@@ -43,6 +47,13 @@ export function mapWooCoupon(coupon: WooCoupon): AdminCoupon {
     usageLimit: coupon.usage_limit,
     active: coupon.status === "publish",
     minimumAmount: coupon.minimum_amount || "",
+    maximumAmount: coupon.maximum_amount || "",
+    usageLimitPerUser:
+      coupon.usage_limit_per_user !== null &&
+      coupon.usage_limit_per_user !== undefined
+        ? String(coupon.usage_limit_per_user)
+        : "",
+    individualUse: coupon.individual_use ?? false,
   };
 }
 
@@ -56,6 +67,9 @@ export function couponToFormValues(coupon: AdminCoupon): CouponFormValues {
     published: coupon.active,
     usageLimit: coupon.usageLimit !== null ? String(coupon.usageLimit) : "",
     minimumAmount: coupon.minimumAmount || "",
+    maximumAmount: coupon.maximumAmount || "",
+    usageLimitPerUser: coupon.usageLimitPerUser || "",
+    individualUse: coupon.individualUse,
     expiresAt: coupon.expiresAt ? coupon.expiresAt.slice(0, 10) : "",
   };
 }
@@ -65,6 +79,10 @@ export function formValuesToWooCouponPayload(values: CouponFormValues) {
     values.usageLimit && values.usageLimit.trim()
       ? Number(values.usageLimit)
       : null;
+  const usageLimitPerUser =
+    values.usageLimitPerUser && values.usageLimitPerUser.trim()
+      ? Number(values.usageLimitPerUser)
+      : null;
 
   return {
     code: values.code,
@@ -72,9 +90,11 @@ export function formValuesToWooCouponPayload(values: CouponFormValues) {
     amount: values.amount,
     description: values.description || "",
     status: values.published ? "publish" : "draft",
-    individual_use: false,
+    individual_use: values.individualUse ?? false,
     usage_limit: usageLimit,
+    usage_limit_per_user: usageLimitPerUser,
     minimum_amount: values.minimumAmount || "",
+    maximum_amount: values.maximumAmount || "",
     date_expires: values.expiresAt
       ? `${values.expiresAt}T23:59:59`
       : null,

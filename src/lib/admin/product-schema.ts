@@ -17,8 +17,7 @@ export const productFormSchema = z.object({
     .trim()
     .optional()
     .refine(
-      (value) =>
-        !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
+      (value) => !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
       { message: "Enter a valid discount price" },
     ),
   manageStock: z.boolean(),
@@ -27,13 +26,13 @@ export const productFormSchema = z.object({
     .trim()
     .optional()
     .refine(
-      (value) =>
-        !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
+      (value) => !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
       { message: "Enter a valid stock count" },
     ),
   inStock: z.boolean(),
   published: z.boolean(),
   categoryIds: z.array(z.number()),
+  imageId: z.number().positive().optional(),
   relatedProductIds: z.array(z.number()),
   crossSellProductIds: z.array(z.number()),
   upsellProductIds: z.array(z.number()),
@@ -56,8 +55,7 @@ export const variationFormSchema = z.object({
     .trim()
     .optional()
     .refine(
-      (value) =>
-        !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
+      (value) => !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
       { message: "Enter a valid discount price" },
     ),
   manageStock: z.boolean(),

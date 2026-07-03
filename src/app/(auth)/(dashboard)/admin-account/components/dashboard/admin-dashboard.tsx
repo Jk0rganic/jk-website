@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -10,11 +8,18 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
-import { computeWeeklyComparison } from "@/lib/admin/admin-stats";
+import Link from "next/link";
+import { useMemo } from "react";
+import {
+  computeOrderStatusSummary,
+  computePaymentMethodSummary,
+  computeTopProducts,
+  computeWeeklyComparison,
+} from "@/lib/admin/admin-stats";
+import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
 import { formatPrice } from "@/utils/format-price";
 import { formatDate } from "@/utils/formatDate";
-import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
 import OrdersChart from "../../comp/accountPage/two";
 import ui from "../ui/admin-ui.module.scss";
 
@@ -58,10 +63,18 @@ export default function AdminDashboard() {
     [orders],
   );
 
+  const orderHealth = useMemo(
+    () => computeOrderStatusSummary(orders),
+    [orders],
+  );
+  const paymentMix = useMemo(
+    () => computePaymentMethodSummary(orders),
+    [orders],
+  );
+  const topProducts = useMemo(() => computeTopProducts(orders, 5), [orders]);
   const recentOrders = useMemo(() => [...orders].slice(0, 6), [orders]);
 
-  const avgOrder =
-    thisWeek.orders > 0 ? thisWeek.sales / thisWeek.orders : 0;
+  const avgOrder = thisWeek.orders > 0 ? thisWeek.sales / thisWeek.orders : 0;
 
   const stats = [
     {
@@ -127,23 +140,73 @@ export default function AdminDashboard() {
             <article key={stat.label} className={ui.statCard}>
               <div className={ui.statTop}>
                 <span className={ui.statLabel}>{stat.label}</span>
-                <div
-                  className={`${ui.statIcon} ${ui[toneClass[stat.tone]]}`}
-                >
+                <div className={`${ui.statIcon} ${ui[toneClass[stat.tone]]}`}>
                   <Icon size={20} />
                 </div>
               </div>
               <div className={ui.statValue}>{stat.value}</div>
-              <TrendBadge
-                current={stat.current}
-                previous={stat.previous}
-              />
+              <TrendBadge current={stat.current} previous={stat.previous} />
             </article>
           );
         })}
       </div>
 
-      <div className={ui.dashboardGrid}>
+      <div className={ui.dashboardGrid} style={{ marginBottom: "1rem" }}>
+        <section className={ui.card}>
+          <div className={ui.cardHeader}>
+            <h2>Order health</h2>
+          </div>
+          <div className={ui.cardBody}>
+            <div className={ui.tableWrap}>
+              <table className={ui.table}>
+                <tbody>
+                  {[
+                    ["Pending", orderHealth.pending],
+                    ["On hold", orderHealth.onHold],
+                    ["Processing", orderHealth.processing],
+                    ["Completed", orderHealth.completed],
+                    ["Cancelled", orderHealth.cancelled],
+                    ["Refunded", orderHealth.refunded],
+                    ["Failed", orderHealth.failed],
+                    ["Other", orderHealth.other],
+                  ].map(([label, value]) => (
+                    <tr key={label}>
+                      <td>{label}</td>
+                      <td>{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section className={ui.card}>
+          <div className={ui.cardHeader}>
+            <h2>Payment mix</h2>
+          </div>
+          <div className={ui.cardBody}>
+            <div className={ui.tableWrap}>
+              <table className={ui.table}>
+                <tbody>
+                  {[
+                    ["Cash on delivery", paymentMix.cod],
+                    ["M-Pesa (IntaSend)", paymentMix.intasend],
+                    ["Other", paymentMix.other],
+                  ].map(([label, value]) => (
+                    <tr key={label}>
+                      <td>{label}</td>
+                      <td>{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div className={ui.dashboardGrid} style={{ marginBottom: "1rem" }}>
         <section className={ui.card}>
           <div className={ui.cardHeader}>
             <h2>Sales overview</h2>
@@ -198,6 +261,38 @@ export default function AdminDashboard() {
           </div>
         </section>
       </div>
+
+      <section className={ui.card}>
+        <div className={ui.cardHeader}>
+          <h2>Top products</h2>
+        </div>
+        <div className={ui.cardBody}>
+          {!topProducts.length ? (
+            <p className={ui.empty}>No product sales yet.</p>
+          ) : (
+            <div className={ui.tableWrap}>
+              <table className={ui.table}>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Units</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topProducts.map((product) => (
+                    <tr key={product.name}>
+                      <td>{product.name}</td>
+                      <td>{product.quantity}</td>
+                      <td>{formatPrice(product.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
     </>
   );
 }

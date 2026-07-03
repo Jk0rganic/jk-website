@@ -19,6 +19,7 @@ describe("productFormSchema", () => {
       inStock: true,
       published: true,
       categoryIds: [3, 7],
+      imageId: 44,
       relatedProductIds: [],
       crossSellProductIds: [],
       upsellProductIds: [],
@@ -94,6 +95,23 @@ describe("formValuesToWooPayload", () => {
     expect(payload.cross_sell_ids).toEqual([20]);
     expect(payload.upsell_ids).toEqual([30]);
   });
+
+  it("adds the selected image id to the WooCommerce images payload", () => {
+    const payload = formValuesToWooPayload({
+      name: "Face Serum",
+      regularPrice: "1500",
+      manageStock: false,
+      inStock: true,
+      published: true,
+      categoryIds: [],
+      imageId: 88,
+      relatedProductIds: [],
+      crossSellProductIds: [],
+      upsellProductIds: [],
+    });
+
+    expect(payload.images).toEqual([{ id: 88 }]);
+  });
 });
 
 describe("createProductPayload", () => {
@@ -146,6 +164,7 @@ describe("mapWooProductDetail", () => {
     expect(product.crossSellProductIds).toEqual([4]);
     expect(product.upsellProductIds).toEqual([5]);
     expect(product.imageUrl).toBe("https://example.com/img.jpg");
+    expect(product.imageId).toBe(1);
   });
 });
 
@@ -175,6 +194,7 @@ describe("productDetailToFormValues", () => {
       stockQuantity: "2",
       inStock: false,
       published: false,
+      imageId: undefined,
     });
   });
 });

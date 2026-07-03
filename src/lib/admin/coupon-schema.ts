@@ -26,6 +26,9 @@ export const couponFormSchema = z
     published: z.boolean(),
     usageLimit: optionalAmount,
     minimumAmount: optionalAmount,
+    maximumAmount: optionalAmount,
+    usageLimitPerUser: optionalAmount,
+    individualUse: z.boolean().optional(),
     expiresAt: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {

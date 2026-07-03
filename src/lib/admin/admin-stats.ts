@@ -33,11 +33,125 @@ const MONTH_LABELS = [
 type OrderLike = {
   total: string;
   date_created: string;
-  line_items?: Array<{ quantity: number }>;
+  line_items?: Array<{ name?: string; quantity: number; total?: string }>;
+};
+
+export type OrderStatusSummary = {
+  pending: number;
+  onHold: number;
+  processing: number;
+  completed: number;
+  cancelled: number;
+  refunded: number;
+  failed: number;
+  other: number;
+};
+
+export type PaymentMethodSummary = {
+  cod: number;
+  intasend: number;
+  other: number;
+};
+
+export type TopProductSummary = {
+  name: string;
+  quantity: number;
+  revenue: number;
 };
 
 function parseOrderTotal(total: string | number): number {
   return Number(total || 0);
+}
+
+export function computeOrderStatusSummary<T extends { status: string }>(
+  orders: T[],
+): OrderStatusSummary {
+  return orders.reduce<OrderStatusSummary>(
+    (acc, order) => {
+      switch (order.status) {
+        case "pending":
+          acc.pending += 1;
+          break;
+        case "on-hold":
+          acc.onHold += 1;
+          break;
+        case "processing":
+          acc.processing += 1;
+          break;
+        case "completed":
+          acc.completed += 1;
+          break;
+        case "cancelled":
+          acc.cancelled += 1;
+          break;
+        case "refunded":
+          acc.refunded += 1;
+          break;
+        case "failed":
+          acc.failed += 1;
+          break;
+        default:
+          acc.other += 1;
+      }
+
+      return acc;
+    },
+    {
+      pending: 0,
+      onHold: 0,
+      processing: 0,
+      completed: 0,
+      cancelled: 0,
+      refunded: 0,
+      failed: 0,
+      other: 0,
+    },
+  );
+}
+
+export function computePaymentMethodSummary<
+  T extends { payment_method?: string | null },
+>(orders: T[]): PaymentMethodSummary {
+  return orders.reduce<PaymentMethodSummary>(
+    (acc, order) => {
+      const method = order.payment_method?.toLowerCase() ?? "";
+
+      if (method === "cod") {
+        acc.cod += 1;
+      } else if (method.includes("intasend")) {
+        acc.intasend += 1;
+      } else {
+        acc.other += 1;
+      }
+
+      return acc;
+    },
+    { cod: 0, intasend: 0, other: 0 },
+  );
+}
+
+export function computeTopProducts<
+  T extends {
+    line_items?: Array<{ name?: string; quantity?: number; total?: string }>;
+  },
+>(orders: T[], limit: number): TopProductSummary[] {
+  const products = new Map<string, TopProductSummary>();
+
+  for (const order of orders) {
+    for (const item of order.line_items ?? []) {
+      const name = item.name?.trim();
+      if (!name) continue;
+
+      const current = products.get(name) ?? { name, quantity: 0, revenue: 0 };
+      current.quantity += item.quantity || 0;
+      current.revenue += parseOrderTotal(item.total || 0);
+      products.set(name, current);
+    }
+  }
+
+  return Array.from(products.values())
+    .sort((a, b) => b.quantity - a.quantity || b.revenue - a.revenue)
+    .slice(0, limit);
 }
 
 export function computeWeeklyComparison(
@@ -110,7 +224,10 @@ export function computeMonthlyChartData(
   return map;
 }
 
-export function getOrderYears(orders: OrderLike[], fallbackYear?: number): number[] {
+export function getOrderYears(
+  orders: OrderLike[],
+  fallbackYear?: number,
+): number[] {
   const years = new Set<number>();
 
   for (const order of orders) {
@@ -162,7 +279,10 @@ export function filterOrders(
       return false;
     }
 
-    if (filters.paymentMethod && order.payment_method !== filters.paymentMethod) {
+    if (
+      filters.paymentMethod &&
+      order.payment_method !== filters.paymentMethod
+    ) {
       return false;
     }
 

@@ -26,6 +26,9 @@ const defaultValues: CouponFormValues = {
   published: true,
   usageLimit: "",
   minimumAmount: "",
+  maximumAmount: "",
+  usageLimitPerUser: "",
+  individualUse: false,
   expiresAt: "",
 };
 
@@ -186,10 +189,37 @@ export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps)
           </label>
 
           <label className={k.field}>
+            <span>Maximum order (KSh)</span>
+            <input
+              {...register("maximumAmount")}
+              inputMode="decimal"
+              placeholder="No maximum"
+            />
+            {errors.maximumAmount && <em>{errors.maximumAmount.message}</em>}
+          </label>
+
+          <label className={k.field}>
+            <span>Usage limit per customer</span>
+            <input
+              {...register("usageLimitPerUser")}
+              inputMode="numeric"
+              placeholder="Unlimited"
+            />
+            {errors.usageLimitPerUser && (
+              <em>{errors.usageLimitPerUser.message}</em>
+            )}
+          </label>
+
+          <label className={k.field}>
             <span>Expiry date</span>
             <input type="date" {...register("expiresAt")} />
           </label>
         </div>
+
+        <label className={k.checkbox}>
+          <input type="checkbox" {...register("individualUse")} />
+          Individual use only
+        </label>
       </section>
 
       <section className={k.section}>

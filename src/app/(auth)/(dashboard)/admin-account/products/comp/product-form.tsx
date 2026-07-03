@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { type ChangeEvent, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
-  productFormSchema,
   type ProductFormValues,
+  productFormSchema,
   type VariationFormValues,
   variationFormSchema,
 } from "@/lib/admin/product-schema";
 import type { AdminProductDetail } from "@/lib/admin/product-service";
-import {
-  productDetailToFormValues,
-} from "@/lib/admin/product-service";
+import { productDetailToFormValues } from "@/lib/admin/product-service";
 import LinkedProductsPicker, {
   type LinkedProductOption,
 } from "./linked-products-picker";
@@ -57,6 +55,12 @@ export default function ProductForm({
     [],
   );
   const [variations, setVariations] = useState<VariationFormValues[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<
+    string | null
+  >(null);
   const [saving, setSaving] = useState(false);
 
   const {
@@ -76,6 +80,7 @@ export default function ProductForm({
   const crossSellProductIds = watch("crossSellProductIds") ?? [];
   const upsellProductIds = watch("upsellProductIds") ?? [];
   const isVariable = product?.type === "variable";
+  const productImagePreview = selectedImagePreviewUrl ?? product?.imageUrl;
 
   useEffect(() => {
     async function loadCategories() {
@@ -97,7 +102,11 @@ export default function ProductForm({
         if (res.ok) {
           setProductOptions(
             data.products.map(
-              (item: { id: number; name: string; imageUrl: string | null }) => ({
+              (item: {
+                id: number;
+                name: string;
+                imageUrl: string | null;
+              }) => ({
                 id: item.id,
                 name: item.name,
                 imageUrl: item.imageUrl,
@@ -133,12 +142,84 @@ export default function ProductForm({
     }
   }, [product]);
 
+  useEffect(() => {
+    return () => {
+      if (selectedImagePreviewUrl) {
+        URL.revokeObjectURL(selectedImagePreviewUrl);
+      }
+    };
+  }, [selectedImagePreviewUrl]);
+
   function toggleCategory(categoryId: number) {
     const next = selectedCategoryIds.includes(categoryId)
       ? selectedCategoryIds.filter((id) => id !== categoryId)
       : [...selectedCategoryIds, categoryId];
 
     setValue("categoryIds", next, { shouldDirty: true });
+  }
+
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedImageFile(file);
+    setSelectedImagePreviewUrl(file ? URL.createObjectURL(file) : null);
+  }
+
+  async function createCategory() {
+    const name = newCategoryName.trim();
+
+    if (!name) {
+      toast.error("Enter a category name");
+      return;
+    }
+
+    setCreatingCategory(true);
+
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create category");
+      }
+
+      setCategories((current) => [...current, data.category]);
+      setValue("categoryIds", [...selectedCategoryIds, data.category.id], {
+        shouldDirty: true,
+      });
+      setNewCategoryName("");
+      toast.success("Category added");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create category",
+      );
+    } finally {
+      setCreatingCategory(false);
+    }
+  }
+
+  async function uploadSelectedImage() {
+    if (!selectedImageFile) {
+      return null;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedImageFile);
+
+    const res = await fetch("/api/admin/media", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to upload product image");
+    }
+
+    return data.media.id as number;
   }
 
   function updateVariation(
@@ -159,6 +240,15 @@ export default function ProductForm({
     setSaving(true);
 
     try {
+      const uploadedImageId = await uploadSelectedImage();
+      const valuesToSave = uploadedImageId
+        ? { ...values, imageId: uploadedImageId }
+        : values;
+
+      if (uploadedImageId) {
+        setValue("imageId", uploadedImageId, { shouldDirty: true });
+      }
+
       const endpoint =
         mode === "create"
           ? "/api/admin/products"
@@ -169,7 +259,7 @@ export default function ProductForm({
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(valuesToSave),
       });
 
       const data = await res.json();
@@ -211,7 +301,9 @@ export default function ProductForm({
       );
       onSuccess(productId);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save product");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save product",
+      );
     } finally {
       setSaving(false);
     }
@@ -253,6 +345,26 @@ export default function ProductForm({
           <span>Product code (SKU)</span>
           <input {...register("sku")} placeholder="Optional internal code" />
         </label>
+      </section>
+
+      <section className={k.section}>
+        <h2>Product image</h2>
+        <p className={k.help}>Choose the main image shown on product cards.</p>
+
+        <div className={k.imageUpload}>
+          <div className={k.imagePreview}>
+            {productImagePreview ? (
+              <img src={productImagePreview} alt="" />
+            ) : (
+              <span>No image selected</span>
+            )}
+          </div>
+
+          <label className={k.field}>
+            <span>Main image</span>
+            <input type="file" accept="image/*" onChange={handleImageChange} />
+          </label>
+        </div>
       </section>
 
       <section className={k.section}>
@@ -406,6 +518,21 @@ export default function ProductForm({
       <section className={k.section}>
         <h2>Categories</h2>
         <p className={k.help}>Choose where this product appears in the shop.</p>
+
+        <div className={k.categoryCreate}>
+          <input
+            value={newCategoryName}
+            onChange={(event) => setNewCategoryName(event.target.value)}
+            placeholder="New category name"
+          />
+          <button
+            type="button"
+            onClick={createCategory}
+            disabled={creatingCategory}
+          >
+            {creatingCategory ? "Adding…" : "Add category"}
+          </button>
+        </div>
 
         <div className={k.categoryGrid}>
           {categories.map((category) => (

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   computeMonthlyChartData,
+  computeOrderStatusSummary,
+  computePaymentMethodSummary,
+  computeTopProducts,
   computeWeeklyComparison,
   computeYearOverYearGrowth,
   filterOrders,
@@ -39,6 +42,8 @@ const sampleOrders: DashboardOrder[] = [
     payment_method_title: "Online Payment",
     date_paid: "2026-06-20T10:05:00",
     needs_payment: false,
+    meta_data: [],
+    customer_note: "",
   },
   {
     id: 2,
@@ -71,6 +76,8 @@ const sampleOrders: DashboardOrder[] = [
     payment_method_title: "Cash on Delivery",
     date_paid: null,
     needs_payment: false,
+    meta_data: [],
+    customer_note: "",
   },
 ];
 
@@ -125,5 +132,77 @@ describe("filterOrders", () => {
     const bySearch = filterOrders(sampleOrders, { search: "jane@" });
     expect(bySearch).toHaveLength(1);
     expect(bySearch[0].billing.email).toBe("jane@example.com");
+  });
+});
+
+describe("computeOrderStatusSummary", () => {
+  it("counts known order statuses and groups unknown statuses as other", () => {
+    const result = computeOrderStatusSummary([
+      ...sampleOrders,
+      { ...sampleOrders[0], id: 3, status: "on-hold" },
+      { ...sampleOrders[0], id: 4, status: "completed" },
+      { ...sampleOrders[0], id: 5, status: "cancelled" },
+      { ...sampleOrders[0], id: 6, status: "refunded" },
+      { ...sampleOrders[0], id: 7, status: "failed" },
+      { ...sampleOrders[0], id: 8, status: "draft" },
+    ]);
+
+    expect(result).toEqual({
+      pending: 1,
+      onHold: 1,
+      processing: 1,
+      completed: 1,
+      cancelled: 1,
+      refunded: 1,
+      failed: 1,
+      other: 1,
+    });
+  });
+});
+
+describe("computePaymentMethodSummary", () => {
+  it("counts cash on delivery, IntaSend, and other payment methods", () => {
+    const result = computePaymentMethodSummary([
+      ...sampleOrders,
+      { ...sampleOrders[0], id: 3, payment_method: "intasend_mpesa" },
+      { ...sampleOrders[0], id: 4, payment_method: "stripe" },
+    ]);
+
+    expect(result).toEqual({
+      cod: 1,
+      intasend: 2,
+      other: 1,
+    });
+  });
+});
+
+describe("computeTopProducts", () => {
+  it("sorts products by quantity and then revenue while tolerating missing line items", () => {
+    const result = computeTopProducts(
+      [
+        {
+          ...sampleOrders[0],
+          line_items: [
+            { name: "Aloe Balm", quantity: 2, total: "600" } as LineItem,
+            { name: "Moringa Oil", quantity: 4, total: "800" } as LineItem,
+          ],
+        },
+        {
+          ...sampleOrders[0],
+          id: 3,
+          line_items: [
+            { name: "Aloe Balm", quantity: 2, total: "700" } as LineItem,
+            { name: "Shea Cream", quantity: 4, total: "900" } as LineItem,
+          ],
+        },
+        { ...sampleOrders[0], id: 4, line_items: undefined },
+      ],
+      2,
+    );
+
+    expect(result).toEqual([
+      { name: "Aloe Balm", quantity: 4, revenue: 1300 },
+      { name: "Shea Cream", quantity: 4, revenue: 900 },
+    ]);
   });
 });

@@ -60,6 +60,7 @@ export type AdminProductDetail = {
   crossSellProductIds: number[];
   upsellProductIds: number[];
   imageUrl: string | null;
+  imageId?: number;
   variations: AdminVariation[];
 };
 
@@ -74,7 +75,9 @@ export type AdminVariation = {
   inStock: boolean;
 };
 
-export function mapWooProductDetail(product: WooProductDetail): AdminProductDetail {
+export function mapWooProductDetail(
+  product: WooProductDetail,
+): AdminProductDetail {
   return {
     id: product.id,
     name: product.name,
@@ -100,6 +103,7 @@ export function mapWooProductDetail(product: WooProductDetail): AdminProductDeta
     crossSellProductIds: product.cross_sell_ids ?? [],
     upsellProductIds: product.upsell_ids ?? [],
     imageUrl: product.images?.[0]?.src ?? null,
+    imageId: product.images?.[0]?.id,
     variations: [],
   };
 }
@@ -140,6 +144,7 @@ export function productDetailToFormValues(
     relatedProductIds: product.relatedProductIds,
     crossSellProductIds: product.crossSellProductIds,
     upsellProductIds: product.upsellProductIds,
+    imageId: product.imageId,
   };
 }
 
@@ -149,7 +154,7 @@ export function formValuesToWooPayload(values: ProductFormValues) {
       ? Number(values.stockQuantity)
       : null;
 
-  return {
+  const payload = {
     name: values.name,
     short_description: values.shortDescription || "",
     description: values.description || "",
@@ -165,6 +170,13 @@ export function formValuesToWooPayload(values: ProductFormValues) {
     cross_sell_ids: values.crossSellProductIds ?? [],
     upsell_ids: values.upsellProductIds ?? [],
   };
+
+  return values.imageId
+    ? {
+        ...payload,
+        images: [{ id: values.imageId }],
+      }
+    : payload;
 }
 
 export function variationToWooPayload(variation: {
