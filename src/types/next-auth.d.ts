@@ -10,6 +10,8 @@ declare module "next-auth" {
       name?: string;
       email?: string;
       image?: string;
+      disabledAt?: Date | null;
+      deletedAt?: Date | null;
     };
   }
 

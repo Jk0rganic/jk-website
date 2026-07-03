@@ -1,7 +1,8 @@
 import "server-only";
 
 import { getSession } from "@/lib/auth/getSession";
-import { canManageAdmins, isAdminRole } from "./roles";
+import { isActiveAdminUser } from "./admin-user-service";
+import { canManageAdmins } from "./roles";
 
 export async function requireAdminSession() {
   const session = await getSession();
@@ -10,7 +11,7 @@ export async function requireAdminSession() {
     return { error: "Unauthorized", status: 401 as const, session: null };
   }
 
-  if (!isAdminRole(session.user.role)) {
+  if (!isActiveAdminUser(session.user)) {
     return { error: "Forbidden", status: 403 as const, session: null };
   }
 
@@ -24,7 +25,11 @@ export async function requireSuperAdminSession() {
     return { error: "Unauthorized", status: 401 as const, session: null };
   }
 
-  if (!canManageAdmins(session.user.role)) {
+  if (
+    !canManageAdmins(session.user.role) ||
+    session.user.disabledAt ||
+    session.user.deletedAt
+  ) {
     return { error: "Forbidden", status: 403 as const, session: null };
   }
 

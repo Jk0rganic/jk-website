@@ -1,9 +1,10 @@
 "use server";
 
-import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { AuthError } from "next-auth";
 import { isAdminRole } from "@/lib/admin/roles";
 import { getAdminCallbackUrl } from "@/lib/auth/admin-login";
+import prisma from "@/lib/prisma";
 import { auth, signIn, signOut } from "./auth/auth";
 
 interface LoginInput {
@@ -35,6 +36,25 @@ export async function doAdminCredentialLogin(
       await signOut({ redirect: false });
       return {
         error: "This account does not have admin access.",
+      };
+    }
+
+    const adminStatus = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { disabledAt: true, deletedAt: true },
+    });
+
+    if (adminStatus?.deletedAt) {
+      await signOut({ redirect: false });
+      return {
+        error: "This admin account is no longer active.",
+      };
+    }
+
+    if (adminStatus?.disabledAt) {
+      await signOut({ redirect: false });
+      return {
+        error: "This admin account is blocked. Contact the store owner.",
       };
     }
 

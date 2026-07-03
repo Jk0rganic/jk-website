@@ -1,9 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import {
-  isAdminRole,
-  isSuperAdminRole,
-} from "./roles";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { requireAdminSession, requireSuperAdminSession } from "./require-admin";
+import { isAdminRole, isSuperAdminRole } from "./roles";
 
 vi.mock("server-only", () => ({}));
 
@@ -83,6 +80,38 @@ describe("requireAdminSession", () => {
     expect(result.status).toBe(200);
     expect(result.session).toEqual(session);
   });
+
+  it("rejects disabled admin users", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: {
+        id: "1",
+        email: "admin@jkorganics.com",
+        role: "min_admin",
+        disabledAt: new Date("2026-02-01"),
+      },
+    });
+
+    const result = await requireAdminSession();
+
+    expect(result.status).toBe(403);
+    expect(result.error).toBe("Forbidden");
+  });
+
+  it("rejects deleted admin users", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: {
+        id: "1",
+        email: "admin@jkorganics.com",
+        role: "min_admin",
+        deletedAt: new Date("2026-02-01"),
+      },
+    });
+
+    const result = await requireAdminSession();
+
+    expect(result.status).toBe(403);
+    expect(result.error).toBe("Forbidden");
+  });
 });
 
 describe("requireSuperAdminSession", () => {
@@ -114,5 +143,37 @@ describe("requireSuperAdminSession", () => {
 
     expect(result.status).toBe(200);
     expect(result.session).toEqual(session);
+  });
+
+  it("rejects disabled super admins", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: {
+        id: "1",
+        email: "owner@jkorganics.com",
+        role: "super_admin",
+        disabledAt: new Date("2026-02-01"),
+      },
+    });
+
+    const result = await requireSuperAdminSession();
+
+    expect(result.status).toBe(403);
+    expect(result.error).toBe("Forbidden");
+  });
+
+  it("rejects deleted super admins", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: {
+        id: "1",
+        email: "owner@jkorganics.com",
+        role: "super_admin",
+        deletedAt: new Date("2026-02-01"),
+      },
+    });
+
+    const result = await requireSuperAdminSession();
+
+    expect(result.status).toBe(403);
+    expect(result.error).toBe("Forbidden");
   });
 });
