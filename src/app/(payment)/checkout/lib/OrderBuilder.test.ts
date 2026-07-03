@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
 import { buildOrderPayload } from "./OrderBuilder";
 
 const checkoutData = {
@@ -15,7 +16,7 @@ const checkoutData = {
   termsAgreement: true,
   county: "Nairobi",
   delivery_subtype: "door_to_door",
-} as CheckoutFormType;
+} as CheckOutSchemaType;
 
 const cartDetails = [
   {
@@ -54,5 +55,36 @@ describe("buildOrderPayload", () => {
         total: "250.00",
       }),
     ]);
+  });
+
+  it("uses the county fallback parcel office when parcel fields were not submitted", () => {
+    const payload = buildOrderPayload({
+      data: {
+        ...checkoutData,
+        county: "Bomet",
+        delivery_subtype: "parcel_office",
+      },
+      cartDetails,
+      totalPrice: 1000,
+      deliveryMethod: "shipping",
+      shippingCost: 500,
+      shippingMethodTitle: "Kenya Parcel Office",
+    });
+
+    expect(payload.shipping).toEqual(
+      expect.objectContaining({
+        address_1:
+          "Bomet Nearest Stage / Parcel Office – Nearest parcel office or stage in Bomet",
+        city: "Bomet Town",
+        state: "Bomet",
+      }),
+    );
+    expect(payload.meta_data).toEqual(
+      expect.arrayContaining([
+        { key: "_delivery_type", value: "parcel_office" },
+        { key: "_parcel_town", value: "Bomet Town" },
+        { key: "_parcel_office_id", value: "bomet_main_stage" },
+      ]),
+    );
   });
 });

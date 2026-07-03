@@ -1,12 +1,18 @@
 import { z } from "zod";
-import { findParcelOffice, isDoorToDoorCounty } from "@/data/kenya-delivery";
+import {
+  findParcelOffice,
+  getParcelTownsForCounty,
+  isDoorToDoorCounty,
+} from "@/data/kenya-delivery";
 
 const requiredString = (msg: string) => z.string().min(1, msg);
 const optionalString = z.string().optional();
 
 export const checkOutSchema = z
   .object({
-    email: requiredString("Email address is required").email("Enter a valid email address"),
+    email: requiredString("Email address is required").email(
+      "Enter a valid email address",
+    ),
     shippingZone: optionalString,
     pickupPoint: optionalString,
     county: optionalString,
@@ -89,19 +95,27 @@ export const checkOutSchema = z
         });
       }
     } else {
+      const parcelTowns = getParcelTownsForCounty(data.county);
+      const canUseDefaultParcelOffice =
+        parcelTowns.length === 1 && parcelTowns[0].offices.length === 1;
+
       if (!data.parcel_town?.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please select your town / stage area",
-          path: ["parcel_town"],
-        });
+        if (!canUseDefaultParcelOffice) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please select your town / stage area",
+            path: ["parcel_town"],
+          });
+        }
       }
       if (!data.parcel_office_id?.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please select a parcel office",
-          path: ["parcel_office_id"],
-        });
+        if (!canUseDefaultParcelOffice) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please select a parcel office",
+            path: ["parcel_office_id"],
+          });
+        }
       } else if (
         data.county &&
         data.parcel_office_id &&
@@ -134,7 +148,10 @@ export const checkOutSchema = z
       }
     }
 
-    if (isDoorToDoorCounty(data.county ?? "") && !data.shipping_address_1?.trim()) {
+    if (
+      isDoorToDoorCounty(data.county ?? "") &&
+      !data.shipping_address_1?.trim()
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Street address is required",

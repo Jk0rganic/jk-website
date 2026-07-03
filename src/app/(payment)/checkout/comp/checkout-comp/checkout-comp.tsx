@@ -1,39 +1,53 @@
 "use client";
-import k from "./styles.module.scss";
-import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  type SubmitErrorHandler,
+  type SubmitHandler,
+  useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
+import { useApolloFetcher } from "@/apollo/useApolloFetcher";
 import Section from "@/comp/section/section";
+import { getDeliverySubtype } from "@/data/kenya-delivery";
+import {
+  type CheckoutCoupon,
+  calculateCouponDiscount,
+  getCheckoutTotal,
+} from "@/lib/checkout/coupon";
+import { getOrderRedirectPath } from "@/lib/checkout/get-order-redirect";
 import {
   useCartStore,
   useCheckoutStore,
   usePendingOrderStore,
 } from "@/store/cartStore";
-import { useApolloFetcher } from "@/apollo/useApolloFetcher";
-import DeliveryMethodSelector from "../delivery-method-selector/deliveryMethodSelector ";
-import BillingSection from "../billingSection ";
-import ShippingSection from "../shipping-section/shippingSection ";
-import TermsAndConditionsSection from "../terms-and-conditions-section";
-import CartSummarySection from "../cart-summary-section/cart-summary-section";
-import { GET_SHIPPING_ZONES } from "../pickUpPoint/graphql";
-import { buildOrderPayload } from "../../lib/OrderBuilder";
+import { getFirstCheckoutErrorMessage } from "@/utils/zod/checkout-schema/checkout-errors";
+import {
+  type CheckOutSchemaType,
+  checkOutSchema,
+} from "@/utils/zod/checkout-schema/checkout-schema";
 import {
   filterWooShippingZones,
   getDeliveryFee,
 } from "../../lib/delivery-zones";
-import { getDeliverySubtype } from "@/data/kenya-delivery";
-import { getOrderRedirectPath } from "@/lib/checkout/get-order-redirect";
-import {
-  calculateCouponDiscount,
-  getCheckoutTotal,
-  type CheckoutCoupon,
-} from "@/lib/checkout/coupon";
-import {
-  checkOutSchema,
-  type CheckOutSchemaType,
-} from "@/utils/zod/checkout-schema/checkout-schema";
+import { buildOrderPayload } from "../../lib/OrderBuilder";
+import BillingSection from "../billingSection ";
+import CartSummarySection from "../cart-summary-section/cart-summary-section";
+import DeliveryMethodSelector from "../delivery-method-selector/deliveryMethodSelector ";
+import { GET_SHIPPING_ZONES } from "../pickUpPoint/graphql";
+import ShippingSection from "../shipping-section/shippingSection ";
+import TermsAndConditionsSection from "../terms-and-conditions-section";
+import k from "./styles.module.scss";
+
+interface WooShippingZone {
+  name: string;
+  shippingMethods: Array<{ cost?: string | null }>;
+}
+
+interface ShippingZonesResult {
+  shippingZones?: WooShippingZone[];
+}
 
 async function fetchIsLoggedIn(): Promise<boolean> {
   try {
@@ -68,7 +82,7 @@ export default function CheckOutComp() {
       delivery_method: "shipping",
       useDifferentShipping: false,
       paymentMethod: "pay_online",
-      saveInfo: savedUserInfo ? true : false,
+      saveInfo: !!savedUserInfo,
       ...(savedUserInfo ?? {}),
     },
     resolver: zodResolver(checkOutSchema),
@@ -98,13 +112,17 @@ export default function CheckOutComp() {
   const selectedCounty = watch("county");
   const deliverySubtype = watch("delivery_subtype");
 
-  const { data, loading, error }: any = useApolloFetcher(GET_SHIPPING_ZONES);
+  const { data, loading, error } = useApolloFetcher(GET_SHIPPING_ZONES) as {
+    data?: ShippingZonesResult;
+    loading: boolean;
+    error?: Error | null;
+  };
 
   const wooShippingZones =
-    data?.shippingZones?.map((zone: any) => ({
+    data?.shippingZones?.map((zone) => ({
       zone: zone.name,
       fee_ksh:
-        Number(zone.shippingMethods[0]?.cost.replace(/[^0-9]/g, "")) || 0,
+        Number(zone.shippingMethods[0]?.cost?.replace(/[^0-9]/g, "")) || 0,
     })) || [];
 
   const deliveryZones = filterWooShippingZones(wooShippingZones);
@@ -131,7 +149,7 @@ export default function CheckOutComp() {
     }
   }, [cartCount]);
 
-  const onSubmit: SubmitHandler<CheckOutSchemaType> = async (formData: any) => {
+  const onSubmit: SubmitHandler<CheckOutSchemaType> = async (formData) => {
     if (!Object.keys(cartDetails).length) {
       toast.error("Cart is empty");
       return;
@@ -236,18 +254,28 @@ export default function CheckOutComp() {
         return;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Failed to initiate online payment";
+          err instanceof Error
+            ? err.message
+            : "Failed to initiate online payment";
         toast.error(message, { duration: 6000 });
         return;
       }
     }
   };
 
+  const onInvalidSubmit: SubmitErrorHandler<CheckOutSchemaType> = (
+    validationErrors,
+  ) => {
+    toast.error(getFirstCheckoutErrorMessage(validationErrors), {
+      duration: 6000,
+    });
+  };
+
   if (cartCount === 0) return null;
 
   return (
     <Section className={k.Check_Out}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onInvalidSubmit)}>
         <div className={k.Check_out_form_left}>
           <h3>Checkout</h3>
 
@@ -265,14 +293,15 @@ export default function CheckOutComp() {
             watch={watch}
           />
 
-          {deliveryMethod === "shipping" && deliverySubtype === "door_to_door" && (
-            <ShippingSection
-              watch={watch}
-              setValue={setValue}
-              register={register}
-              errors={errors}
-            />
-          )}
+          {deliveryMethod === "shipping" &&
+            deliverySubtype === "door_to_door" && (
+              <ShippingSection
+                watch={watch}
+                setValue={setValue}
+                register={register}
+                errors={errors}
+              />
+            )}
 
           <TermsAndConditionsSection
             register={register}
