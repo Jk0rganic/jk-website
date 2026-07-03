@@ -123,50 +123,67 @@ describe("canRevokeAdminRole", () => {
 
 describe("isActiveAdminUser", () => {
   it("returns true for active admins and super admins", () => {
-    expect(isActiveAdminUser({ role: "min_admin", deletedAt: null })).toBe(true);
-    expect(isActiveAdminUser({ role: "super_admin", deletedAt: null })).toBe(true);
+    expect(isActiveAdminUser({ role: "min_admin", deletedAt: null })).toBe(
+      true,
+    );
+    expect(isActiveAdminUser({ role: "super_admin", deletedAt: null })).toBe(
+      true,
+    );
+    expect(isActiveAdminUser({ role: "min_admin" })).toBe(true);
+    expect(isActiveAdminUser({ role: "super_admin" })).toBe(true);
   });
 
-  it("returns false for customers and deleted admins", () => {
+  it("returns false for customers, disabled admins, and deleted admins", () => {
     expect(isActiveAdminUser({ role: "user", deletedAt: null })).toBe(false);
-    expect(isActiveAdminUser({ role: "min_admin", deletedAt: new Date() })).toBe(false);
+    expect(
+      isActiveAdminUser({ role: "super_admin", disabledAt: new Date() }),
+    ).toBe(false);
+    expect(
+      isActiveAdminUser({ role: "min_admin", deletedAt: new Date() }),
+    ).toBe(false);
   });
 });
 
 describe("canManageAdminTarget", () => {
-  it.each(["reset_password", "block", "unblock", "delete", "demote"] as const)(
-    "blocks %s self-management",
-    (action) => {
-      const result = canManageAdminTarget({
-        action,
-        actingUserId: "u1",
-        actingUserRole: "super_admin",
-        targetUserId: "u1",
-        targetRole: "min_admin",
-        activeSuperAdminCount: 2,
-      });
+  it.each([
+    "reset_password",
+    "block",
+    "unblock",
+    "delete",
+    "demote",
+  ] as const)("blocks %s self-management", (action) => {
+    const result = canManageAdminTarget({
+      action,
+      actingUserId: "u1",
+      actingUserRole: "super_admin",
+      targetUserId: "u1",
+      targetRole: "min_admin",
+      activeSuperAdminCount: 2,
+    });
 
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toBeDefined();
-    },
-  );
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
 
-  it.each(["block", "delete", "demote"] as const)(
-    "blocks %s for the last active super admin",
-    (action) => {
-      const result = canManageAdminTarget({
-        action,
-        actingUserId: "u2",
-        actingUserRole: "super_admin",
-        targetUserId: "u1",
-        targetRole: "super_admin",
-        activeSuperAdminCount: 1,
-      });
+  it.each([
+    "block",
+    "delete",
+    "demote",
+  ] as const)("blocks %s for the last active super admin", (action) => {
+    const result = canManageAdminTarget({
+      action,
+      actingUserId: "u2",
+      actingUserRole: "super_admin",
+      targetUserId: "u1",
+      targetRole: "super_admin",
+      activeSuperAdminCount: 1,
+    });
 
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toBe("At least one super admin must remain on the account");
-    },
-  );
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe(
+      "At least one super admin must remain on the account",
+    );
+  });
 
   it("allows resetting and deleting a regular admin", () => {
     expect(
@@ -192,38 +209,44 @@ describe("canManageAdminTarget", () => {
     ).toBe(true);
   });
 
-  it.each(["reset_password", "block", "unblock", "delete", "demote"] as const)(
-    "blocks regular admins from %s management",
-    (action) => {
-      const result = canManageAdminTarget({
-        action,
-        actingUserId: "u2",
-        actingUserRole: "min_admin",
-        targetUserId: "u1",
-        targetRole: "min_admin",
-        activeSuperAdminCount: 1,
-      });
+  it.each([
+    "reset_password",
+    "block",
+    "unblock",
+    "delete",
+    "demote",
+  ] as const)("blocks regular admins from %s management", (action) => {
+    const result = canManageAdminTarget({
+      action,
+      actingUserId: "u2",
+      actingUserRole: "min_admin",
+      targetUserId: "u1",
+      targetRole: "min_admin",
+      activeSuperAdminCount: 1,
+    });
 
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toBe("Only super admins can manage admin accounts");
-    },
-  );
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe("Only super admins can manage admin accounts");
+  });
 
-  it.each(["reset_password", "block", "unblock", "delete", "demote"] as const)(
-    "allows super admins to %s regular admins",
-    (action) => {
-      const result = canManageAdminTarget({
-        action,
-        actingUserId: "u2",
-        actingUserRole: "super_admin",
-        targetUserId: "u1",
-        targetRole: "min_admin",
-        activeSuperAdminCount: 1,
-      });
+  it.each([
+    "reset_password",
+    "block",
+    "unblock",
+    "delete",
+    "demote",
+  ] as const)("allows super admins to %s regular admins", (action) => {
+    const result = canManageAdminTarget({
+      action,
+      actingUserId: "u2",
+      actingUserRole: "super_admin",
+      targetUserId: "u1",
+      targetRole: "min_admin",
+      activeSuperAdminCount: 1,
+    });
 
-      expect(result.allowed).toBe(true);
-    },
-  );
+    expect(result.allowed).toBe(true);
+  });
 });
 
 describe("admin user schemas", () => {
@@ -256,8 +279,12 @@ describe("admin user schemas", () => {
   });
 
   it("parses admin disabled status updates", () => {
-    expect(adminStatusSchema.parse({ disabled: true })).toEqual({ disabled: true });
-    expect(adminStatusSchema.parse({ disabled: false })).toEqual({ disabled: false });
+    expect(adminStatusSchema.parse({ disabled: true })).toEqual({
+      disabled: true,
+    });
+    expect(adminStatusSchema.parse({ disabled: false })).toEqual({
+      disabled: false,
+    });
   });
 
   it("rejects non-boolean admin status updates", () => {

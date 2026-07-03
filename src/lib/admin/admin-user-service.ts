@@ -1,9 +1,4 @@
-import {
-  ADMIN_ROLE,
-  SUPER_ADMIN_ROLE,
-  USER_ROLE,
-  getRoleLabel,
-} from "./roles";
+import { ADMIN_ROLE, getRoleLabel, SUPER_ADMIN_ROLE, USER_ROLE } from "./roles";
 
 export type AdminUserRecord = {
   id: string;
@@ -59,10 +54,12 @@ export type AdminManagementDecision = {
 
 export function isActiveAdminUser(user: {
   role: string | null;
+  disabledAt?: Date | null;
   deletedAt?: Date | null;
 }): boolean {
   return (
     (user.role === ADMIN_ROLE || user.role === SUPER_ADMIN_ROLE) &&
+    !user.disabledAt &&
     !user.deletedAt
   );
 }
