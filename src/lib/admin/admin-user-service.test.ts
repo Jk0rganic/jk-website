@@ -24,6 +24,11 @@ describe("mapAdminUser", () => {
   it("marks regular admins as removable", () => {
     const item = mapAdminUser(baseUser, "super-1", 1);
     expect(item.canRemove).toBe(true);
+    expect(item.canResetPassword).toBe(true);
+    expect(item.canBlock).toBe(true);
+    expect(item.canUnblock).toBe(false);
+    expect(item.canDelete).toBe(true);
+    expect(item.canDemote).toBe(true);
     expect(item.roleLabel).toBe("Admin");
     expect(item.disabledAt).toBeNull();
     expect(item.deletedAt).toBeNull();
@@ -40,6 +45,36 @@ describe("mapAdminUser", () => {
     );
     expect(item.canRemove).toBe(false);
     expect(item.roleLabel).toBe("Super admin");
+  });
+
+  it("exposes action booleans for disabled admins", () => {
+    const item = mapAdminUser(
+      { ...baseUser, disabledAt: new Date("2026-02-01") },
+      "super-1",
+      1,
+      "super_admin",
+    );
+
+    expect(item.canResetPassword).toBe(true);
+    expect(item.canBlock).toBe(false);
+    expect(item.canUnblock).toBe(true);
+    expect(item.canDelete).toBe(true);
+    expect(item.canDemote).toBe(true);
+  });
+
+  it("blocks action booleans for the last active super admin", () => {
+    const item = mapAdminUser(
+      { ...baseUser, role: "super_admin" },
+      "super-1",
+      1,
+      "super_admin",
+    );
+
+    expect(item.canResetPassword).toBe(true);
+    expect(item.canBlock).toBe(false);
+    expect(item.canUnblock).toBe(false);
+    expect(item.canDelete).toBe(false);
+    expect(item.canDemote).toBe(false);
   });
 
   it("maps disabled and deleted status fields", () => {
@@ -70,9 +105,14 @@ describe("canRevokeAdminRole", () => {
     expect(result.allowed).toBe(false);
   });
 
-  it("blocks removing the last super admin", () => {
+  it("blocks removing the last active super admin", () => {
     const result = canRevokeAdminRole("super_admin", "u2", "u1", 1);
     expect(result.allowed).toBe(false);
+  });
+
+  it("allows removing a super admin when another active super admin remains", () => {
+    const result = canRevokeAdminRole("super_admin", "u2", "u1", 2);
+    expect(result.allowed).toBe(true);
   });
 
   it("allows demoting a regular admin", () => {
@@ -100,6 +140,7 @@ describe("canManageAdminTarget", () => {
       const result = canManageAdminTarget({
         action,
         actingUserId: "u1",
+        actingUserRole: "super_admin",
         targetUserId: "u1",
         targetRole: "min_admin",
         activeSuperAdminCount: 2,
@@ -116,6 +157,7 @@ describe("canManageAdminTarget", () => {
       const result = canManageAdminTarget({
         action,
         actingUserId: "u2",
+        actingUserRole: "super_admin",
         targetUserId: "u1",
         targetRole: "super_admin",
         activeSuperAdminCount: 1,
@@ -131,6 +173,7 @@ describe("canManageAdminTarget", () => {
       canManageAdminTarget({
         action: "reset_password",
         actingUserId: "u2",
+        actingUserRole: "super_admin",
         targetUserId: "u1",
         targetRole: "min_admin",
         activeSuperAdminCount: 1,
@@ -141,12 +184,46 @@ describe("canManageAdminTarget", () => {
       canManageAdminTarget({
         action: "delete",
         actingUserId: "u2",
+        actingUserRole: "super_admin",
         targetUserId: "u1",
         targetRole: "min_admin",
         activeSuperAdminCount: 1,
       }).allowed,
     ).toBe(true);
   });
+
+  it.each(["reset_password", "block", "unblock", "delete", "demote"] as const)(
+    "blocks regular admins from %s management",
+    (action) => {
+      const result = canManageAdminTarget({
+        action,
+        actingUserId: "u2",
+        actingUserRole: "min_admin",
+        targetUserId: "u1",
+        targetRole: "min_admin",
+        activeSuperAdminCount: 1,
+      });
+
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toBe("Only super admins can manage admin accounts");
+    },
+  );
+
+  it.each(["reset_password", "block", "unblock", "delete", "demote"] as const)(
+    "allows super admins to %s regular admins",
+    (action) => {
+      const result = canManageAdminTarget({
+        action,
+        actingUserId: "u2",
+        actingUserRole: "super_admin",
+        targetUserId: "u1",
+        targetRole: "min_admin",
+        activeSuperAdminCount: 1,
+      });
+
+      expect(result.allowed).toBe(true);
+    },
+  );
 });
 
 describe("admin user schemas", () => {
