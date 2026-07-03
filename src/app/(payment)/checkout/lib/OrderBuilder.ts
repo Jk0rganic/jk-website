@@ -21,7 +21,6 @@ const PICKUP_POINT_DETAILS = {
 export const buildOrderPayload = ({
   data,
   cartDetails,
-  totalPrice,
   deliveryMethod,
   shippingCost,
   shippingMethodTitle,
@@ -69,8 +68,7 @@ export const buildOrderPayload = ({
 
   if (deliveryMethod === "shipping") {
     const subtype = data.delivery_subtype ?? "door_to_door";
-    const methodTitle =
-      shippingMethodTitle ?? getZoneNameForSubtype(subtype);
+    const methodTitle = shippingMethodTitle ?? getZoneNameForSubtype(subtype);
 
     if (subtype === "parcel_office" && data.county && data.parcel_office_id) {
       const parcel = findParcelOffice(data.county, data.parcel_office_id);
@@ -163,7 +161,9 @@ export const buildOrderPayload = ({
   const payload: Record<string, unknown> = {
     payment_method: data.paymentMethod === "pay_online" ? "intasend" : "cod",
     payment_method_title:
-      data.paymentMethod === "pay_online" ? "Online Payment" : "Cash on Delivery",
+      data.paymentMethod === "pay_online"
+        ? "Online Payment"
+        : "Cash on Delivery",
     set_paid: false,
     status: "pending",
     billing,
@@ -180,9 +180,6 @@ export const buildOrderPayload = ({
 
   if (couponCode) {
     payload.coupon_lines = [{ code: couponCode }];
-  } else {
-    payload.total =
-      deliveryMethod === "shipping" ? totalPrice + shippingCost : totalPrice;
   }
 
   return payload;
