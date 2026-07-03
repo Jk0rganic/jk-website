@@ -21,6 +21,7 @@
 /build
 
 # misc
+.worktrees/
 .DS_Store
 *.pem
 .~lock.*
@@ -46,4 +47,3 @@ next-env.d.ts
 # /src/generated/prisma
 
 /src/generated/prisma
-
