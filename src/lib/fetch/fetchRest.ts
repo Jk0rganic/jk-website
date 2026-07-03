@@ -24,6 +24,27 @@ const createAuthHeader = (
 ): string =>
   `Basic ${Buffer.from(`${consumerKey}:${consumerSecret}`).toString("base64")}`;
 
+function getWooErrorMessage(
+  error: WooCommerceError | string,
+  status: number,
+): string {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (
+    error.code === "rest_cannot_create" ||
+    error.message?.includes("not allowed to create posts")
+  ) {
+    return [
+      "The WordPress/WooCommerce API user connected to WC_CONSUMER_KEY is not allowed to create products or media.",
+      "Create or update WooCommerce REST keys for a WordPress Administrator or Shop Manager account, then update WC_CONSUMER_KEY and WC_CONSUMER_SECRET.",
+    ].join(" ");
+  }
+
+  return error.message || `WooCommerce request failed (${status})`;
+}
+
 export async function fetchWoo<TResponse = unknown>(
   endpoint: string,
   options: FetchWooOptions = {},
@@ -79,11 +100,7 @@ export async function fetchWoo<TResponse = unknown>(
       error = await response.text();
     }
 
-    throw new Error(
-      typeof error === "string"
-        ? error
-        : error.message || `WooCommerce request failed (${response.status})`,
-    );
+    throw new Error(getWooErrorMessage(error, response.status));
   }
 
   return response.json() as Promise<TResponse>;

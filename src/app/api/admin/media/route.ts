@@ -14,8 +14,8 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/gif",
 ]);
 
-function createAuthHeader(consumerKey: string, consumerSecret: string): string {
-  return `Basic ${Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
+function createAuthHeader(username: string, appPassword: string): string {
+  return `Basic ${Buffer.from(`${username}:${appPassword}`).toString(
     "base64",
   )}`;
 }
@@ -63,16 +63,22 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { BASE_URL, CONSUMER_KEY, CONSUMER_SECRET } = getWordpressConfig();
+    const { BASE_URL, WORDPRESS_USERNAME, WORDPRESS_APP_PASSWORD } =
+      getWordpressConfig();
 
-    if (!CONSUMER_KEY || !CONSUMER_SECRET) {
-      throw new Error("Missing WordPress media credentials");
+    if (!WORDPRESS_USERNAME || !WORDPRESS_APP_PASSWORD) {
+      throw new Error(
+        "Missing WordPress media credentials. Set WORDPRESS_USERNAME and WORDPRESS_APP_PASSWORD for a WordPress user that can upload files.",
+      );
     }
 
     const response = await fetch(`${BASE_URL}/wp-json/wp/v2/media`, {
       method: "POST",
       headers: {
-        Authorization: createAuthHeader(CONSUMER_KEY, CONSUMER_SECRET),
+        Authorization: createAuthHeader(
+          WORDPRESS_USERNAME,
+          WORDPRESS_APP_PASSWORD,
+        ),
         "Content-Disposition": `attachment; filename="${sanitizeFilename(
           file.name,
         )}"`,

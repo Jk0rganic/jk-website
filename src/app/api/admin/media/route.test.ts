@@ -25,6 +25,8 @@ describe("POST /api/admin/media", () => {
       BASE_URL: "https://wp.example",
       CONSUMER_KEY: "ck_test",
       CONSUMER_SECRET: "cs_test",
+      WORDPRESS_USERNAME: "wp-admin",
+      WORDPRESS_APP_PASSWORD: "app password",
     });
   });
 
@@ -61,11 +63,42 @@ describe("POST /api/admin/media", () => {
         method: "POST",
         body: expect.any(ArrayBuffer),
         headers: expect.objectContaining({
-          Authorization: `Basic ${Buffer.from("ck_test:cs_test").toString(
-            "base64",
-          )}`,
+          Authorization: `Basic ${Buffer.from(
+            "wp-admin:app password",
+          ).toString("base64")}`,
           "Content-Disposition": 'attachment; filename="body-oil.jpg"',
           "Content-Type": "image/jpeg",
+        }),
+      }),
+    );
+  });
+
+  it("uses WordPress application credentials for media uploads", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ id: 43, source_url: null }), {
+        status: 201,
+      }),
+    );
+    const body = new FormData();
+    body.append(
+      "file",
+      new File(["image bytes"], "face-cream.png", { type: "image/png" }),
+    );
+
+    await POST(
+      new Request("http://test.local/api/admin/media", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://wp.example/wp-json/wp/v2/media",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: `Basic ${Buffer.from(
+            "wp-admin:app password",
+          ).toString("base64")}`,
         }),
       }),
     );

@@ -12,10 +12,14 @@ export function getWordpressConfig() {
   // WooCommerce keys are optional — only needed for REST API
   const CONSUMER_KEY = process.env.WC_CONSUMER_KEY || null;
   const CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET || null;
+  const WORDPRESS_USERNAME = process.env.WORDPRESS_USERNAME || null;
+  const WORDPRESS_APP_PASSWORD = process.env.WORDPRESS_APP_PASSWORD || null;
 
   return {
     BASE_URL,
     CONSUMER_KEY,
     CONSUMER_SECRET,
+    WORDPRESS_USERNAME,
+    WORDPRESS_APP_PASSWORD,
   };
 }
