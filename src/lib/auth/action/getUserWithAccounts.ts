@@ -12,6 +12,8 @@ export async function getCredentialUser(email: string) {
         password: true,
         name: true,
         role: true,
+        disabledAt: true,
+        deletedAt: true,
       },
     });
 

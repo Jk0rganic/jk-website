@@ -1,5 +1,5 @@
-import { auth } from "./action/auth/auth";
 import { cache } from "react";
+import { auth } from "./action/auth/auth";
 
 export type SessionUser = {
   id: string;
@@ -7,6 +7,8 @@ export type SessionUser = {
   role: string;
   name?: string;
   image?: string;
+  disabledAt?: Date | string | null;
+  deletedAt?: Date | string | null;
 };
 
 export type Session = {
@@ -25,6 +27,8 @@ const cachedAuth = cache(async (): Promise<Session | null> => {
       role: session.user.role,
       name: session.user.name,
       image: session.user.image,
+      disabledAt: session.user.disabledAt,
+      deletedAt: session.user.deletedAt,
     },
   };
 });

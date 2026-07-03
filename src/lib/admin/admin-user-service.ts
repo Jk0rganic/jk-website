@@ -54,8 +54,8 @@ export type AdminManagementDecision = {
 
 export function isActiveAdminUser(user: {
   role: string | null;
-  disabledAt?: Date | null;
-  deletedAt?: Date | null;
+  disabledAt?: Date | string | null;
+  deletedAt?: Date | string | null;
 }): boolean {
   return (
     (user.role === ADMIN_ROLE || user.role === SUPER_ADMIN_ROLE) &&

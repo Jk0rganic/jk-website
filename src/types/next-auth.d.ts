@@ -10,14 +10,16 @@ declare module "next-auth" {
       name?: string;
       email?: string;
       image?: string;
-      disabledAt?: Date | null;
-      deletedAt?: Date | null;
+      disabledAt?: Date | string | null;
+      deletedAt?: Date | string | null;
     };
   }
 
   interface User {
     id: string;
     role: string;
+    disabledAt?: Date | string | null;
+    deletedAt?: Date | string | null;
   }
 }
 
@@ -25,5 +27,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role: string;
+    disabledAt?: Date | string | null;
+    deletedAt?: Date | string | null;
   }
 }
