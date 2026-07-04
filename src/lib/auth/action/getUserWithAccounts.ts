@@ -12,6 +12,7 @@ export async function getCredentialUser(email: string) {
         password: true,
         name: true,
         role: true,
+        authVersion: true,
         disabledAt: true,
         deletedAt: true,
       },

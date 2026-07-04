@@ -76,6 +76,7 @@ describe("doAdminCredentialLogin", () => {
       user: { id: "1", email: "admin@jkorganics.com", role: "min_admin" },
     });
     mockedFindUnique.mockResolvedValue({
+      authVersion: 0,
       disabledAt: new Date("2026-02-01"),
       deletedAt: null,
     } as never);
@@ -87,7 +88,7 @@ describe("doAdminCredentialLogin", () => {
 
     expect(mockedFindUnique).toHaveBeenCalledWith({
       where: { id: "1" },
-      select: { disabledAt: true, deletedAt: true },
+      select: { disabledAt: true, deletedAt: true, authVersion: true },
     });
     expect(mockedSignOut).toHaveBeenCalledWith({ redirect: false });
     expect(result).toEqual({
@@ -102,6 +103,7 @@ describe("doAdminCredentialLogin", () => {
       user: { id: "1", email: "admin@jkorganics.com", role: "super_admin" },
     });
     mockedFindUnique.mockResolvedValue({
+      authVersion: 0,
       disabledAt: null,
       deletedAt: new Date("2026-02-01"),
     } as never);
@@ -124,6 +126,7 @@ describe("doAdminCredentialLogin", () => {
       user: { id: "1", email: "admin@jkorganics.com", role: "min_admin" },
     });
     mockedFindUnique.mockResolvedValue({
+      authVersion: 0,
       disabledAt: null,
       deletedAt: null,
     } as never);

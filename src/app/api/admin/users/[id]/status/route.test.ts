@@ -6,6 +6,7 @@ vi.mock("@/lib/admin/require-admin", () => ({
 
 vi.mock("@/lib/prisma", () => ({
   default: {
+    $transaction: vi.fn(),
     session: {
       deleteMany: vi.fn(),
     },
@@ -23,10 +24,12 @@ import prisma from "@/lib/prisma";
 import { PATCH } from "./route";
 
 const mockedRequireSuperAdminSession = vi.mocked(requireSuperAdminSession);
+const mockedTransaction = vi.mocked(prisma.$transaction);
 const mockedSessionDeleteMany = vi.mocked(prisma.session.deleteMany);
 const mockedUserCount = vi.mocked(prisma.user.count);
 const mockedUserFindUnique = vi.mocked(prisma.user.findUnique);
 const mockedUserUpdate = vi.mocked(prisma.user.update);
+type TransactionCallback = (tx: typeof prisma) => unknown;
 
 const superAdminSession: Session = {
   user: {
@@ -39,6 +42,7 @@ const superAdminSession: Session = {
 describe("PATCH /api/admin/users/[id]/status", () => {
   beforeEach(() => {
     mockedRequireSuperAdminSession.mockReset();
+    mockedTransaction.mockReset();
     mockedSessionDeleteMany.mockReset();
     mockedUserCount.mockReset();
     mockedUserFindUnique.mockReset();
@@ -48,6 +52,11 @@ describe("PATCH /api/admin/users/[id]/status", () => {
       status: 200,
       session: superAdminSession,
     });
+    mockedTransaction.mockImplementation(async (callback: unknown) =>
+      typeof callback === "function"
+        ? (callback as TransactionCallback)(prisma)
+        : callback,
+    );
   });
 
   it("validates status payloads", async () => {
@@ -92,6 +101,9 @@ describe("PATCH /api/admin/users/[id]/status", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(mockedTransaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "Serializable",
+    });
     expect(mockedUserUpdate).toHaveBeenCalledWith({
       where: { id: "admin-1" },
       data: { disabledAt: expect.any(Date) },

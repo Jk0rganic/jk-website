@@ -8,7 +8,12 @@ import { canManageAdmins } from "./roles";
 async function getCurrentAdminStatus(userId: string) {
   return prisma.user.findUnique({
     where: { id: userId },
-    select: { role: true, disabledAt: true, deletedAt: true },
+    select: {
+      role: true,
+      disabledAt: true,
+      deletedAt: true,
+      authVersion: true,
+    },
   });
 }
 
@@ -21,7 +26,11 @@ export async function requireAdminSession() {
 
   const currentUser = await getCurrentAdminStatus(session.user.id);
 
-  if (!currentUser || !isActiveAdminUser(currentUser)) {
+  if (
+    !currentUser ||
+    !isActiveAdminUser(currentUser) ||
+    session.user.authVersion !== currentUser.authVersion
+  ) {
     return { error: "Forbidden", status: 403 as const, session: null };
   }
 
@@ -41,7 +50,8 @@ export async function requireSuperAdminSession() {
     !currentUser ||
     !canManageAdmins(currentUser.role) ||
     currentUser.disabledAt ||
-    currentUser.deletedAt
+    currentUser.deletedAt ||
+    session.user.authVersion !== currentUser.authVersion
   ) {
     return { error: "Forbidden", status: 403 as const, session: null };
   }

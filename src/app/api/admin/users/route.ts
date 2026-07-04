@@ -47,9 +47,11 @@ export async function GET() {
       ),
     });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to fetch admin users";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_USERS_GET_ERROR]", err);
+    return Response.json(
+      { error: "Failed to fetch admin users" },
+      { status: 500 },
+    );
   }
 }
 
@@ -133,8 +135,7 @@ export async function POST(request: Request) {
 
     return Response.json({ user }, { status: 201 });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to create admin";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_USERS_POST_ERROR]", err);
+    return Response.json({ error: "Failed to create admin" }, { status: 500 });
   }
 }

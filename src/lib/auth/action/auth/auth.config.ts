@@ -21,6 +21,7 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.authVersion = user.authVersion;
         token.disabledAt = user.disabledAt;
         token.deletedAt = user.deletedAt;
       }
@@ -32,6 +33,7 @@ export const authConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role;
+        session.user.authVersion = token.authVersion;
         session.user.disabledAt = token.disabledAt;
         session.user.deletedAt = token.deletedAt;
       }
@@ -54,6 +56,7 @@ export const authConfig = {
 
           user.id = existingUser.id;
           user.role = existingUser.role;
+          user.authVersion = existingUser.authVersion;
           user.disabledAt = existingUser.disabledAt;
           user.deletedAt = existingUser.deletedAt;
 
@@ -71,6 +74,7 @@ export const authConfig = {
 
         user.id = newUser.id;
         user.role = newUser.role;
+        user.authVersion = newUser.authVersion;
         user.disabledAt = newUser.disabledAt;
         user.deletedAt = newUser.deletedAt;
 

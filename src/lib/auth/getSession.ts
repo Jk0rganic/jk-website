@@ -5,6 +5,7 @@ export type SessionUser = {
   id: string;
   email: string;
   role: string;
+  authVersion?: number;
   name?: string;
   image?: string;
   disabledAt?: Date | string | null;
@@ -25,6 +26,7 @@ const cachedAuth = cache(async (): Promise<Session | null> => {
       id: session.user.id,
       email: session.user.email || "",
       role: session.user.role,
+      authVersion: session.user.authVersion,
       name: session.user.name,
       image: session.user.image,
       disabledAt: session.user.disabledAt,

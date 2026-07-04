@@ -180,7 +180,10 @@ describe("PATCH /api/admin/users/[id]/password", () => {
     expect(mockedHash).toHaveBeenCalledWith("password123", 10);
     expect(mockedUserUpdate).toHaveBeenCalledWith({
       where: { id: "admin-1" },
-      data: { password: "hashed-password" },
+      data: {
+        password: "hashed-password",
+        authVersion: { increment: 1 },
+      },
       select: {
         id: true,
         name: true,
@@ -194,5 +197,34 @@ describe("PATCH /api/admin/users/[id]/password", () => {
     expect(await response.json()).toEqual({
       user: expect.not.objectContaining({ password: expect.anything() }),
     });
+  });
+
+  it("returns a stable error and logs internal reset failures", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    mockedUserFindUnique.mockRejectedValue(new Error("database exploded"));
+
+    const response = await PATCH(
+      new Request("http://test.local", {
+        method: "PATCH",
+        body: JSON.stringify({
+          password: "password123",
+          confirmPassword: "password123",
+        }),
+      }),
+      { params: Promise.resolve({ id: "admin-1" }) },
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Failed to reset admin password",
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      "[ADMIN_RESET_PASSWORD_ERROR]",
+      expect.any(Error),
+    );
+
+    consoleError.mockRestore();
   });
 });

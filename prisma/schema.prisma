@@ -50,6 +50,7 @@ model User {
   sessions      Session[]
   loginAttempt  LoginAttempt?
   createdAt     DateTime  @default(now()) @map("created_at")
+  authVersion   Int       @default(0) @map("auth_version")
   disabledAt    DateTime? @map("disabled_at")
   deletedAt     DateTime? @map("deleted_at")
   @@map("users")

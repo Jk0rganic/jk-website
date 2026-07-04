@@ -8,6 +8,7 @@ type AuthTestUser = {
   name?: string;
   password?: string;
   role?: string;
+  authVersion?: number;
   disabledAt?: AdminStatusValue;
   deletedAt?: AdminStatusValue;
 };
@@ -15,6 +16,7 @@ type AuthTestUser = {
 type AuthTestToken = {
   id?: string;
   role?: string;
+  authVersion?: number;
   disabledAt?: AdminStatusValue;
   deletedAt?: AdminStatusValue;
 };
@@ -106,6 +108,7 @@ describe("NextAuth admin status propagation", () => {
       user: {
         id: "1",
         role: "min_admin",
+        authVersion: 7,
         disabledAt,
         deletedAt,
       },
@@ -114,6 +117,7 @@ describe("NextAuth admin status propagation", () => {
     expect(token).toMatchObject({
       id: "1",
       role: "min_admin",
+      authVersion: 7,
       disabledAt,
       deletedAt,
     });
@@ -126,6 +130,7 @@ describe("NextAuth admin status propagation", () => {
     expect(session.user).toMatchObject({
       id: "1",
       role: "min_admin",
+      authVersion: 7,
       disabledAt,
       deletedAt,
     });
@@ -141,6 +146,7 @@ describe("NextAuth admin status propagation", () => {
       name: "Admin",
       password: "hash",
       role: "min_admin",
+      authVersion: 4,
       disabledAt,
       deletedAt,
     });
@@ -169,6 +175,7 @@ describe("NextAuth admin status propagation", () => {
       email: "admin@jkorganics.com",
       name: "Admin",
       role: "min_admin",
+      authVersion: 4,
       disabledAt,
       deletedAt,
     });

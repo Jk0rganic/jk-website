@@ -41,7 +41,7 @@ export async function doAdminCredentialLogin(
 
     const adminStatus = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { disabledAt: true, deletedAt: true },
+      select: { disabledAt: true, deletedAt: true, authVersion: true },
     });
 
     if (adminStatus?.deletedAt) {

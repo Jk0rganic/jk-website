@@ -26,15 +26,18 @@ function mockCurrentUser({
   role = "min_admin",
   disabledAt = null,
   deletedAt = null,
+  authVersion = 0,
 }: {
   role?: string;
   disabledAt?: Date | null;
   deletedAt?: Date | null;
+  authVersion?: number;
 } = {}) {
   mockedFindUnique.mockResolvedValue({
     role,
     disabledAt,
     deletedAt,
+    authVersion,
   } as never);
 }
 
@@ -82,7 +85,12 @@ describe("requireAdminSession", () => {
 
   it("allows admin users", async () => {
     const session = {
-      user: { id: "1", email: "admin@jkorganics.com", role: "min_admin" },
+      user: {
+        id: "1",
+        email: "admin@jkorganics.com",
+        role: "min_admin",
+        authVersion: 0,
+      },
     };
     mockedGetSession.mockResolvedValue(session);
     mockCurrentUser();
@@ -99,6 +107,7 @@ describe("requireAdminSession", () => {
         id: "1",
         email: "owner@jkorganics.com",
         role: "super_admin",
+        authVersion: 0,
       },
     };
     mockedGetSession.mockResolvedValue(session);
@@ -158,7 +167,12 @@ describe("requireAdminSession", () => {
 
     expect(mockedFindUnique).toHaveBeenCalledWith({
       where: { id: "1" },
-      select: { role: true, disabledAt: true, deletedAt: true },
+      select: {
+        role: true,
+        disabledAt: true,
+        deletedAt: true,
+        authVersion: true,
+      },
     });
     expect(result.status).toBe(403);
     expect(result.error).toBe("Forbidden");
@@ -173,6 +187,23 @@ describe("requireAdminSession", () => {
       },
     });
     mockCurrentUser({ deletedAt: new Date("2026-02-01") });
+
+    const result = await requireAdminSession();
+
+    expect(result.status).toBe(403);
+    expect(result.error).toBe("Forbidden");
+  });
+
+  it("rejects stale admin sessions when authVersion changed", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: {
+        id: "1",
+        email: "admin@jkorganics.com",
+        role: "min_admin",
+        authVersion: 1,
+      },
+    });
+    mockCurrentUser({ authVersion: 2 });
 
     const result = await requireAdminSession();
 
@@ -203,6 +234,7 @@ describe("requireSuperAdminSession", () => {
         id: "1",
         email: "owner@jkorganics.com",
         role: "super_admin",
+        authVersion: 0,
       },
     };
     mockedGetSession.mockResolvedValue(session);
@@ -271,7 +303,12 @@ describe("requireSuperAdminSession", () => {
 
     expect(mockedFindUnique).toHaveBeenCalledWith({
       where: { id: "1" },
-      select: { role: true, disabledAt: true, deletedAt: true },
+      select: {
+        role: true,
+        disabledAt: true,
+        deletedAt: true,
+        authVersion: true,
+      },
     });
     expect(result.status).toBe(403);
     expect(result.error).toBe("Forbidden");
@@ -288,6 +325,26 @@ describe("requireSuperAdminSession", () => {
     mockCurrentUser({
       role: "super_admin",
       deletedAt: new Date("2026-02-01"),
+    });
+
+    const result = await requireSuperAdminSession();
+
+    expect(result.status).toBe(403);
+    expect(result.error).toBe("Forbidden");
+  });
+
+  it("rejects stale super admin sessions when authVersion changed", async () => {
+    mockedGetSession.mockResolvedValue({
+      user: {
+        id: "1",
+        email: "owner@jkorganics.com",
+        role: "super_admin",
+        authVersion: 1,
+      },
+    });
+    mockCurrentUser({
+      role: "super_admin",
+      authVersion: 2,
     });
 
     const result = await requireSuperAdminSession();

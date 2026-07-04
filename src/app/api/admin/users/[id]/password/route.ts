@@ -76,14 +76,19 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
     const user = await prisma.user.update({
       where: { id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        authVersion: { increment: 1 },
+      },
       select: adminUserSelect,
     });
 
     return Response.json({ user });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to reset password";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_RESET_PASSWORD_ERROR]", err);
+    return Response.json(
+      { error: "Failed to reset admin password" },
+      { status: 500 },
+    );
   }
 }

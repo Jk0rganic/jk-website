@@ -25,6 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.authVersion = user.authVersion;
         token.disabledAt = user.disabledAt;
         token.deletedAt = user.deletedAt;
       }
@@ -35,6 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role;
+        session.user.authVersion = token.authVersion;
         session.user.disabledAt = token.disabledAt;
         session.user.deletedAt = token.deletedAt;
       }
@@ -81,6 +83,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           role: user.role,
+          authVersion: user.authVersion,
           disabledAt: user.disabledAt,
           deletedAt: user.deletedAt,
         };

@@ -177,6 +177,27 @@ describe("GET /api/admin/users", () => {
       ],
     });
   });
+
+  it("returns a stable error and logs internal fetch failures", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    mockedUserFindMany.mockRejectedValue(new Error("private database detail"));
+    mockedUserCount.mockResolvedValue(1);
+
+    const response = await GET();
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Failed to fetch admin users",
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      "[ADMIN_USERS_GET_ERROR]",
+      expect.any(Error),
+    );
+
+    consoleError.mockRestore();
+  });
 });
 
 describe("POST /api/admin/users", () => {
