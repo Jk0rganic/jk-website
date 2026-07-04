@@ -149,6 +149,31 @@ describe("PATCH /api/admin/users/[id]/password", () => {
     expect(await deletedResponse.json()).toEqual({ error: "User not found" });
   });
 
+  it("rejects customer targets", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "customer-1",
+      role: "user",
+      deletedAt: null,
+    } as never);
+
+    const response = await PATCH(
+      new Request("http://test.local", {
+        method: "PATCH",
+        body: JSON.stringify({
+          password: "password123",
+          confirmPassword: "password123",
+        }),
+      }),
+      { params: Promise.resolve({ id: "customer-1" }) },
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "This user is not an admin",
+    });
+    expect(mockedUserUpdate).not.toHaveBeenCalled();
+  });
+
   it("hashes the password and returns safe user data", async () => {
     mockedUserFindUnique.mockResolvedValue({
       id: "admin-1",

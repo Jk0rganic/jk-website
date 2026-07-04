@@ -1,5 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
 import {
+  canManageAdminEndpointTarget,
   canManageAdminTarget,
   canRevokeAdminRole,
 } from "@/lib/admin/admin-user-service";
@@ -67,6 +68,11 @@ export async function PATCH(_request: Request, { params }: RouteParams) {
         }
 
         const targetRole = targetUser.role || USER_ROLE;
+        const targetCheck = canManageAdminEndpointTarget(targetRole);
+        if (!targetCheck.allowed) {
+          return { error: targetCheck.reason, status: 400 as const };
+        }
+
         const revokeCheck = canRevokeAdminRole(
           targetRole,
           session.user.id,
@@ -83,7 +89,10 @@ export async function PATCH(_request: Request, { params }: RouteParams) {
 
         const user = await tx.user.update({
           where: { id },
-          data: { role: USER_ROLE },
+          data: {
+            role: USER_ROLE,
+            authVersion: { increment: 1 },
+          },
           select: adminUserSelect,
         });
 
@@ -134,12 +143,18 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
           return { error: "User not found", status: 404 as const };
         }
 
+        const targetRole = targetUser.role || USER_ROLE;
+        const targetCheck = canManageAdminEndpointTarget(targetRole);
+        if (!targetCheck.allowed) {
+          return { error: targetCheck.reason, status: 400 as const };
+        }
+
         const decision = canManageAdminTarget({
           action: "delete",
           actingUserId: session.user.id,
           actingUserRole: session.user.role,
           targetUserId: targetUser.id,
-          targetRole: targetUser.role || USER_ROLE,
+          targetRole,
           targetDisabledAt: targetUser.disabledAt,
           targetDeletedAt: targetUser.deletedAt,
           activeSuperAdminCount: superAdminCount,
@@ -151,7 +166,10 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
         const user = await tx.user.update({
           where: { id },
-          data: { deletedAt: new Date() },
+          data: {
+            deletedAt: new Date(),
+            authVersion: { increment: 1 },
+          },
           select: adminUserSelect,
         });
 

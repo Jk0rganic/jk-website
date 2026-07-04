@@ -1,6 +1,9 @@
 import { Prisma } from "@/generated/prisma/client";
 import { adminStatusSchema } from "@/lib/admin/admin-user-schema";
-import { canManageAdminTarget } from "@/lib/admin/admin-user-service";
+import {
+  canManageAdminEndpointTarget,
+  canManageAdminTarget,
+} from "@/lib/admin/admin-user-service";
 import { requireSuperAdminSession } from "@/lib/admin/require-admin";
 import { SUPER_ADMIN_ROLE, USER_ROLE } from "@/lib/admin/roles";
 import prisma from "@/lib/prisma";
@@ -77,12 +80,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           return { error: "User not found", status: 404 as const };
         }
 
+        const targetRole = targetUser.role || USER_ROLE;
+        const targetCheck = canManageAdminEndpointTarget(targetRole);
+        if (!targetCheck.allowed) {
+          return { error: targetCheck.reason, status: 400 as const };
+        }
+
         const decision = canManageAdminTarget({
           action: parsed.data.disabled ? "block" : "unblock",
           actingUserId: session.user.id,
           actingUserRole: session.user.role || SUPER_ADMIN_ROLE,
           targetUserId: targetUser.id,
-          targetRole: targetUser.role || USER_ROLE,
+          targetRole,
           targetDisabledAt: targetUser.disabledAt,
           targetDeletedAt: targetUser.deletedAt,
           activeSuperAdminCount: superAdminCount,
@@ -94,7 +103,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
         const user = await tx.user.update({
           where: { id },
-          data: { disabledAt: parsed.data.disabled ? new Date() : null },
+          data: {
+            disabledAt: parsed.data.disabled ? new Date() : null,
+            authVersion: { increment: 1 },
+          },
           select: adminUserSelect,
         });
 

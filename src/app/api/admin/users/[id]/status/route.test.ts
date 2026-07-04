@@ -106,7 +106,10 @@ describe("PATCH /api/admin/users/[id]/status", () => {
     });
     expect(mockedUserUpdate).toHaveBeenCalledWith({
       where: { id: "admin-1" },
-      data: { disabledAt: expect.any(Date) },
+      data: {
+        disabledAt: expect.any(Date),
+        authVersion: { increment: 1 },
+      },
       select: {
         id: true,
         name: true,
@@ -149,8 +152,38 @@ describe("PATCH /api/admin/users/[id]/status", () => {
 
     expect(response.status).toBe(200);
     expect(mockedUserUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { disabledAt: null } }),
+      expect.objectContaining({
+        data: {
+          disabledAt: null,
+          authVersion: { increment: 1 },
+        },
+      }),
     );
+    expect(mockedSessionDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it("rejects customer targets", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "customer-1",
+      role: "user",
+      disabledAt: null,
+      deletedAt: null,
+    } as never);
+    mockedUserCount.mockResolvedValue(1);
+
+    const response = await PATCH(
+      new Request("http://test.local", {
+        method: "PATCH",
+        body: JSON.stringify({ disabled: true }),
+      }),
+      { params: Promise.resolve({ id: "customer-1" }) },
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "This user is not an admin",
+    });
+    expect(mockedUserUpdate).not.toHaveBeenCalled();
     expect(mockedSessionDeleteMany).not.toHaveBeenCalled();
   });
 
@@ -221,7 +254,10 @@ describe("PATCH /api/admin/users/[id]/status", () => {
     expect(response.status).toBe(200);
     expect(mockedUserUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { disabledAt: expect.any(Date) },
+        data: {
+          disabledAt: expect.any(Date),
+          authVersion: { increment: 1 },
+        },
       }),
     );
     expect(mockedSessionDeleteMany).toHaveBeenCalledWith({

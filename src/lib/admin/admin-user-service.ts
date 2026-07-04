@@ -163,6 +163,17 @@ export function canCreateAdminRole(role: string): role is typeof ADMIN_ROLE {
   return role === ADMIN_ROLE;
 }
 
+export function canManageAdminEndpointTarget(role: string | null): {
+  allowed: boolean;
+  reason?: string;
+} {
+  if (role !== ADMIN_ROLE && role !== SUPER_ADMIN_ROLE) {
+    return { allowed: false, reason: "This user is not an admin" };
+  }
+
+  return { allowed: true };
+}
+
 export function canManageAdminTarget(args: {
   action: AdminTargetAction;
   actingUserId: string;
@@ -215,7 +226,7 @@ export function canRevokeAdminRole(
   targetDeletedAt?: Date | string | null,
 ): { allowed: boolean; reason?: string } {
   if (targetRole === USER_ROLE) {
-    return { allowed: false, reason: "This user is already a customer" };
+    return { allowed: false, reason: "This user is not an admin" };
   }
 
   const decision = canManageAdminTarget({

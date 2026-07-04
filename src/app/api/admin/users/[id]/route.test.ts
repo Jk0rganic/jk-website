@@ -117,8 +117,35 @@ describe("PATCH /api/admin/users/[id]", () => {
       },
     });
     expect(mockedUserUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { role: "user" } }),
+      expect.objectContaining({
+        data: {
+          role: "user",
+          authVersion: { increment: 1 },
+        },
+      }),
     );
+  });
+
+  it("rejects demoting customer targets", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "customer-1",
+      role: "user",
+      email: "customer@example.com",
+      name: "Customer One",
+      disabledAt: null,
+      deletedAt: null,
+    } as never);
+    mockedUserCount.mockResolvedValue(1);
+
+    const response = await PATCH(new Request("http://test.local"), {
+      params: Promise.resolve({ id: "customer-1" }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "This user is not an admin",
+    });
+    expect(mockedUserUpdate).not.toHaveBeenCalled();
   });
 
   it("rejects demoting the last active super admin", async () => {
@@ -169,7 +196,12 @@ describe("PATCH /api/admin/users/[id]", () => {
 
     expect(response.status).toBe(200);
     expect(mockedUserUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { role: "user" } }),
+      expect.objectContaining({
+        data: {
+          role: "user",
+          authVersion: { increment: 1 },
+        },
+      }),
     );
   });
 });
@@ -224,7 +256,10 @@ describe("DELETE /api/admin/users/[id]", () => {
     });
     expect(mockedUserUpdate).toHaveBeenCalledWith({
       where: { id: "admin-1" },
-      data: { deletedAt: expect.any(Date) },
+      data: {
+        deletedAt: expect.any(Date),
+        authVersion: { increment: 1 },
+      },
       select: {
         id: true,
         name: true,
@@ -241,6 +276,29 @@ describe("DELETE /api/admin/users/[id]", () => {
     expect(await response.json()).toEqual({
       user: expect.not.objectContaining({ password: expect.anything() }),
     });
+  });
+
+  it("rejects deleting customer targets", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "customer-1",
+      role: "user",
+      email: "customer@example.com",
+      name: "Customer One",
+      disabledAt: null,
+      deletedAt: null,
+    } as never);
+    mockedUserCount.mockResolvedValue(1);
+
+    const response = await DELETE(new Request("http://test.local"), {
+      params: Promise.resolve({ id: "customer-1" }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "This user is not an admin",
+    });
+    expect(mockedUserUpdate).not.toHaveBeenCalled();
+    expect(mockedSessionDeleteMany).not.toHaveBeenCalled();
   });
 
   it("rejects self-management", async () => {
@@ -305,7 +363,10 @@ describe("DELETE /api/admin/users/[id]", () => {
     expect(response.status).toBe(200);
     expect(mockedUserUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { deletedAt: expect.any(Date) },
+        data: {
+          deletedAt: expect.any(Date),
+          authVersion: { increment: 1 },
+        },
       }),
     );
     expect(mockedSessionDeleteMany).toHaveBeenCalledWith({

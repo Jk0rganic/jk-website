@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
 import { resetAdminPasswordSchema } from "@/lib/admin/admin-user-schema";
-import { canManageAdminTarget } from "@/lib/admin/admin-user-service";
+import {
+  canManageAdminEndpointTarget,
+  canManageAdminTarget,
+} from "@/lib/admin/admin-user-service";
 import { requireSuperAdminSession } from "@/lib/admin/require-admin";
 import { SUPER_ADMIN_ROLE, USER_ROLE } from "@/lib/admin/roles";
 import prisma from "@/lib/prisma";
@@ -60,12 +63,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return Response.json({ error: "User not found" }, { status: 404 });
     }
 
+    const targetRole = targetUser.role || USER_ROLE;
+    const targetCheck = canManageAdminEndpointTarget(targetRole);
+    if (!targetCheck.allowed) {
+      return Response.json({ error: targetCheck.reason }, { status: 400 });
+    }
+
     const decision = canManageAdminTarget({
       action: "reset_password",
       actingUserId: session.user.id,
       actingUserRole: session.user.role || SUPER_ADMIN_ROLE,
       targetUserId: targetUser.id,
-      targetRole: targetUser.role || USER_ROLE,
+      targetRole,
       activeSuperAdminCount: 1,
     });
 
