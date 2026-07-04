@@ -1,0 +1,253 @@
+.controls {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.controlGroup {
+  color: var(--admin-muted);
+  display: grid;
+  font-size: 0.74rem;
+  font-weight: 700;
+  gap: 0.25rem;
+  letter-spacing: 0.04em;
+  min-width: 142px;
+  text-transform: uppercase;
+
+  input,
+  select {
+    background: var(--brand-white);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    color: var(--brand-black);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    min-height: 38px;
+    padding: 0.52rem 0.72rem;
+    text-transform: none;
+  }
+}
+
+.iconButton {
+  align-items: center;
+  background: var(--admin-accent);
+  border: 0;
+  border-radius: 8px;
+  color: var(--brand-white);
+  cursor: pointer;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  width: 40px;
+
+  svg {
+    height: 18px;
+    width: 18px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
+.kpiGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin-bottom: 1.25rem;
+}
+
+.mainGrid,
+.secondaryGrid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mainGrid {
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr);
+}
+
+.secondaryGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.chart {
+  height: 320px;
+  min-width: 0;
+}
+
+.paymentGrid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.paymentCard {
+  align-items: center;
+  background: #fbfcfb;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr auto;
+  padding: 1rem;
+
+  span {
+    color: var(--admin-muted);
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: var(--brand-black);
+    display: block;
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+
+  svg {
+    color: var(--admin-accent);
+    height: 22px;
+    width: 22px;
+  }
+
+  small {
+    color: var(--admin-muted);
+    font-weight: 700;
+    grid-column: 1 / -1;
+  }
+}
+
+.insights {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  article {
+    align-items: flex-start;
+    background: #f8fbf8;
+    border: 1px solid var(--admin-border);
+    border-left: 3px solid var(--admin-accent);
+    border-radius: 8px;
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem;
+  }
+
+  svg {
+    color: var(--admin-accent);
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+  }
+
+  p {
+    color: var(--brand-black);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin: 0;
+  }
+}
+
+.locationName {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.statePanel {
+  align-items: center;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-muted);
+  display: flex;
+  gap: 0.7rem;
+  justify-content: center;
+  min-height: 180px;
+  padding: 2rem;
+
+  button {
+    background: var(--admin-accent);
+    border: 0;
+    border-radius: 8px;
+    color: var(--brand-white);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    padding: 0.52rem 0.85rem;
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.iconCyan {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.iconRed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.iconSlate {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1280px) {
+  .kpiGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .mainGrid,
+  .secondaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .insights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .controls {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .controlGroup {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .iconButton {
+    width: 100%;
+  }
+
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart {
+    height: 260px;
+  }
+}

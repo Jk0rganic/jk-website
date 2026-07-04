@@ -3,6 +3,7 @@
 import {
   ArrowDown,
   ArrowUp,
+  BarChart3,
   Package,
   ShoppingBag,
   TrendingUp,
@@ -124,6 +125,10 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className={ui.heroActions}>
+          <Link href="/admin-account/analytics" className={ui.btnGhost}>
+            <BarChart3 size={16} aria-hidden />
+            View analytics
+          </Link>
           <Link href="/admin-account/products/new" className={ui.btnPrimary}>
             + Add product
           </Link>

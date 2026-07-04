@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BarChart3,
   CreditCard,
   LayoutDashboard,
   MessageSquareText,
@@ -27,6 +28,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     title: "Overview",
     items: [
       { label: "Dashboard", href: "/admin-account", icon: LayoutDashboard },
+      { label: "Analytics", href: "/admin-account/analytics", icon: BarChart3 },
     ],
   },
   {
@@ -63,6 +65,7 @@ export const adminNavGroups: AdminNavGroup[] = [
 
 export const adminPageTitles: Record<string, string> = {
   "/admin-account": "Dashboard",
+  "/admin-account/analytics": "Analytics",
   "/admin-account/orders": "Orders",
   "/admin-account/products": "Products",
   "/admin-account/products/new": "Add product",
