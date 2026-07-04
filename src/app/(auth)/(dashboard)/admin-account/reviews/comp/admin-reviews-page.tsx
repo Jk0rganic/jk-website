@@ -367,9 +367,9 @@ export default function AdminReviewsPage() {
                                     <dd>
                                       {review.productSlug ? (
                                         <Link
-                                          href={`/products/${review.productSlug}`}
+                                          href={`/product/${review.productSlug}`}
                                         >
-                                          /products/{review.productSlug}
+                                          /product/{review.productSlug}
                                         </Link>
                                       ) : (
                                         "No slug"
