@@ -75,6 +75,24 @@ export type AdminVariation = {
   inStock: boolean;
 };
 
+export type WooProductPayload = {
+  name: string;
+  short_description: string;
+  description: string;
+  sku: string;
+  regular_price: string;
+  sale_price: string;
+  status: "publish" | "draft";
+  manage_stock: boolean;
+  stock_quantity: number | null;
+  stock_status: "instock" | "outofstock";
+  categories: Array<{ id: number }>;
+  related_ids: number[];
+  cross_sell_ids: number[];
+  upsell_ids: number[];
+  images?: Array<{ id: number }>;
+};
+
 export function mapWooProductDetail(
   product: WooProductDetail,
 ): AdminProductDetail {
@@ -148,13 +166,15 @@ export function productDetailToFormValues(
   };
 }
 
-export function formValuesToWooPayload(values: ProductFormValues) {
+export function formValuesToWooPayload(
+  values: ProductFormValues,
+): WooProductPayload {
   const stockQuantity =
     values.manageStock && values.stockQuantity
       ? Number(values.stockQuantity)
       : null;
 
-  const payload = {
+  const payload: Omit<WooProductPayload, "images"> = {
     name: values.name,
     short_description: values.shortDescription || "",
     description: values.description || "",

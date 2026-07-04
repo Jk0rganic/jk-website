@@ -1,3 +1,4 @@
+import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ADMIN_SIGN_IN_PATH,
@@ -35,7 +36,7 @@ import { auth, signIn, signOut } from "@/lib/auth/action/auth/auth";
 import { doAdminCredentialLogin } from "@/lib/auth/action/doAdminCredentialLogin";
 import prisma from "@/lib/prisma";
 
-const mockedAuth = vi.mocked(auth);
+const mockedAuth = vi.mocked(auth as () => Promise<Session | null>);
 const mockedSignIn = vi.mocked(signIn);
 const mockedSignOut = vi.mocked(signOut);
 const mockedFindUnique = vi.mocked(prisma.user.findUnique);
@@ -71,6 +72,7 @@ describe("doAdminCredentialLogin", () => {
   it("rejects disabled admin accounts with a friendly error", async () => {
     mockedSignIn.mockResolvedValue(undefined as never);
     mockedAuth.mockResolvedValue({
+      expires: "2026-04-01T00:00:00.000Z",
       user: { id: "1", email: "admin@jkorganics.com", role: "min_admin" },
     });
     mockedFindUnique.mockResolvedValue({
@@ -96,6 +98,7 @@ describe("doAdminCredentialLogin", () => {
   it("rejects deleted admin accounts with a friendly error", async () => {
     mockedSignIn.mockResolvedValue(undefined as never);
     mockedAuth.mockResolvedValue({
+      expires: "2026-04-01T00:00:00.000Z",
       user: { id: "1", email: "admin@jkorganics.com", role: "super_admin" },
     });
     mockedFindUnique.mockResolvedValue({
@@ -117,6 +120,7 @@ describe("doAdminCredentialLogin", () => {
   it("keeps successful admin login behavior", async () => {
     mockedSignIn.mockResolvedValue(undefined as never);
     mockedAuth.mockResolvedValue({
+      expires: "2026-04-01T00:00:00.000Z",
       user: { id: "1", email: "admin@jkorganics.com", role: "min_admin" },
     });
     mockedFindUnique.mockResolvedValue({

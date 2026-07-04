@@ -94,8 +94,14 @@ describe("NextAuth admin status propagation", () => {
   it("persists admin status fields from user to jwt to session", async () => {
     const disabledAt = new Date("2026-02-01");
     const deletedAt = new Date("2026-03-01");
+    const callbacks = nextAuthConfig.current?.callbacks;
 
-    const token = await nextAuthConfig.current?.callbacks.jwt({
+    expect(callbacks).toBeDefined();
+    if (!callbacks) {
+      throw new Error("NextAuth callbacks were not configured");
+    }
+
+    const token = await callbacks.jwt({
       token: {},
       user: {
         id: "1",
@@ -112,7 +118,7 @@ describe("NextAuth admin status propagation", () => {
       deletedAt,
     });
 
-    const session = await nextAuthConfig.current?.callbacks.session({
+    const session = await callbacks.session({
       session: { user: {} },
       token,
     });
@@ -142,8 +148,14 @@ describe("NextAuth admin status propagation", () => {
       success: true,
       message: "Login successful!",
     });
+    const providers = nextAuthConfig.current?.providers;
 
-    const credentialsProvider = nextAuthConfig.current?.providers.find(
+    expect(providers).toBeDefined();
+    if (!providers) {
+      throw new Error("NextAuth providers were not configured");
+    }
+
+    const credentialsProvider = providers.find(
       (provider) => provider.name === "Credentials",
     );
 

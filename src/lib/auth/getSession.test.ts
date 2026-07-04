@@ -1,3 +1,4 @@
+import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("react", () => ({
@@ -11,7 +12,7 @@ vi.mock("./action/auth/auth", () => ({
 import { auth } from "./action/auth/auth";
 import { getSession } from "./getSession";
 
-const mockedAuth = vi.mocked(auth);
+const mockedAuth = vi.mocked(auth as () => Promise<Session | null>);
 
 describe("getSession", () => {
   beforeEach(() => {

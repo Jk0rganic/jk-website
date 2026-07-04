@@ -1,39 +1,9 @@
+import type { NextAuthConfig } from "next-auth";
 import {
   createUserAndLinkAccount,
   findUserByEmail,
   linkAccountToUser,
 } from "../action";
-
-type AdminStatusValue = Date | string | null | undefined;
-
-type AuthCallbackUser = {
-  id?: string;
-  email?: string | null;
-  role?: string;
-  disabledAt?: AdminStatusValue;
-  deletedAt?: AdminStatusValue;
-};
-
-type AuthCallbackToken = {
-  id?: string;
-  role?: string;
-  disabledAt?: AdminStatusValue;
-  deletedAt?: AdminStatusValue;
-};
-
-type AuthCallbackSession = {
-  user?: AuthCallbackUser;
-};
-
-type AuthCallbackAccount = {
-  type: string;
-  provider: string;
-  providerAccountId: string;
-  access_token?: string | null;
-  token_type?: string | null;
-  expires_at?: number | null;
-  refresh_token?: string | null;
-};
 
 export const authConfig = {
   pages: {
@@ -47,13 +17,7 @@ export const authConfig = {
   },
 
   callbacks: {
-    async jwt({
-      token,
-      user,
-    }: {
-      token: AuthCallbackToken;
-      user?: AuthCallbackUser;
-    }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -64,15 +28,9 @@ export const authConfig = {
       return token;
     },
 
-    async session({
-      session,
-      token,
-    }: {
-      session: AuthCallbackSession;
-      token: AuthCallbackToken;
-    }) {
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
+        session.user.id = token.id as string;
         session.user.role = token.role;
         session.user.disabledAt = token.disabledAt;
         session.user.deletedAt = token.deletedAt;
@@ -81,13 +39,7 @@ export const authConfig = {
       return session;
     },
 
-    async signIn({
-      user,
-      account,
-    }: {
-      user?: AuthCallbackUser;
-      account?: AuthCallbackAccount;
-    }) {
+    async signIn({ user, account }) {
       try {
         if (!user?.email) {
           return false;
@@ -112,7 +64,10 @@ export const authConfig = {
           return false;
         }
 
-        const newUser = await createUserAndLinkAccount(user, account);
+        const newUser = await createUserAndLinkAccount(
+          { ...user, email: user.email },
+          account,
+        );
 
         user.id = newUser.id;
         user.role = newUser.role;
@@ -129,4 +84,6 @@ export const authConfig = {
   },
 
   providers: [],
+} satisfies Omit<NextAuthConfig, "pages"> & {
+  pages: NextAuthConfig["pages"] & { resetPassword: string };
 };
