@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   CreditCard,
   LayoutDashboard,
+  MessageSquareText,
   Package,
   Settings,
   ShoppingBag,
@@ -35,6 +36,11 @@ export const adminNavGroups: AdminNavGroup[] = [
       { label: "Products", href: "/admin-account/products", icon: Package },
       { label: "Coupons", href: "/admin-account/coupons", icon: Ticket },
       { label: "Payments", href: "/admin-account/payments", icon: CreditCard },
+      {
+        label: "Reviews",
+        href: "/admin-account/reviews",
+        icon: MessageSquareText,
+      },
     ],
   },
   {
@@ -63,6 +69,7 @@ export const adminPageTitles: Record<string, string> = {
   "/admin-account/coupons": "Coupons",
   "/admin-account/coupons/new": "Create coupon",
   "/admin-account/payments": "Payments",
+  "/admin-account/reviews": "Reviews",
   "/admin-account/team": "Team",
   "/admin-account/details": "Profile",
 };

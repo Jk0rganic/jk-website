@@ -1,0 +1,149 @@
+.iconRed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.filters {
+  align-items: stretch;
+}
+
+.filterInput,
+.dateInput {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--brand-radius);
+  background: var(--brand-white);
+  font: inherit;
+  padding: 0.65rem 0.9rem;
+}
+
+.filterInput {
+  flex: 1 1 190px;
+  min-width: 180px;
+}
+
+.dateInput {
+  flex: 0 1 150px;
+  min-width: 140px;
+}
+
+.clearButton,
+.detailButton {
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: var(--brand-white);
+  color: var(--admin-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+
+  &:hover {
+    border-color: var(--admin-accent);
+    background: #f8fbf8;
+  }
+}
+
+.stateText {
+  color: var(--admin-muted);
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+.productName,
+.excerpt {
+  overflow-wrap: anywhere;
+}
+
+.reviewer,
+.rating {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.rating {
+  color: #854d0e;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.excerpt {
+  max-width: 34ch;
+  color: var(--admin-muted);
+  line-height: 1.45;
+}
+
+.detailsCell {
+  background: #fbfcfb;
+  padding: 0 !important;
+}
+
+.detailsPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+
+  p {
+    margin: 0.35rem 0 0;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+}
+
+.detailLabel {
+  color: var(--admin-muted);
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.detailGrid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+
+  div {
+    min-width: 0;
+  }
+
+  dt {
+    color: var(--admin-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 900px) {
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .filterInput,
+  .dateInput {
+    flex-basis: 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .excerpt {
+    max-width: 24ch;
+  }
+}
