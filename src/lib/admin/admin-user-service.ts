@@ -68,7 +68,7 @@ export function mapAdminUser(
   user: UserRow,
   actingUserId: string,
   activeSuperAdminCount: number,
-  actingUserRole = SUPER_ADMIN_ROLE,
+  actingUserRole: string = SUPER_ADMIN_ROLE,
 ): AdminUserListItem {
   const role = user.role || USER_ROLE;
   const disabledAt = user.disabledAt ?? null;
@@ -196,7 +196,7 @@ export function canRevokeAdminRole(
   actingUserId: string,
   targetUserId: string,
   activeSuperAdminCount: number,
-  actingUserRole = SUPER_ADMIN_ROLE,
+  actingUserRole: string = SUPER_ADMIN_ROLE,
 ): { allowed: boolean; reason?: string } {
   if (targetRole === USER_ROLE) {
     return { allowed: false, reason: "This user is already a customer" };

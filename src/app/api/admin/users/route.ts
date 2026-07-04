@@ -1,9 +1,25 @@
-import { requireSuperAdminSession } from "@/lib/admin/require-admin";
+import bcrypt from "bcryptjs";
+import { createAdminSchema } from "@/lib/admin/admin-user-schema";
 import { mapAdminUser } from "@/lib/admin/admin-user-service";
+import { requireSuperAdminSession } from "@/lib/admin/require-admin";
 import { ADMIN_ROLE, SUPER_ADMIN_ROLE } from "@/lib/admin/roles";
 import prisma from "@/lib/prisma";
-import { createAdminSchema } from "@/lib/admin/admin-user-schema";
-import bcrypt from "bcryptjs";
+
+const adminUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  createdAt: true,
+  disabledAt: true,
+  deletedAt: true,
+} as const;
+
+const activeSuperAdminWhere = {
+  role: SUPER_ADMIN_ROLE,
+  disabledAt: null,
+  deletedAt: null,
+} as const;
 
 export async function GET() {
   const { error, status, session } = await requireSuperAdminSession();
@@ -15,22 +31,19 @@ export async function GET() {
   try {
     const [users, superAdminCount] = await Promise.all([
       prisma.user.findMany({
-        where: { role: { in: [ADMIN_ROLE, SUPER_ADMIN_ROLE] } },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          createdAt: true,
+        where: {
+          role: { in: [ADMIN_ROLE, SUPER_ADMIN_ROLE] },
+          deletedAt: null,
         },
+        select: adminUserSelect,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.user.count({ where: { role: SUPER_ADMIN_ROLE } }),
+      prisma.user.count({ where: activeSuperAdminWhere }),
     ]);
 
     return Response.json({
       users: users.map((user: (typeof users)[number]) =>
-        mapAdminUser(user, session.user.id, superAdminCount),
+        mapAdminUser(user, session.user.id, superAdminCount, session.user.role),
       ),
     });
   } catch (err) {
@@ -70,7 +83,17 @@ export async function POST(request: Request) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      if (existingUser.role === ADMIN_ROLE || existingUser.role === SUPER_ADMIN_ROLE) {
+      if (existingUser.deletedAt) {
+        return Response.json(
+          { error: "This email belongs to an inactive account" },
+          { status: 409 },
+        );
+      }
+
+      if (
+        existingUser.role === ADMIN_ROLE ||
+        existingUser.role === SUPER_ADMIN_ROLE
+      ) {
         return Response.json(
           { error: "This email already belongs to an admin" },
           { status: 409 },
@@ -84,14 +107,10 @@ export async function POST(request: Request) {
           role: ADMIN_ROLE,
           password: await bcrypt.hash(password, 10),
           emailVerified: new Date(),
+          disabledAt: null,
+          deletedAt: null,
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          createdAt: true,
-        },
+        select: adminUserSelect,
       });
 
       return Response.json({ user: updated, promoted: true }, { status: 200 });
@@ -106,14 +125,10 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: ADMIN_ROLE,
         emailVerified: new Date(),
+        disabledAt: null,
+        deletedAt: null,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      select: adminUserSelect,
     });
 
     return Response.json({ user }, { status: 201 });
