@@ -69,6 +69,8 @@ export async function PATCH(_request: Request, { params }: RouteParams) {
       targetUser.id,
       superAdminCount,
       session.user.role,
+      targetUser.disabledAt,
+      targetUser.deletedAt,
     );
 
     if (!revokeCheck.allowed) {
@@ -124,6 +126,8 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       actingUserRole: session.user.role,
       targetUserId: targetUser.id,
       targetRole: targetUser.role || USER_ROLE,
+      targetDisabledAt: targetUser.disabledAt,
+      targetDeletedAt: targetUser.deletedAt,
       activeSuperAdminCount: superAdminCount,
     });
 

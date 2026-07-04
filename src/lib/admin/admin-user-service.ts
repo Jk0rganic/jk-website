@@ -83,6 +83,8 @@ export function mapAdminUser(
       actingUserRole,
       targetUserId: user.id,
       targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
       activeSuperAdminCount,
     }).allowed;
   const canBlock =
@@ -94,6 +96,8 @@ export function mapAdminUser(
       actingUserRole,
       targetUserId: user.id,
       targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
       activeSuperAdminCount,
     }).allowed;
   const canUnblock =
@@ -105,6 +109,8 @@ export function mapAdminUser(
       actingUserRole,
       targetUserId: user.id,
       targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
       activeSuperAdminCount,
     }).allowed;
   const canDelete =
@@ -115,6 +121,8 @@ export function mapAdminUser(
       actingUserRole,
       targetUserId: user.id,
       targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
       activeSuperAdminCount,
     }).allowed;
   const canDemote =
@@ -125,6 +133,8 @@ export function mapAdminUser(
       actingUserRole,
       targetUserId: user.id,
       targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
       activeSuperAdminCount,
     }).allowed;
 
@@ -159,6 +169,8 @@ export function canManageAdminTarget(args: {
   actingUserRole: string;
   targetUserId: string;
   targetRole: string;
+  targetDisabledAt?: Date | string | null;
+  targetDeletedAt?: Date | string | null;
   activeSuperAdminCount: number;
 }): AdminManagementDecision {
   if (args.actingUserId === args.targetUserId) {
@@ -177,6 +189,8 @@ export function canManageAdminTarget(args: {
 
   if (
     args.targetRole === SUPER_ADMIN_ROLE &&
+    !args.targetDisabledAt &&
+    !args.targetDeletedAt &&
     args.activeSuperAdminCount <= 1 &&
     (args.action === "block" ||
       args.action === "delete" ||
@@ -197,6 +211,8 @@ export function canRevokeAdminRole(
   targetUserId: string,
   activeSuperAdminCount: number,
   actingUserRole: string = SUPER_ADMIN_ROLE,
+  targetDisabledAt?: Date | string | null,
+  targetDeletedAt?: Date | string | null,
 ): { allowed: boolean; reason?: string } {
   if (targetRole === USER_ROLE) {
     return { allowed: false, reason: "This user is already a customer" };
@@ -208,6 +224,8 @@ export function canRevokeAdminRole(
     actingUserRole,
     targetUserId,
     targetRole,
+    targetDisabledAt,
+    targetDeletedAt,
     activeSuperAdminCount,
   });
 

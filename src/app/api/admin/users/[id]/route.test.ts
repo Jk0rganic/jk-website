@@ -130,6 +130,36 @@ describe("PATCH /api/admin/users/[id]", () => {
     });
     expect(mockedUserUpdate).not.toHaveBeenCalled();
   });
+
+  it("demotes a disabled super admin when one active super admin remains", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "super-2",
+      role: "super_admin",
+      email: "owner2@example.com",
+      name: "Owner Two",
+      disabledAt: new Date("2026-02-01T00:00:00.000Z"),
+      deletedAt: null,
+    } as never);
+    mockedUserCount.mockResolvedValue(1);
+    mockedUserUpdate.mockResolvedValue({
+      id: "super-2",
+      name: "Owner Two",
+      email: "owner2@example.com",
+      role: "user",
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      disabledAt: new Date("2026-02-01T00:00:00.000Z"),
+      deletedAt: null,
+    } as never);
+
+    const response = await PATCH(new Request("http://test.local"), {
+      params: Promise.resolve({ id: "super-2" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mockedUserUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { role: "user" } }),
+    );
+  });
 });
 
 describe("DELETE /api/admin/users/[id]", () => {
@@ -225,6 +255,41 @@ describe("DELETE /api/admin/users/[id]", () => {
     });
     expect(mockedUserUpdate).not.toHaveBeenCalled();
     expect(mockedSessionDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it("deletes a disabled super admin when one active super admin remains", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "super-2",
+      role: "super_admin",
+      email: "owner2@example.com",
+      name: "Owner Two",
+      disabledAt: new Date("2026-02-01T00:00:00.000Z"),
+      deletedAt: null,
+    } as never);
+    mockedUserCount.mockResolvedValue(1);
+    mockedUserUpdate.mockResolvedValue({
+      id: "super-2",
+      name: "Owner Two",
+      email: "owner2@example.com",
+      role: "super_admin",
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      disabledAt: new Date("2026-02-01T00:00:00.000Z"),
+      deletedAt: new Date("2026-04-01T00:00:00.000Z"),
+    } as never);
+
+    const response = await DELETE(new Request("http://test.local"), {
+      params: Promise.resolve({ id: "super-2" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mockedUserUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { deletedAt: expect.any(Date) },
+      }),
+    );
+    expect(mockedSessionDeleteMany).toHaveBeenCalledWith({
+      where: { userId: "super-2" },
+    });
   });
 
   it("rejects missing or already deleted targets", async () => {

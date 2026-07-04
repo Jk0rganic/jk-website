@@ -79,6 +79,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       actingUserRole: session.user.role || SUPER_ADMIN_ROLE,
       targetUserId: targetUser.id,
       targetRole: targetUser.role || USER_ROLE,
+      targetDisabledAt: targetUser.disabledAt,
+      targetDeletedAt: targetUser.deletedAt,
       activeSuperAdminCount: superAdminCount,
     });
 

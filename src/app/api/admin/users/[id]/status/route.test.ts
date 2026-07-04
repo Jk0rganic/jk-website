@@ -180,6 +180,43 @@ describe("PATCH /api/admin/users/[id]/status", () => {
     expect(mockedUserUpdate).not.toHaveBeenCalled();
   });
 
+  it("allows disabling an already-disabled super admin target", async () => {
+    mockedUserFindUnique.mockResolvedValue({
+      id: "super-2",
+      role: "super_admin",
+      disabledAt: new Date("2026-02-01T00:00:00.000Z"),
+      deletedAt: null,
+    } as never);
+    mockedUserCount.mockResolvedValue(1);
+    mockedUserUpdate.mockResolvedValue({
+      id: "super-2",
+      name: "Owner Two",
+      email: "owner2@example.com",
+      role: "super_admin",
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      disabledAt: new Date("2026-04-01T00:00:00.000Z"),
+      deletedAt: null,
+    } as never);
+
+    const response = await PATCH(
+      new Request("http://test.local", {
+        method: "PATCH",
+        body: JSON.stringify({ disabled: true }),
+      }),
+      { params: Promise.resolve({ id: "super-2" }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedUserUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { disabledAt: expect.any(Date) },
+      }),
+    );
+    expect(mockedSessionDeleteMany).toHaveBeenCalledWith({
+      where: { userId: "super-2" },
+    });
+  });
+
   it("rejects missing or soft-deleted targets", async () => {
     mockedUserFindUnique.mockResolvedValueOnce(null);
 

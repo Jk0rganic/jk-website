@@ -77,6 +77,25 @@ describe("mapAdminUser", () => {
     expect(item.canDemote).toBe(false);
   });
 
+  it("allows delete and demote actions for disabled super admins", () => {
+    const item = mapAdminUser(
+      {
+        ...baseUser,
+        id: "super-2",
+        role: "super_admin",
+        disabledAt: new Date("2026-02-01"),
+      },
+      "super-1",
+      1,
+      "super_admin",
+    );
+
+    expect(item.canBlock).toBe(false);
+    expect(item.canUnblock).toBe(true);
+    expect(item.canDelete).toBe(true);
+    expect(item.canDemote).toBe(true);
+  });
+
   it("maps disabled and deleted status fields", () => {
     const disabledAt = new Date("2026-02-01");
     const deletedAt = new Date("2026-03-01");
@@ -183,6 +202,23 @@ describe("canManageAdminTarget", () => {
     expect(result.reason).toBe(
       "At least one super admin must remain on the account",
     );
+  });
+
+  it.each([
+    "delete",
+    "demote",
+  ] as const)("allows %s for a disabled super admin target", (action) => {
+    const result = canManageAdminTarget({
+      action,
+      actingUserId: "u2",
+      actingUserRole: "super_admin",
+      targetUserId: "u1",
+      targetRole: "super_admin",
+      targetDisabledAt: new Date("2026-02-01"),
+      activeSuperAdminCount: 1,
+    });
+
+    expect(result.allowed).toBe(true);
   });
 
   it("allows resetting and deleting a regular admin", () => {

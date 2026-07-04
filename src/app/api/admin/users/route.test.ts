@@ -145,6 +145,38 @@ describe("GET /api/admin/users", () => {
       ],
     });
   });
+
+  it("allows delete and demote actions for disabled super admin targets", async () => {
+    const disabledAt = new Date("2026-02-01T00:00:00.000Z");
+    mockedUserFindMany.mockResolvedValue([
+      {
+        id: "super-2",
+        name: "Disabled Owner",
+        email: "disabled-owner@example.com",
+        role: "super_admin",
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        disabledAt,
+        deletedAt: null,
+      },
+    ] as never);
+    mockedUserCount.mockResolvedValue(1);
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      users: [
+        expect.objectContaining({
+          id: "super-2",
+          isDisabled: true,
+          canBlock: false,
+          canUnblock: true,
+          canDelete: true,
+          canDemote: true,
+        }),
+      ],
+    });
+  });
 });
 
 describe("POST /api/admin/users", () => {
