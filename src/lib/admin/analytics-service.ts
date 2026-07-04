@@ -96,8 +96,23 @@ function orderDiscount(order: OrderWithAnalyticsFields): number {
   );
 }
 
+function stringifyMetaValue(value: unknown): string | undefined {
+  if (
+    typeof value !== "string" &&
+    typeof value !== "number" &&
+    typeof value !== "boolean"
+  ) {
+    return undefined;
+  }
+
+  const text = String(value).trim();
+  return text || undefined;
+}
+
 function metaValue(order: DashboardOrder, key: string): string | undefined {
-  return order.meta_data?.find((meta) => meta.key === key)?.value?.trim();
+  return stringifyMetaValue(
+    order.meta_data?.find((meta) => meta.key === key)?.value,
+  );
 }
 
 function paymentBucket(order: DashboardOrder): "cash" | "mpesa" | "other" {
@@ -118,10 +133,28 @@ function paymentBucket(order: DashboardOrder): "cash" | "mpesa" | "other" {
   return "other";
 }
 
+function isCollectedOrder(order: DashboardOrder): boolean {
+  return (
+    !order.needs_payment &&
+    !["pending", "on-hold", "failed", "cancelled", "refunded"].includes(
+      order.status,
+    )
+  );
+}
+
 function deliveryType(order: DashboardOrder): string {
   const explicitType =
-    metaValue(order, "delivery_subtype") || metaValue(order, "delivery_method");
+    metaValue(order, "_delivery_type") ||
+    metaValue(order, "delivery_subtype") ||
+    metaValue(order, "delivery_method");
   if (explicitType) return explicitType;
+
+  if (
+    metaValue(order, "_pickup_point_id") ||
+    metaValue(order, "_pickup_point_name")
+  ) {
+    return "pickup";
+  }
 
   const shippingTitle = order.shipping_lines?.[0]?.method_title?.toLowerCase();
   if (shippingTitle?.includes("pickup")) return "pickup";
@@ -138,6 +171,7 @@ function normalizeLocation(location: string): string {
 function orderLocation(order: DashboardOrder): string {
   const location =
     metaValue(order, "_county") ||
+    metaValue(order, "_parcel_town") ||
     metaValue(order, "county") ||
     metaValue(order, "parcel_town") ||
     order.billing?.state ||
@@ -203,15 +237,16 @@ export function summarizePayments(orders: DashboardOrder[]): PaymentSummary {
     (summary, order) => {
       const total = orderTotal(order);
       const bucket = paymentBucket(order);
+      const collected = isCollectedOrder(order);
 
       if (bucket === "cash") {
-        summary.cashTotal += total;
+        if (collected) summary.cashTotal += total;
         summary.cashOrders += 1;
       } else if (bucket === "mpesa") {
-        summary.mpesaIntasendTotal += total;
+        if (collected) summary.mpesaIntasendTotal += total;
         summary.mpesaIntasendOrders += 1;
       } else {
-        summary.otherTotal += total;
+        if (collected) summary.otherTotal += total;
         summary.otherOrders += 1;
       }
 

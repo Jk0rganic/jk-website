@@ -18,26 +18,50 @@ export type ResolveAnalyticsDateRangeOptions = {
   now?: Date;
   after?: string;
   before?: string;
+  timezoneOffsetMinutes?: number;
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_TIMEZONE_OFFSET_MINUTES = 180;
 
-function startOfUtcDay(date: Date): Date {
+function localDateParts(date: Date, timezoneOffsetMinutes: number) {
+  const localDate = new Date(date.getTime() + timezoneOffsetMinutes * 60_000);
+
+  return {
+    year: localDate.getUTCFullYear(),
+    month: localDate.getUTCMonth(),
+    day: localDate.getUTCDate(),
+  };
+}
+
+function localInstantToUtc(
+  year: number,
+  month: number,
+  day: number,
+  timezoneOffsetMinutes: number,
+): Date {
+  return new Date(Date.UTC(year, month, day) - timezoneOffsetMinutes * 60_000);
+}
+
+function startOfLocalDay(date: Date, timezoneOffsetMinutes: number): Date {
+  const { year, month, day } = localDateParts(date, timezoneOffsetMinutes);
+  return localInstantToUtc(year, month, day, timezoneOffsetMinutes);
+}
+
+function endOfLocalDay(date: Date, timezoneOffsetMinutes: number): Date {
   return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    startOfLocalDay(date, timezoneOffsetMinutes).getTime() + DAY_MS - 1,
   );
 }
 
-function endOfUtcDay(date: Date): Date {
-  return new Date(startOfUtcDay(date).getTime() + DAY_MS - 1);
+function startOfLocalMonth(date: Date, timezoneOffsetMinutes: number): Date {
+  const { year, month } = localDateParts(date, timezoneOffsetMinutes);
+  return localInstantToUtc(year, month, 1, timezoneOffsetMinutes);
 }
 
-function startOfUtcMonth(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
-}
-
-function startOfUtcYear(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+function startOfLocalYear(date: Date, timezoneOffsetMinutes: number): Date {
+  const { year } = localDateParts(date, timezoneOffsetMinutes);
+  return localInstantToUtc(year, 0, 1, timezoneOffsetMinutes);
 }
 
 export function resolveAnalyticsDateRange({
@@ -45,6 +69,7 @@ export function resolveAnalyticsDateRange({
   now = new Date(),
   after,
   before,
+  timezoneOffsetMinutes = DEFAULT_TIMEZONE_OFFSET_MINUTES,
 }: ResolveAnalyticsDateRangeOptions): AnalyticsDateRange {
   if (preset === "custom") {
     return {
@@ -54,13 +79,14 @@ export function resolveAnalyticsDateRange({
     };
   }
 
-  const todayStart = startOfUtcDay(now);
+  const todayStart = startOfLocalDay(now, timezoneOffsetMinutes);
+  const todayEnd = endOfLocalDay(now, timezoneOffsetMinutes);
 
   if (preset === "today") {
     return {
       preset,
       after: todayStart.toISOString(),
-      before: now.toISOString(),
+      before: todayEnd.toISOString(),
     };
   }
 
@@ -69,7 +95,7 @@ export function resolveAnalyticsDateRange({
     return {
       preset,
       after: yesterday.toISOString(),
-      before: endOfUtcDay(yesterday).toISOString(),
+      before: new Date(yesterday.getTime() + DAY_MS - 1).toISOString(),
     };
   }
 
@@ -78,22 +104,26 @@ export function resolveAnalyticsDateRange({
     return {
       preset,
       after: afterDate.toISOString(),
-      before: now.toISOString(),
+      before: todayEnd.toISOString(),
     };
   }
 
   if (preset === "month_to_date") {
     return {
       preset,
-      after: startOfUtcMonth(now).toISOString(),
-      before: now.toISOString(),
+      after: startOfLocalMonth(now, timezoneOffsetMinutes).toISOString(),
+      before: todayEnd.toISOString(),
     };
   }
 
   if (preset === "last_month") {
-    const thisMonthStart = startOfUtcMonth(now);
-    const lastMonthStart = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+    const { year, month } = localDateParts(now, timezoneOffsetMinutes);
+    const thisMonthStart = startOfLocalMonth(now, timezoneOffsetMinutes);
+    const lastMonthStart = localInstantToUtc(
+      year,
+      month - 1,
+      1,
+      timezoneOffsetMinutes,
     );
     return {
       preset,
@@ -104,8 +134,8 @@ export function resolveAnalyticsDateRange({
 
   return {
     preset,
-    after: startOfUtcYear(now).toISOString(),
-    before: now.toISOString(),
+    after: startOfLocalYear(now, timezoneOffsetMinutes).toISOString(),
+    before: todayEnd.toISOString(),
   };
 }
 

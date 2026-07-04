@@ -56,8 +56,7 @@ const order = (overrides: Partial<DashboardOrder> = {}): DashboardOrder => ({
   needs_payment: false,
   meta_data: [
     { key: "_county", value: "Nairobi" },
-    { key: "delivery_method", value: "shipping" },
-    { key: "delivery_subtype", value: "door_to_door" },
+    { key: "_delivery_type", value: "door_to_door" },
   ],
   customer_note: "",
   ...overrides,
@@ -126,8 +125,8 @@ const orders: DashboardOrder[] = [
     total_discount: "300",
     coupon_lines: [{ code: "VIP", discount: "300" }],
     meta_data: [
-      { key: "delivery_method", value: "pickup" },
-      { key: "delivery_subtype", value: "pickup" },
+      { key: "_pickup_point_id", value: "jk-organics-hq" },
+      { key: "_pickup_point_name", value: "JK Organics HQ" },
     ],
   }),
   order({
@@ -162,9 +161,10 @@ const orders: DashboardOrder[] = [
       { method_id: "parcel", method_title: "Parcel Office", total: "100" },
     ],
     meta_data: [
-      { key: "parcel_town", value: "Kisumu" },
-      { key: "delivery_method", value: "shipping" },
-      { key: "delivery_subtype", value: "parcel_office" },
+      { key: "_county", value: "Kisumu" },
+      { key: "_delivery_type", value: "parcel_office" },
+      { key: "_parcel_town", value: "Kisumu" },
+      { key: "_parcel_office_name", value: "Kisumu Main Stage" },
     ],
   }),
 ];
@@ -184,10 +184,10 @@ describe("summarizeRevenue", () => {
 });
 
 describe("summarizePayments", () => {
-  it("totals cash and M-Pesa or IntaSend revenue", () => {
+  it("totals collected cash and M-Pesa or IntaSend revenue without pending payment values", () => {
     expect(summarizePayments(orders)).toEqual({
       cashTotal: 1300,
-      mpesaIntasendTotal: 3000,
+      mpesaIntasendTotal: 2100,
       otherTotal: 0,
       cashOrders: 1,
       mpesaIntasendOrders: 2,
@@ -219,7 +219,7 @@ describe("summarizeProducts", () => {
 });
 
 describe("summarizeLocations", () => {
-  it("uses county metadata, billing or shipping places, and parcel town for top locations", () => {
+  it("uses real checkout metadata, billing or shipping places, parcel town, and pickup points", () => {
     expect(summarizeLocations(orders)).toEqual({
       topLocations: [
         { location: "Nairobi", orders: 2, revenue: 3400 },
@@ -230,6 +230,25 @@ describe("summarizeLocations", () => {
         { type: "pickup", orders: 1, revenue: 2100 },
         { type: "parcel_office", orders: 1, revenue: 900 },
       ],
+    });
+  });
+
+  it("ignores non-primitive metadata values without crashing", () => {
+    expect(
+      summarizeLocations([
+        order({
+          id: 4,
+          total: "400",
+          meta_data: [
+            { key: "_county", value: { county: "Nairobi" } },
+            { key: "_parcel_town", value: ["Kisumu"] },
+            { key: "_delivery_type", value: true },
+          ] as unknown as OrderMeta[],
+        }),
+      ]),
+    ).toEqual({
+      topLocations: [{ location: "Nairobi", orders: 1, revenue: 400 }],
+      deliveryTypeSplit: [{ type: "true", orders: 1, revenue: 400 }],
     });
   });
 });
@@ -267,7 +286,7 @@ describe("buildAnalyticsOverview", () => {
     ]);
 
     expect(overview.revenue.totalOrderRevenue).toBe(4300);
-    expect(overview.payments.mpesaIntasendTotal).toBe(3000);
+    expect(overview.payments.mpesaIntasendTotal).toBe(2100);
     expect(overview.products.productsWithNoSales).toEqual([
       { id: 5, name: "Baobab Butter" },
     ]);

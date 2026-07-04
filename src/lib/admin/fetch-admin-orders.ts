@@ -8,6 +8,10 @@ export type AdminOrderFilters = {
   search?: string;
   after?: string;
   before?: string;
+  /**
+   * Reserved for UI state only. WooCommerce after/before filters apply to
+   * order creation dates; no unsupported date-field selector is sent.
+   */
   dateType?: "created" | "modified" | "paid" | "completed";
 };
 
@@ -37,10 +41,6 @@ export function buildOrdersQuery(
 
   if (filters.before) {
     params.set("before", filters.before);
-  }
-
-  if (filters.dateType) {
-    params.set("dates_are", filters.dateType);
   }
 
   return `orders?${params.toString()}`;

@@ -31,7 +31,7 @@ describe("buildOrdersQuery", () => {
     expect(query).toContain("page=2");
   });
 
-  it("includes date filters without dropping existing filters", () => {
+  it("includes supported date filters without sending an unsupported date type parameter", () => {
     const query = buildOrdersQuery({
       status: "completed",
       after: "2026-07-01T00:00:00.000Z",
@@ -42,7 +42,8 @@ describe("buildOrdersQuery", () => {
     expect(query).toContain("status=completed");
     expect(query).toContain("after=2026-07-01T00%3A00%3A00.000Z");
     expect(query).toContain("before=2026-07-03T12%3A00%3A00.000Z");
-    expect(query).toContain("dates_are=paid");
+    expect(query).not.toContain("dates_are");
+    expect(query).not.toContain("dateType");
   });
 });
 
