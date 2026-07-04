@@ -1,4 +1,3 @@
-
 import type * as CheckoutTypes from "./checkout/checkout";
 import type * as PostTypes from "./post/post";
 import type * as ProductTypes from "./product/product";
@@ -24,9 +23,6 @@ declare global {
   type ProductVariation = ProductTypes.ProductVariation;
   type ProductCategory = ProductTypes.ProductCategory;
 
-
-
-
   type DashboardOrder = Pick<
     WooOrderResponse,
     | "id"
@@ -38,18 +34,20 @@ declare global {
     | "shipping"
     | "line_items"
     | "shipping_lines"
-    | "payment_method"
-    | "payment_method_title"
     | "date_paid"
     | "needs_payment"
     | "meta_data"
     | "customer_note"
-  >;
+  > & {
+    payment_method: string;
+    payment_method_title: string;
+    discount_total?: string;
+    total_discount?: string;
+    coupon_lines?: Array<{ code: string; discount: string }>;
+  };
 
   type OrderSummary = Pick<
     WooOrderResponse,
     "id" | "status" | "date_created" | "total" | "currency"
   >;
 }
-
-export {};

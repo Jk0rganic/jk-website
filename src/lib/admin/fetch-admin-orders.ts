@@ -8,6 +8,7 @@ export type AdminOrderFilters = {
   search?: string;
   after?: string;
   before?: string;
+  dateType?: "created" | "modified" | "paid" | "completed";
 };
 
 export function buildOrdersQuery(
@@ -36,6 +37,10 @@ export function buildOrdersQuery(
 
   if (filters.before) {
     params.set("before", filters.before);
+  }
+
+  if (filters.dateType) {
+    params.set("dates_are", filters.dateType);
   }
 
   return `orders?${params.toString()}`;
