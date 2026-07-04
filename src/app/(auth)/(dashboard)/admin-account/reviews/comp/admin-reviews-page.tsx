@@ -208,12 +208,14 @@ export default function AdminReviewsPage() {
           <div className={`${ui.toolbar} ${k.filters}`}>
             <input
               type="search"
+              aria-label="Search reviews"
               placeholder="Search reviewer, email, product, content..."
               value={filters.search}
               onChange={(event) => updateFilter("search", event.target.value)}
               className={ui.searchInput}
             />
             <select
+              aria-label="Filter reviews by rating"
               value={filters.rating}
               onChange={(event) => updateFilter("rating", event.target.value)}
               className={ui.select}
@@ -228,6 +230,7 @@ export default function AdminReviewsPage() {
               ))}
             </select>
             <select
+              aria-label="Filter reviews by status"
               value={filters.status}
               onChange={(event) => updateFilter("status", event.target.value)}
               className={ui.select}
@@ -243,6 +246,7 @@ export default function AdminReviewsPage() {
             </select>
             <input
               type="text"
+              aria-label="Filter reviews by product"
               placeholder="Product name, slug, or ID"
               value={filters.product}
               onChange={(event) => updateFilter("product", event.target.value)}
@@ -282,7 +286,9 @@ export default function AdminReviewsPage() {
                     <th>Status</th>
                     <th>Date</th>
                     <th>Excerpt</th>
-                    <th />
+                    <th>
+                      <span className={k.srOnly}>Actions</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
