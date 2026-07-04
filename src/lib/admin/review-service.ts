@@ -91,6 +91,59 @@ const ADMIN_REVIEWS_QUERY = `
   }
 `;
 
+const ADMIN_REVIEWS_FALLBACK_QUERY = `
+  query AdminReviews($first: Int = 100) {
+    comments(first: $first) {
+      nodes {
+        id
+        databaseId
+        content(format: RENDERED)
+        date
+        dateGmt
+        status
+        approved
+        author {
+          node {
+            name
+            email
+          }
+        }
+        commentedOn {
+          node {
+            ... on Product {
+              databaseId
+              name
+              title
+              slug
+              image {
+                sourceUrl
+                mediaItemUrl
+              }
+              featuredImage {
+                node {
+                  sourceUrl
+                  mediaItemUrl
+                }
+              }
+            }
+            ... on Post {
+              databaseId
+              title
+              slug
+              featuredImage {
+                node {
+                  sourceUrl
+                  mediaItemUrl
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 type RecordLike = Record<string, unknown>;
 
 type AdminReviewsResponse = {
@@ -100,13 +153,27 @@ type AdminReviewsResponse = {
 };
 
 export async function fetchAdminReviews(): Promise<AdminReview[]> {
-  const data = await fetchGraphQL<AdminReviewsResponse>(ADMIN_REVIEWS_QUERY, {
-    first: 100,
-  });
+  const data = await fetchAdminReviewsData();
 
   return (data.comments?.nodes ?? [])
     .map(mapCommentToAdminReview)
     .filter((review) => review.productId > 0);
+}
+
+async function fetchAdminReviewsData() {
+  const variables = { first: 100 };
+
+  try {
+    return await fetchGraphQL<AdminReviewsResponse>(
+      ADMIN_REVIEWS_QUERY,
+      variables,
+    );
+  } catch {
+    return fetchGraphQL<AdminReviewsResponse>(
+      ADMIN_REVIEWS_FALLBACK_QUERY,
+      variables,
+    );
+  }
 }
 
 export function mapCommentToAdminReview(comment: unknown): AdminReview {

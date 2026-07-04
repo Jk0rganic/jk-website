@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/fetch/fetchGraphQL", () => ({
   fetchGraphQL: vi.fn(),
@@ -15,6 +15,10 @@ import {
 const mockedFetchGraphQL = vi.mocked(fetchGraphQL);
 
 describe("mapCommentToAdminReview", () => {
+  beforeEach(() => {
+    mockedFetchGraphQL.mockReset();
+  });
+
   it("maps WPGraphQL comment fixtures to admin reviews", () => {
     const review = mapCommentToAdminReview({
       id: "comment:101",
@@ -111,6 +115,65 @@ describe("mapCommentToAdminReview", () => {
       expect.stringContaining("rating"),
       { first: 100 },
     );
+  });
+
+  it("retries without comment metadata when the primary query fails", async () => {
+    mockedFetchGraphQL
+      .mockRejectedValueOnce(
+        new Error('Cannot query field "commentMeta" on type "Comment"'),
+      )
+      .mockResolvedValueOnce({
+        comments: {
+          nodes: [
+            {
+              id: "comment:505",
+              databaseId: 505,
+              content: "Imported review without exposed meta.",
+              date: "2026-06-17T08:00:00",
+              status: "approved",
+              authorName: "Nia",
+              authorEmail: "nia@example.com",
+              commentedOn: {
+                node: {
+                  databaseId: 91,
+                  title: "Moringa Balm",
+                  slug: "moringa-balm",
+                },
+              },
+            },
+          ],
+        },
+      });
+
+    await expect(fetchAdminReviews()).resolves.toEqual([
+      expect.objectContaining({
+        id: 505,
+        productId: 91,
+        productName: "Moringa Balm",
+        rating: 0,
+      }),
+    ]);
+    expect(mockedFetchGraphQL).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("commentMeta"),
+      { first: 100 },
+    );
+    expect(mockedFetchGraphQL).toHaveBeenNthCalledWith(
+      2,
+      expect.not.stringContaining("commentMeta"),
+      { first: 100 },
+    );
+  });
+
+  it("bubbles fallback query failures", async () => {
+    const fallbackError = new Error("WordPress offline");
+    mockedFetchGraphQL
+      .mockRejectedValueOnce(
+        new Error('Cannot query field "commentMeta" on type "Comment"'),
+      )
+      .mockRejectedValueOnce(fallbackError);
+
+    await expect(fetchAdminReviews()).rejects.toThrow("WordPress offline");
   });
 
   it("keeps product reviews when rating metadata is absent", async () => {
