@@ -135,7 +135,16 @@ describe("GET /api/admin/analytics/discounts", () => {
         discountedOrders: 1,
         couponCount: 1,
       },
-      rows: [{ code: "WELCOME", orders: 1, discount: 200 }],
+      rows: [
+        {
+          code: "WELCOME",
+          orders: 1,
+          discount: 200,
+          grossRevenue: 1500,
+          revenueAfterDiscount: 1300,
+          averageDiscountPerOrder: 200,
+        },
+      ],
     });
   });
 

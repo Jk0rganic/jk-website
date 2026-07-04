@@ -137,8 +137,22 @@ describe("GET /api/admin/analytics/locations", () => {
         before: "2026-06-30T23:59:59.999Z",
       },
       rows: [
-        { location: "Nairobi", orders: 1, revenue: 1300 },
-        { location: "Kisumu", orders: 1, revenue: 900 },
+        {
+          location: "Nairobi",
+          orders: 1,
+          revenue: 1300,
+          deliveryFees: 300,
+          topDeliveryType: "door_to_door",
+          orderShare: 50,
+        },
+        {
+          location: "Kisumu",
+          orders: 1,
+          revenue: 900,
+          deliveryFees: 100,
+          topDeliveryType: "parcel_office",
+          orderShare: 50,
+        },
       ],
       deliveryTypeSplit: [
         { type: "door_to_door", orders: 1, revenue: 1300 },

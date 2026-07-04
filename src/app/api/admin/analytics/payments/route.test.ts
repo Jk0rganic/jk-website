@@ -140,6 +140,24 @@ describe("GET /api/admin/analytics/payments", () => {
         mpesaIntasendOrders: 2,
         otherOrders: 0,
       },
+      rows: [
+        {
+          method: "M-Pesa",
+          paidTotal: 2100,
+          orderCount: 2,
+          pendingCount: 1,
+          failedCount: 0,
+          pendingRate: 50,
+        },
+        {
+          method: "Cash",
+          paidTotal: 1300,
+          orderCount: 1,
+          pendingCount: 0,
+          failedCount: 0,
+          pendingRate: 0,
+        },
+      ],
     });
   });
 

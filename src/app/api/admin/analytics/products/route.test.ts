@@ -8,6 +8,10 @@ vi.mock("@/lib/admin/fetch-admin-orders", () => ({
   fetchAdminOrders: vi.fn(),
 }));
 
+vi.mock("@/lib/fetch/fetchRest", () => ({
+  fetchWoo: vi.fn(),
+}));
+
 vi.mock("@/lib/admin/analytics-service", async () => {
   const actual = await vi.importActual<
     typeof import("@/lib/admin/analytics-service")
@@ -22,10 +26,12 @@ vi.mock("@/lib/admin/analytics-service", async () => {
 import { summarizeProducts } from "@/lib/admin/analytics-service";
 import { fetchAdminOrders } from "@/lib/admin/fetch-admin-orders";
 import { requireAdminSession } from "@/lib/admin/require-admin";
+import { fetchWoo } from "@/lib/fetch/fetchRest";
 import { GET } from "./route";
 
 const mockedRequireAdminSession = vi.mocked(requireAdminSession);
 const mockedFetchAdminOrders = vi.mocked(fetchAdminOrders);
+const mockedFetchWoo = vi.mocked(fetchWoo);
 const mockedSummarizeProducts = vi.mocked(summarizeProducts);
 const adminSession = {
   user: { id: "admin-1", email: "admin@jk.test", role: "min_admin" },
@@ -64,6 +70,7 @@ describe("GET /api/admin/analytics/products", () => {
   beforeEach(() => {
     mockedRequireAdminSession.mockReset();
     mockedFetchAdminOrders.mockReset();
+    mockedFetchWoo.mockReset();
     mockedSummarizeProducts.mockReset();
     vi.restoreAllMocks();
     mockedSummarizeProducts.mockImplementation((orders, catalog) => {
@@ -101,6 +108,11 @@ describe("GET /api/admin/analytics/products", () => {
       session: adminSession,
     });
     mockedFetchAdminOrders.mockResolvedValue(orders);
+    mockedFetchWoo.mockResolvedValue([
+      { id: 10, name: "Aloe Balm" },
+      { id: 11, name: "Neem Soap" },
+      { id: 12, name: "Baobab Butter" },
+    ]);
   });
 
   it.each([
@@ -150,11 +162,44 @@ describe("GET /api/admin/analytics/products", () => {
         before: "2026-06-30T23:59:59.999Z",
       },
       rows: [
-        { productId: 10, name: "Aloe Balm", unitsSold: 2, revenue: 1000 },
-        { productId: 11, name: "Neem Soap", unitsSold: 1, revenue: 500 },
+        {
+          productId: 10,
+          name: "Aloe Balm",
+          unitsSold: 2,
+          revenue: 1000,
+          orderCount: 1,
+          averageItemValue: 500,
+          trend: null,
+          status: "Top seller",
+        },
+        {
+          productId: 11,
+          name: "Neem Soap",
+          unitsSold: 1,
+          revenue: 500,
+          orderCount: 1,
+          averageItemValue: 500,
+          trend: null,
+          status: "Slow mover",
+        },
       ],
-      productsWithNoSales: [],
+      productsWithNoSales: [
+        {
+          productId: 12,
+          name: "Baobab Butter",
+          unitsSold: 0,
+          revenue: 0,
+          orderCount: 0,
+          averageItemValue: 0,
+          trend: null,
+          status: "No sales",
+        },
+      ],
     });
+    expect(mockedFetchWoo).toHaveBeenCalledWith(
+      "products?per_page=100&page=1&status=any",
+      { noCache: true },
+    );
   });
 
   it("returns stable 500 JSON on upstream failures", async () => {

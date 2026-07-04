@@ -34,6 +34,7 @@ import DateRangeControls, {
   type AnalyticsDatePreset,
   type DateRangeControlValue,
 } from "./date-range-controls";
+import ReportTable, { type ReportColumn } from "./report-table";
 
 type AnalyticsDateRange = {
   preset: AnalyticsDatePreset | "comparison";
@@ -116,6 +117,74 @@ type KpiItem = {
   iconClass: string;
 };
 
+type ProductReportRow = {
+  productId: number;
+  name: string;
+  unitsSold: number;
+  revenue: number;
+  orderCount: number;
+  averageItemValue: number;
+  trend: number | null;
+  status: "Top seller" | "Slow mover" | "No sales" | "Active" | string;
+};
+
+type LocationReportRow = {
+  location: string;
+  orders: number;
+  revenue: number;
+  deliveryFees: number;
+  topDeliveryType: string;
+  orderShare: number;
+};
+
+type PaymentReportRow = {
+  method: string;
+  paidTotal: number;
+  orderCount: number;
+  pendingCount: number;
+  failedCount: number;
+  pendingRate: number;
+};
+
+type DiscountReportRow = {
+  code: string;
+  orders: number;
+  grossRevenue: number;
+  discount: number;
+  revenueAfterDiscount: number;
+  averageDiscountPerOrder: number;
+};
+
+type ProductsReportResponse = {
+  rows?: ProductReportRow[];
+  productsWithNoSales?: ProductReportRow[];
+  error?: string;
+};
+
+type LocationsReportResponse = {
+  rows?: LocationReportRow[];
+  error?: string;
+};
+
+type PaymentsReportResponse = {
+  rows?: PaymentReportRow[];
+  error?: string;
+};
+
+type DiscountsReportResponse = {
+  rows?: DiscountReportRow[];
+  error?: string;
+};
+
+type ReportData = {
+  products: ProductReportRow[];
+  locations: LocationReportRow[];
+  payments: PaymentReportRow[];
+  discounts: DiscountReportRow[];
+};
+
+type ReportKey = keyof ReportData;
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-KE").format(value);
 }
@@ -132,6 +201,25 @@ export function formatShortDate(value?: string) {
 
 function formatPercent(value: number) {
   return `${value.toFixed(1)}%`;
+}
+
+function formatOptionalTrend(value: number | null | undefined) {
+  if (typeof value !== "number") return "Not available";
+  return `${value > 0 ? "+" : ""}${formatPercent(value)}`;
+}
+
+function formatDeliveryType(value: string) {
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function statusClass(status: string) {
+  if (status === "Top seller" || status === "Active") return styles.statusGood;
+  if (status === "Slow mover") return styles.statusWarn;
+  return styles.statusNeutral;
 }
 
 function buildQuery(range: DateRangeControlValue, nonce: number) {
@@ -336,6 +424,10 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsOverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeReport, setActiveReport] = useState<ReportKey>("products");
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [reportsError, setReportsError] = useState<string | null>(null);
 
   const queryString = useMemo(
     () => buildQuery(range, refreshNonce).toString(),
@@ -398,6 +490,79 @@ export default function AnalyticsPage() {
 
     return () => controller.abort();
   }, [loadAnalytics]);
+
+  const loadReports = useCallback(
+    async (signal: AbortSignal) => {
+      setReportsLoading(true);
+      setReportsError(null);
+
+      try {
+        const [products, locations, payments, discounts] = await Promise.all([
+          fetch(`/api/admin/analytics/products?${queryString}`, { signal }),
+          fetch(`/api/admin/analytics/locations?${queryString}`, { signal }),
+          fetch(`/api/admin/analytics/payments?${queryString}`, { signal }),
+          fetch(`/api/admin/analytics/discounts?${queryString}`, { signal }),
+        ]);
+        const [productsJson, locationsJson, paymentsJson, discountsJson] =
+          (await Promise.all([
+            products.json(),
+            locations.json(),
+            payments.json(),
+            discounts.json(),
+          ])) as [
+            ProductsReportResponse,
+            LocationsReportResponse,
+            PaymentsReportResponse,
+            DiscountsReportResponse,
+          ];
+
+        const failedReport =
+          productsJson.error ||
+          locationsJson.error ||
+          paymentsJson.error ||
+          discountsJson.error;
+
+        if (
+          failedReport ||
+          !products.ok ||
+          !locations.ok ||
+          !payments.ok ||
+          !discounts.ok
+        ) {
+          throw new Error(failedReport || "Failed to load report data");
+        }
+
+        setReportData({
+          products: [
+            ...(productsJson.rows ?? []),
+            ...(productsJson.productsWithNoSales ?? []),
+          ],
+          locations: locationsJson.rows ?? [],
+          payments: paymentsJson.rows ?? [],
+          discounts: discountsJson.rows ?? [],
+        });
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+
+        setReportsError(
+          err instanceof Error ? err.message : "Failed to load report data",
+        );
+        setReportData(null);
+      } finally {
+        if (!signal.aborted) {
+          setReportsLoading(false);
+        }
+      }
+    },
+    [queryString],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadReports(controller.signal);
+
+    return () => controller.abort();
+  }, [loadReports]);
 
   const overview = data?.overview;
   const insights = getInsights(data);
@@ -480,6 +645,272 @@ export default function AnalyticsPage() {
         data.comparisonRange.before,
       )}`
     : "Previous";
+
+  const productColumns = useMemo<ReportColumn<ProductReportRow>[]>(
+    () => [
+      {
+        key: "product",
+        header: "Product",
+        searchValue: (row) => row.name,
+        sortValue: (row) => row.name,
+        render: (row) => row.name,
+      },
+      {
+        key: "unitsSold",
+        header: "Quantity sold",
+        sortValue: (row) => row.unitsSold,
+        render: (row) => formatNumber(row.unitsSold),
+        align: "right",
+      },
+      {
+        key: "revenue",
+        header: "Revenue",
+        sortValue: (row) => row.revenue,
+        render: (row) => formatPrice(row.revenue),
+        align: "right",
+      },
+      {
+        key: "orderCount",
+        header: "Orders",
+        sortValue: (row) => row.orderCount,
+        render: (row) => formatNumber(row.orderCount),
+        align: "right",
+      },
+      {
+        key: "averageItemValue",
+        header: "Avg item",
+        sortValue: (row) => row.averageItemValue,
+        render: (row) => formatPrice(row.averageItemValue),
+        align: "right",
+      },
+      {
+        key: "trend",
+        header: "Trend",
+        sortValue: (row) => row.trend ?? 0,
+        render: (row) => formatOptionalTrend(row.trend),
+        align: "right",
+      },
+      {
+        key: "status",
+        header: "Status",
+        searchValue: (row) => row.status,
+        sortValue: (row) => row.status,
+        render: (row) => (
+          <span className={`${styles.statusBadge} ${statusClass(row.status)}`}>
+            {row.status}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const locationColumns = useMemo<ReportColumn<LocationReportRow>[]>(
+    () => [
+      {
+        key: "location",
+        header: "County / city",
+        searchValue: (row) => row.location,
+        sortValue: (row) => row.location,
+        render: (row) => (
+          <span className={styles.locationName}>
+            <MapPin size={14} aria-hidden />
+            {row.location}
+          </span>
+        ),
+      },
+      {
+        key: "orders",
+        header: "Orders",
+        sortValue: (row) => row.orders,
+        render: (row) => formatNumber(row.orders),
+        align: "right",
+      },
+      {
+        key: "revenue",
+        header: "Revenue",
+        sortValue: (row) => row.revenue,
+        render: (row) => formatPrice(row.revenue),
+        align: "right",
+      },
+      {
+        key: "deliveryFees",
+        header: "Delivery fees",
+        sortValue: (row) => row.deliveryFees,
+        render: (row) => formatPrice(row.deliveryFees),
+        align: "right",
+      },
+      {
+        key: "topDeliveryType",
+        header: "Top delivery",
+        searchValue: (row) => formatDeliveryType(row.topDeliveryType),
+        sortValue: (row) => row.topDeliveryType,
+        render: (row) => formatDeliveryType(row.topDeliveryType),
+      },
+      {
+        key: "orderShare",
+        header: "Share",
+        sortValue: (row) => row.orderShare,
+        render: (row) => formatPercent(row.orderShare),
+        align: "right",
+      },
+    ],
+    [],
+  );
+
+  const paymentColumns = useMemo<ReportColumn<PaymentReportRow>[]>(
+    () => [
+      {
+        key: "method",
+        header: "Payment method",
+        searchValue: (row) => row.method,
+        sortValue: (row) => row.method,
+        render: (row) => row.method,
+      },
+      {
+        key: "paidTotal",
+        header: "Paid total",
+        sortValue: (row) => row.paidTotal,
+        render: (row) => formatPrice(row.paidTotal),
+        align: "right",
+      },
+      {
+        key: "orderCount",
+        header: "Orders",
+        sortValue: (row) => row.orderCount,
+        render: (row) => formatNumber(row.orderCount),
+        align: "right",
+      },
+      {
+        key: "pendingCount",
+        header: "Pending / unpaid",
+        sortValue: (row) => row.pendingCount,
+        render: (row) => formatNumber(row.pendingCount),
+        align: "right",
+      },
+      {
+        key: "failedCount",
+        header: "Failed",
+        sortValue: (row) => row.failedCount,
+        render: (row) => formatNumber(row.failedCount),
+        align: "right",
+      },
+      {
+        key: "pendingRate",
+        header: "Pending rate",
+        sortValue: (row) => row.pendingRate,
+        render: (row) => formatPercent(row.pendingRate),
+        align: "right",
+      },
+    ],
+    [],
+  );
+
+  const discountColumns = useMemo<ReportColumn<DiscountReportRow>[]>(
+    () => [
+      {
+        key: "code",
+        header: "Coupon / code",
+        searchValue: (row) => row.code,
+        sortValue: (row) => row.code,
+        render: (row) => row.code,
+      },
+      {
+        key: "orders",
+        header: "Orders",
+        sortValue: (row) => row.orders,
+        render: (row) => formatNumber(row.orders),
+        align: "right",
+      },
+      {
+        key: "grossRevenue",
+        header: "Gross revenue",
+        sortValue: (row) => row.grossRevenue,
+        render: (row) => formatPrice(row.grossRevenue),
+        align: "right",
+      },
+      {
+        key: "discount",
+        header: "Discount",
+        sortValue: (row) => row.discount,
+        render: (row) => formatPrice(row.discount),
+        align: "right",
+      },
+      {
+        key: "revenueAfterDiscount",
+        header: "After discount",
+        sortValue: (row) => row.revenueAfterDiscount,
+        render: (row) => formatPrice(row.revenueAfterDiscount),
+        align: "right",
+      },
+      {
+        key: "averageDiscountPerOrder",
+        header: "Avg discount",
+        sortValue: (row) => row.averageDiscountPerOrder,
+        render: (row) => formatPrice(row.averageDiscountPerOrder),
+        align: "right",
+      },
+    ],
+    [],
+  );
+
+  const reportTabs: Array<{
+    key: ReportKey;
+    label: string;
+    icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
+  }> = [
+    { key: "products", label: "Products", icon: Boxes },
+    { key: "locations", label: "Locations", icon: MapPin },
+    { key: "payments", label: "Payments", icon: CreditCard },
+    { key: "discounts", label: "Discounts", icon: Percent },
+  ];
+
+  const reportTable =
+    activeReport === "products" ? (
+      <ReportTable
+        title="Product drilldown"
+        description="Product movement, revenue, order coverage, and sales status."
+        rows={reportData?.products ?? []}
+        columns={productColumns}
+        rowKey={(row) => row.productId}
+        emptyMessage="No product activity for this range."
+        searchPlaceholder="Search products or status"
+        initialSortKey="revenue"
+      />
+    ) : activeReport === "locations" ? (
+      <ReportTable
+        title="Location drilldown"
+        description="Demand by county or city with delivery fees and delivery mix."
+        rows={reportData?.locations ?? []}
+        columns={locationColumns}
+        rowKey={(row) => row.location}
+        emptyMessage="No location demand for this range."
+        searchPlaceholder="Search locations or delivery type"
+        initialSortKey="orders"
+      />
+    ) : activeReport === "payments" ? (
+      <ReportTable
+        title="Payment drilldown"
+        description="Payment collection and unpaid or failed order pressure by method."
+        rows={reportData?.payments ?? []}
+        columns={paymentColumns}
+        rowKey={(row) => row.method}
+        emptyMessage="No payment activity for this range."
+        searchPlaceholder="Search payment methods"
+        initialSortKey="orderCount"
+      />
+    ) : (
+      <ReportTable
+        title="Discount drilldown"
+        description="Coupon usage, discount value, and revenue retained after discounts."
+        rows={reportData?.discounts ?? []}
+        columns={discountColumns}
+        rowKey={(row) => row.code}
+        emptyMessage="No coupon discounts for this range."
+        searchPlaceholder="Search coupon codes"
+        initialSortKey="discount"
+      />
+    );
 
   return (
     <>
@@ -646,6 +1077,43 @@ export default function AnalyticsPage() {
               ))}
             </section>
           )}
+
+          <section
+            className={styles.reportShell}
+            aria-label="Analytics reports"
+          >
+            <div className={styles.reportTabs} role="tablist">
+              {reportTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeReport === tab.key}
+                    className={`${styles.reportTab} ${
+                      activeReport === tab.key ? styles.reportTabActive : ""
+                    }`}
+                    onClick={() => setActiveReport(tab.key)}
+                  >
+                    <Icon size={15} aria-hidden />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {reportsError ? (
+              <ErrorState
+                message={reportsError}
+                onRetry={() => setRefreshNonce((current) => current + 1)}
+              />
+            ) : reportsLoading && !reportData ? (
+              <LoadingState />
+            ) : (
+              reportTable
+            )}
+          </section>
         </>
       )}
     </>
