@@ -109,6 +109,7 @@ export async function POST(request: Request) {
           role: ADMIN_ROLE,
           password: await bcrypt.hash(password, 10),
           emailVerified: new Date(),
+          authVersion: { increment: 1 },
           disabledAt: null,
           deletedAt: null,
         },

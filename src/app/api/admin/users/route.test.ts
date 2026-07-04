@@ -274,6 +274,7 @@ describe("POST /api/admin/users", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           role: "min_admin",
+          authVersion: { increment: 1 },
           disabledAt: null,
           deletedAt: null,
         }),
