@@ -130,17 +130,28 @@ export function mapCommentToAdminReview(comment: unknown): AdminReview {
   return {
     id: firstNumberOrString(item.databaseId, item.id) ?? "",
     productId:
-      firstNumber(product.databaseId, product.productId, product.id) ?? 0,
+      firstNumber(
+        product.databaseId,
+        product.productId,
+        product.id,
+        item.productId,
+        item.product_id,
+      ) ?? 0,
     productName:
-      firstString(product.name, product.title, item.productName) ??
-      "Unknown product",
-    productSlug: firstString(product.slug, item.productSlug),
+      firstString(
+        product.name,
+        product.title,
+        item.productName,
+        item.product_name,
+      ) ?? "Unknown product",
+    productSlug: firstString(product.slug, item.productSlug, item.product_slug),
     reviewer:
       firstString(
         getRecord(author, "node")?.name,
         author.name,
         item.authorName,
         item.reviewer,
+        item.reviewer_name,
       ) ?? "Anonymous",
     reviewerEmail:
       firstString(
@@ -148,10 +159,18 @@ export function mapCommentToAdminReview(comment: unknown): AdminReview {
         author.email,
         item.authorEmail,
         item.reviewerEmail,
+        item.reviewer_email,
       ) ?? "",
     rating:
       firstNumber(item.rating, item.reviewRating, ratingFromMeta(item)) ?? 0,
-    date: firstString(item.date, item.dateGmt, item.createdAt) ?? "",
+    date:
+      firstString(
+        item.date,
+        item.dateGmt,
+        item.date_created,
+        item.date_created_gmt,
+        item.createdAt,
+      ) ?? "",
     status: normalizeStatus(
       firstString(item.status, item.approved, item.approvalStatus),
     ),

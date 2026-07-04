@@ -150,6 +150,44 @@ describe("mapCommentToAdminReview", () => {
       }),
     ]);
   });
+
+  it("maps and preserves flat Woo REST review fields", async () => {
+    mockedFetchGraphQL.mockResolvedValue({
+      comments: {
+        nodes: [
+          {
+            id: 404,
+            product_id: 99,
+            product_name: "Avocado Hair Mask",
+            product_slug: "avocado-hair-mask",
+            reviewer: "Lilian",
+            reviewer_email: "lilian@example.com",
+            rating: 4,
+            date_created: "2026-06-18T07:30:00",
+            date_created_gmt: "2026-06-18T04:30:00",
+            status: "approved",
+            review: "<p>Softened my curls.</p>",
+            verified: true,
+          },
+        ],
+      },
+    });
+
+    await expect(fetchAdminReviews()).resolves.toEqual([
+      {
+        id: 404,
+        productId: 99,
+        productName: "Avocado Hair Mask",
+        productSlug: "avocado-hair-mask",
+        reviewer: "Lilian",
+        reviewerEmail: "lilian@example.com",
+        rating: 4,
+        date: "2026-06-18T07:30:00",
+        status: "approved",
+        content: "Softened my curls.",
+      },
+    ]);
+  });
 });
 
 describe("computeReviewSummary", () => {
