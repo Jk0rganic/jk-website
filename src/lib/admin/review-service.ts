@@ -42,6 +42,13 @@ const ADMIN_REVIEWS_QUERY = `
         dateGmt
         status
         approved
+        # rating metadata is exposed through commentMeta key/value nodes.
+        commentMeta {
+          nodes {
+            key
+            value
+          }
+        }
         author {
           node {
             name
@@ -99,7 +106,7 @@ export async function fetchAdminReviews(): Promise<AdminReview[]> {
 
   return (data.comments?.nodes ?? [])
     .map(mapCommentToAdminReview)
-    .filter((review) => review.productId > 0 && review.rating > 0);
+    .filter((review) => review.productId > 0);
 }
 
 export function mapCommentToAdminReview(comment: unknown): AdminReview {
@@ -159,7 +166,11 @@ export function computeReviewSummary(
   reviews: AdminReview[],
 ): AdminReviewSummary {
   const total = reviews.length;
-  const ratingTotal = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const ratedReviews = reviews.filter((review) => review.rating > 0);
+  const ratingTotal = ratedReviews.reduce(
+    (sum, review) => sum + review.rating,
+    0,
+  );
   const ratingDistribution: AdminReviewSummary["ratingDistribution"] = {
     1: 0,
     2: 0,
@@ -177,8 +188,10 @@ export function computeReviewSummary(
 
   return {
     total,
-    averageRating: total ? Math.round((ratingTotal / total) * 10) / 10 : 0,
-    lowRatingCount: reviews.filter((review) => review.rating <= 2).length,
+    averageRating: ratedReviews.length
+      ? Math.round((ratingTotal / ratedReviews.length) * 10) / 10
+      : 0,
+    lowRatingCount: ratedReviews.filter((review) => review.rating <= 2).length,
     pendingCount: reviews.filter((review) => isPendingStatus(review.status))
       .length,
     ratingDistribution,
@@ -256,14 +269,29 @@ function normalizeStatus(status: string | undefined) {
 }
 
 function ratingFromMeta(item: RecordLike) {
-  const meta = item.metaData ?? item.meta_data ?? item.commentMeta;
-  if (!Array.isArray(meta)) return undefined;
+  const meta = firstArray(
+    item.commentMeta,
+    item.metaData,
+    item.meta_data,
+    item.meta,
+  );
+  if (!meta) return undefined;
 
   for (const entry of meta) {
     const record = asRecord(entry);
     if (firstString(record.key, record.name)?.toLowerCase() === "rating") {
       return firstNumber(record.value);
     }
+  }
+
+  return undefined;
+}
+
+function firstArray(...values: unknown[]) {
+  for (const value of values) {
+    if (Array.isArray(value)) return value;
+
+    if (isRecord(value) && Array.isArray(value.nodes)) return value.nodes;
   }
 
   return undefined;

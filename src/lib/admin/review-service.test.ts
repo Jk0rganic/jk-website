@@ -58,7 +58,7 @@ describe("mapCommentToAdminReview", () => {
     });
   });
 
-  it("fetches comments and maps likely Woo review meta fields", async () => {
+  it("fetches comments and maps queried review metadata nodes", async () => {
     mockedFetchGraphQL.mockResolvedValue({
       comments: {
         nodes: [
@@ -70,7 +70,9 @@ describe("mapCommentToAdminReview", () => {
             approved: false,
             authorName: "Grace",
             authorEmail: "grace@example.com",
-            metaData: [{ key: "rating", value: "2" }],
+            commentMeta: {
+              nodes: [{ key: "rating", value: "2" }],
+            },
             commentedOn: {
               node: {
                 databaseId: 55,
@@ -101,6 +103,52 @@ describe("mapCommentToAdminReview", () => {
         productImage: "https://example.com/lotion.jpg",
       },
     ]);
+    expect(mockedFetchGraphQL).toHaveBeenCalledWith(
+      expect.stringContaining("commentMeta"),
+      { first: 100 },
+    );
+    expect(mockedFetchGraphQL).toHaveBeenCalledWith(
+      expect.stringContaining("rating"),
+      { first: 100 },
+    );
+  });
+
+  it("keeps product reviews when rating metadata is absent", async () => {
+    mockedFetchGraphQL.mockResolvedValue({
+      comments: {
+        nodes: [
+          {
+            id: "comment:303",
+            databaseId: 303,
+            content: "Helpful review without migrated rating.",
+            date: "2026-06-19T09:00:00",
+            status: "approved",
+            author: {
+              node: {
+                name: "Noel",
+                email: "noel@example.com",
+              },
+            },
+            commentedOn: {
+              node: {
+                databaseId: 88,
+                title: "Shea Butter",
+                slug: "shea-butter",
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    await expect(fetchAdminReviews()).resolves.toEqual([
+      expect.objectContaining({
+        id: 303,
+        productId: 88,
+        productName: "Shea Butter",
+        rating: 0,
+      }),
+    ]);
   });
 });
 
@@ -112,9 +160,10 @@ describe("computeReviewSummary", () => {
         reviewFixture({ rating: 4, status: "approved" }),
         reviewFixture({ rating: 2, status: "hold" }),
         reviewFixture({ rating: 1, status: "pending" }),
+        reviewFixture({ rating: 0, status: "approved" }),
       ]),
     ).toEqual({
-      total: 4,
+      total: 5,
       averageRating: 3,
       lowRatingCount: 2,
       pendingCount: 2,
@@ -168,6 +217,15 @@ describe("filterAdminReviews", () => {
         before: "2026-06-30",
       }),
     ).toEqual([reviews[0]]);
+  });
+
+  it("matches unrated reviews when filtering for rating 0", () => {
+    const reviews = [
+      reviewFixture({ id: 1, rating: 0 }),
+      reviewFixture({ id: 2, rating: 5 }),
+    ];
+
+    expect(filterAdminReviews(reviews, { rating: "0" })).toEqual([reviews[0]]);
   });
 });
 
