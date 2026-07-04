@@ -61,4 +61,23 @@ describe("applyReportTableState", () => {
       page: 2,
     });
   });
+
+  it("uses the provided visible columns for searching and sorting", () => {
+    expect(
+      applyReportTableState({
+        rows,
+        columns: columns.filter((column) => column.key !== "status"),
+        search: "sales",
+        sortKey: "revenue",
+        sortDirection: "desc",
+        page: 1,
+        pageSize: 5,
+      }),
+    ).toMatchObject({
+      pageRows: [],
+      totalRows: 0,
+      totalPages: 1,
+      page: 1,
+    });
+  });
 });

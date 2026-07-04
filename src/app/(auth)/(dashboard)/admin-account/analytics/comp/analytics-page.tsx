@@ -26,6 +26,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { buildAnalyticsExportFilename } from "@/lib/admin/analytics-csv";
 import { formatPrice } from "@/utils/format-price";
 import ui from "../../components/ui/admin-ui.module.scss";
 import { PageHeader } from "../../components/ui/page-header";
@@ -184,6 +185,79 @@ type ReportData = {
 };
 
 type ReportKey = keyof ReportData;
+type VisibleColumnPreferences = Partial<Record<ReportKey, string[]>>;
+
+const REPORT_TAB_STORAGE_KEY = "jk-admin-analytics-report-tab";
+const REPORT_COLUMNS_STORAGE_KEY = "jk-admin-analytics-report-columns";
+const DATE_PRESET_STORAGE_KEY = "jk-admin-analytics-date-preset";
+const REPORT_KEYS: ReportKey[] = [
+  "products",
+  "locations",
+  "payments",
+  "discounts",
+];
+
+function canUseStorage() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return Boolean(window.localStorage);
+  } catch {
+    return false;
+  }
+}
+
+function readStoredReportKey(): ReportKey {
+  if (!canUseStorage()) return "products";
+
+  const storedValue = window.localStorage.getItem(REPORT_TAB_STORAGE_KEY);
+  return REPORT_KEYS.includes(storedValue as ReportKey)
+    ? (storedValue as ReportKey)
+    : "products";
+}
+
+function readStoredPreset(): AnalyticsDatePreset | null {
+  if (!canUseStorage()) return null;
+
+  const storedValue = window.localStorage.getItem(DATE_PRESET_STORAGE_KEY);
+  const allowedPresets: AnalyticsDatePreset[] = [
+    "today",
+    "yesterday",
+    "last_7_days",
+    "month_to_date",
+    "last_month",
+    "year_to_date",
+    "custom",
+  ];
+
+  return allowedPresets.includes(storedValue as AnalyticsDatePreset)
+    ? (storedValue as AnalyticsDatePreset)
+    : null;
+}
+
+function readStoredVisibleColumns(): VisibleColumnPreferences {
+  if (!canUseStorage()) return {};
+
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(REPORT_COLUMNS_STORAGE_KEY) ?? "{}",
+    ) as VisibleColumnPreferences;
+
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeStorage(key: string, value: string) {
+  if (!canUseStorage()) return;
+
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Preferences are best-effort only.
+  }
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-KE").format(value);
@@ -239,7 +313,10 @@ function buildQuery(range: DateRangeControlValue, nonce: number) {
   return params;
 }
 
-function queryToRange(searchParams: URLSearchParams): DateRangeControlValue {
+function queryToRange(
+  searchParams: URLSearchParams,
+  fallbackPreset: AnalyticsDatePreset = "last_7_days",
+): DateRangeControlValue {
   const preset = searchParams.get("preset") as AnalyticsDatePreset | null;
   const allowedPresets = new Set<AnalyticsDatePreset>([
     "today",
@@ -252,7 +329,7 @@ function queryToRange(searchParams: URLSearchParams): DateRangeControlValue {
   ]);
 
   return {
-    preset: preset && allowedPresets.has(preset) ? preset : "last_7_days",
+    preset: preset && allowedPresets.has(preset) ? preset : fallbackPreset,
     after: searchParams.get("after") || "",
     before: searchParams.get("before") || "",
   };
@@ -418,13 +495,16 @@ export default function AnalyticsPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [range, setRange] = useState<DateRangeControlValue>(() =>
-    queryToRange(searchParams),
+    queryToRange(searchParams, readStoredPreset() ?? "last_7_days"),
   );
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [data, setData] = useState<AnalyticsOverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeReport, setActiveReport] = useState<ReportKey>("products");
+  const [activeReport, setActiveReport] =
+    useState<ReportKey>(readStoredReportKey);
+  const [visibleColumnPreferences, setVisibleColumnPreferences] =
+    useState<VisibleColumnPreferences>(readStoredVisibleColumns);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportsError, setReportsError] = useState<string | null>(null);
@@ -435,7 +515,10 @@ export default function AnalyticsPage() {
   );
 
   useEffect(() => {
-    const nextRange = queryToRange(searchParams);
+    const nextRange = queryToRange(
+      searchParams,
+      readStoredPreset() ?? "last_7_days",
+    );
     setRange((current) =>
       current.preset === nextRange.preset &&
       current.after === nextRange.after &&
@@ -448,6 +531,27 @@ export default function AnalyticsPage() {
   useEffect(() => {
     router.replace(`${pathname}?${queryString}`, { scroll: false });
   }, [pathname, queryString, router]);
+
+  const handleRangeChange = useCallback((nextRange: DateRangeControlValue) => {
+    writeStorage(DATE_PRESET_STORAGE_KEY, nextRange.preset);
+    setRange(nextRange);
+  }, []);
+
+  const handleReportChange = (nextReport: ReportKey) => {
+    writeStorage(REPORT_TAB_STORAGE_KEY, nextReport);
+    setActiveReport(nextReport);
+  };
+
+  const handleVisibleColumnsChange = (
+    report: ReportKey,
+    columnKeys: string[],
+  ) => {
+    setVisibleColumnPreferences((current) => {
+      const nextPreferences = { ...current, [report]: columnKeys };
+      writeStorage(REPORT_COLUMNS_STORAGE_KEY, JSON.stringify(nextPreferences));
+      return nextPreferences;
+    });
+  };
 
   const loadAnalytics = useCallback(
     async (signal: AbortSignal) => {
@@ -653,12 +757,14 @@ export default function AnalyticsPage() {
         header: "Product",
         searchValue: (row) => row.name,
         sortValue: (row) => row.name,
+        csvValue: (row) => row.name,
         render: (row) => row.name,
       },
       {
         key: "unitsSold",
         header: "Quantity sold",
         sortValue: (row) => row.unitsSold,
+        csvValue: (row) => row.unitsSold,
         render: (row) => formatNumber(row.unitsSold),
         align: "right",
       },
@@ -666,6 +772,7 @@ export default function AnalyticsPage() {
         key: "revenue",
         header: "Revenue",
         sortValue: (row) => row.revenue,
+        csvValue: (row) => row.revenue,
         render: (row) => formatPrice(row.revenue),
         align: "right",
       },
@@ -673,6 +780,7 @@ export default function AnalyticsPage() {
         key: "orderCount",
         header: "Orders",
         sortValue: (row) => row.orderCount,
+        csvValue: (row) => row.orderCount,
         render: (row) => formatNumber(row.orderCount),
         align: "right",
       },
@@ -680,6 +788,7 @@ export default function AnalyticsPage() {
         key: "averageItemValue",
         header: "Avg item",
         sortValue: (row) => row.averageItemValue,
+        csvValue: (row) => row.averageItemValue,
         render: (row) => formatPrice(row.averageItemValue),
         align: "right",
       },
@@ -687,6 +796,7 @@ export default function AnalyticsPage() {
         key: "trend",
         header: "Trend",
         sortValue: (row) => row.trend ?? 0,
+        csvValue: (row) => formatOptionalTrend(row.trend),
         render: (row) => formatOptionalTrend(row.trend),
         align: "right",
       },
@@ -695,6 +805,7 @@ export default function AnalyticsPage() {
         header: "Status",
         searchValue: (row) => row.status,
         sortValue: (row) => row.status,
+        csvValue: (row) => row.status,
         render: (row) => (
           <span className={`${styles.statusBadge} ${statusClass(row.status)}`}>
             {row.status}
@@ -712,6 +823,7 @@ export default function AnalyticsPage() {
         header: "County / city",
         searchValue: (row) => row.location,
         sortValue: (row) => row.location,
+        csvValue: (row) => row.location,
         render: (row) => (
           <span className={styles.locationName}>
             <MapPin size={14} aria-hidden />
@@ -723,6 +835,7 @@ export default function AnalyticsPage() {
         key: "orders",
         header: "Orders",
         sortValue: (row) => row.orders,
+        csvValue: (row) => row.orders,
         render: (row) => formatNumber(row.orders),
         align: "right",
       },
@@ -730,6 +843,7 @@ export default function AnalyticsPage() {
         key: "revenue",
         header: "Revenue",
         sortValue: (row) => row.revenue,
+        csvValue: (row) => row.revenue,
         render: (row) => formatPrice(row.revenue),
         align: "right",
       },
@@ -737,6 +851,7 @@ export default function AnalyticsPage() {
         key: "deliveryFees",
         header: "Delivery fees",
         sortValue: (row) => row.deliveryFees,
+        csvValue: (row) => row.deliveryFees,
         render: (row) => formatPrice(row.deliveryFees),
         align: "right",
       },
@@ -745,12 +860,14 @@ export default function AnalyticsPage() {
         header: "Top delivery",
         searchValue: (row) => formatDeliveryType(row.topDeliveryType),
         sortValue: (row) => row.topDeliveryType,
+        csvValue: (row) => formatDeliveryType(row.topDeliveryType),
         render: (row) => formatDeliveryType(row.topDeliveryType),
       },
       {
         key: "orderShare",
         header: "Share",
         sortValue: (row) => row.orderShare,
+        csvValue: (row) => row.orderShare,
         render: (row) => formatPercent(row.orderShare),
         align: "right",
       },
@@ -765,12 +882,14 @@ export default function AnalyticsPage() {
         header: "Payment method",
         searchValue: (row) => row.method,
         sortValue: (row) => row.method,
+        csvValue: (row) => row.method,
         render: (row) => row.method,
       },
       {
         key: "paidTotal",
         header: "Paid total",
         sortValue: (row) => row.paidTotal,
+        csvValue: (row) => row.paidTotal,
         render: (row) => formatPrice(row.paidTotal),
         align: "right",
       },
@@ -778,6 +897,7 @@ export default function AnalyticsPage() {
         key: "orderCount",
         header: "Orders",
         sortValue: (row) => row.orderCount,
+        csvValue: (row) => row.orderCount,
         render: (row) => formatNumber(row.orderCount),
         align: "right",
       },
@@ -785,6 +905,7 @@ export default function AnalyticsPage() {
         key: "pendingCount",
         header: "Pending / unpaid",
         sortValue: (row) => row.pendingCount,
+        csvValue: (row) => row.pendingCount,
         render: (row) => formatNumber(row.pendingCount),
         align: "right",
       },
@@ -792,6 +913,7 @@ export default function AnalyticsPage() {
         key: "failedCount",
         header: "Failed",
         sortValue: (row) => row.failedCount,
+        csvValue: (row) => row.failedCount,
         render: (row) => formatNumber(row.failedCount),
         align: "right",
       },
@@ -799,6 +921,7 @@ export default function AnalyticsPage() {
         key: "pendingRate",
         header: "Pending rate",
         sortValue: (row) => row.pendingRate,
+        csvValue: (row) => row.pendingRate,
         render: (row) => formatPercent(row.pendingRate),
         align: "right",
       },
@@ -813,12 +936,14 @@ export default function AnalyticsPage() {
         header: "Coupon / code",
         searchValue: (row) => row.code,
         sortValue: (row) => row.code,
+        csvValue: (row) => row.code,
         render: (row) => row.code,
       },
       {
         key: "orders",
         header: "Orders",
         sortValue: (row) => row.orders,
+        csvValue: (row) => row.orders,
         render: (row) => formatNumber(row.orders),
         align: "right",
       },
@@ -826,6 +951,7 @@ export default function AnalyticsPage() {
         key: "grossRevenue",
         header: "Gross revenue",
         sortValue: (row) => row.grossRevenue,
+        csvValue: (row) => row.grossRevenue,
         render: (row) => formatPrice(row.grossRevenue),
         align: "right",
       },
@@ -833,6 +959,7 @@ export default function AnalyticsPage() {
         key: "discount",
         header: "Discount",
         sortValue: (row) => row.discount,
+        csvValue: (row) => row.discount,
         render: (row) => formatPrice(row.discount),
         align: "right",
       },
@@ -840,6 +967,7 @@ export default function AnalyticsPage() {
         key: "revenueAfterDiscount",
         header: "After discount",
         sortValue: (row) => row.revenueAfterDiscount,
+        csvValue: (row) => row.revenueAfterDiscount,
         render: (row) => formatPrice(row.revenueAfterDiscount),
         align: "right",
       },
@@ -847,6 +975,7 @@ export default function AnalyticsPage() {
         key: "averageDiscountPerOrder",
         header: "Avg discount",
         sortValue: (row) => row.averageDiscountPerOrder,
+        csvValue: (row) => row.averageDiscountPerOrder,
         render: (row) => formatPrice(row.averageDiscountPerOrder),
         align: "right",
       },
@@ -864,6 +993,9 @@ export default function AnalyticsPage() {
     { key: "payments", label: "Payments", icon: CreditCard },
     { key: "discounts", label: "Discounts", icon: Percent },
   ];
+  const exportFilename = data?.dateRange
+    ? buildAnalyticsExportFilename(activeReport, data.dateRange)
+    : undefined;
 
   const reportTable =
     activeReport === "products" ? (
@@ -876,6 +1008,11 @@ export default function AnalyticsPage() {
         emptyMessage="No product activity for this range."
         searchPlaceholder="Search products or status"
         initialSortKey="revenue"
+        visibleColumnKeys={visibleColumnPreferences.products}
+        onVisibleColumnKeysChange={(keys) =>
+          handleVisibleColumnsChange("products", keys)
+        }
+        exportFilename={exportFilename}
       />
     ) : activeReport === "locations" ? (
       <ReportTable
@@ -887,6 +1024,11 @@ export default function AnalyticsPage() {
         emptyMessage="No location demand for this range."
         searchPlaceholder="Search locations or delivery type"
         initialSortKey="orders"
+        visibleColumnKeys={visibleColumnPreferences.locations}
+        onVisibleColumnKeysChange={(keys) =>
+          handleVisibleColumnsChange("locations", keys)
+        }
+        exportFilename={exportFilename}
       />
     ) : activeReport === "payments" ? (
       <ReportTable
@@ -898,6 +1040,11 @@ export default function AnalyticsPage() {
         emptyMessage="No payment activity for this range."
         searchPlaceholder="Search payment methods"
         initialSortKey="orderCount"
+        visibleColumnKeys={visibleColumnPreferences.payments}
+        onVisibleColumnKeysChange={(keys) =>
+          handleVisibleColumnsChange("payments", keys)
+        }
+        exportFilename={exportFilename}
       />
     ) : (
       <ReportTable
@@ -909,6 +1056,11 @@ export default function AnalyticsPage() {
         emptyMessage="No coupon discounts for this range."
         searchPlaceholder="Search coupon codes"
         initialSortKey="discount"
+        visibleColumnKeys={visibleColumnPreferences.discounts}
+        onVisibleColumnKeysChange={(keys) =>
+          handleVisibleColumnsChange("discounts", keys)
+        }
+        exportFilename={exportFilename}
       />
     );
 
@@ -921,7 +1073,7 @@ export default function AnalyticsPage() {
           <DateRangeControls
             value={range}
             loading={loading}
-            onChange={setRange}
+            onChange={handleRangeChange}
             onRefresh={() => setRefreshNonce((current) => current + 1)}
           />
         }
@@ -1094,7 +1246,7 @@ export default function AnalyticsPage() {
                     className={`${styles.reportTab} ${
                       activeReport === tab.key ? styles.reportTabActive : ""
                     }`}
-                    onClick={() => setActiveReport(tab.key)}
+                    onClick={() => handleReportChange(tab.key)}
                   >
                     <Icon size={15} aria-hidden />
                     {tab.label}

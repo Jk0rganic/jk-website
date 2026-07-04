@@ -1,10 +1,18 @@
 "use client";
 
-import { ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import type React from "react";
 import { useMemo, useState } from "react";
+import type { CsvCellValue, CsvColumn } from "@/lib/admin/analytics-csv";
 import ui from "../../components/ui/admin-ui.module.scss";
 import styles from "../styles.module.scss";
+import CsvExport from "./csv-export";
 
 export type ReportSortDirection = "asc" | "desc";
 
@@ -14,6 +22,7 @@ export type ReportColumn<Row> = {
   render?: (row: Row) => React.ReactNode;
   sortValue?: (row: Row) => string | number | null | undefined;
   searchValue?: (row: Row) => string | number | null | undefined;
+  csvValue?: (row: Row) => CsvCellValue;
   align?: "left" | "right";
 };
 
@@ -93,6 +102,9 @@ type ReportTableProps<Row> = {
   initialSortKey?: string;
   initialSortDirection?: ReportSortDirection;
   pageSize?: number;
+  visibleColumnKeys?: string[];
+  onVisibleColumnKeysChange?: (keys: string[]) => void;
+  exportFilename?: string;
 };
 
 export default function ReportTable<Row>({
@@ -106,8 +118,23 @@ export default function ReportTable<Row>({
   initialSortKey,
   initialSortDirection = "desc",
   pageSize = 8,
+  visibleColumnKeys,
+  onVisibleColumnKeysChange,
+  exportFilename,
 }: ReportTableProps<Row>) {
-  const firstSortableColumn = columns.find((column) => column.sortValue);
+  const allColumnKeys = useMemo(
+    () => columns.map((column) => column.key),
+    [columns],
+  );
+  const visibleColumns = useMemo(() => {
+    if (!visibleColumnKeys?.length) return columns;
+
+    const visibleKeys = new Set(visibleColumnKeys);
+    const nextColumns = columns.filter((column) => visibleKeys.has(column.key));
+
+    return nextColumns.length ? nextColumns : columns;
+  }, [columns, visibleColumnKeys]);
+  const firstSortableColumn = visibleColumns.find((column) => column.sortValue);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState(
     initialSortKey ?? firstSortableColumn?.key ?? columns[0]?.key ?? "",
@@ -115,20 +142,57 @@ export default function ReportTable<Row>({
   const [sortDirection, setSortDirection] =
     useState<ReportSortDirection>(initialSortDirection);
   const [page, setPage] = useState(1);
+  const activeSortKey = visibleColumns.some((column) => column.key === sortKey)
+    ? sortKey
+    : (firstSortableColumn?.key ?? visibleColumns[0]?.key ?? "");
 
   const tableState = useMemo(
     () =>
       applyReportTableState({
         rows,
-        columns,
+        columns: visibleColumns,
         search,
-        sortKey,
+        sortKey: activeSortKey,
         sortDirection,
         page,
         pageSize,
       }),
-    [columns, page, pageSize, rows, search, sortDirection, sortKey],
+    [
+      activeSortKey,
+      page,
+      pageSize,
+      rows,
+      search,
+      sortDirection,
+      visibleColumns,
+    ],
   );
+  const csvColumns = useMemo<CsvColumn<Row>[]>(
+    () =>
+      visibleColumns.map((column) => ({
+        key: column.key,
+        header: column.header,
+        value: (row) =>
+          column.csvValue?.(row) ??
+          column.searchValue?.(row) ??
+          column.sortValue?.(row) ??
+          "",
+      })),
+    [visibleColumns],
+  );
+
+  const toggleColumn = (columnKey: string) => {
+    const currentKeys = visibleColumnKeys?.length
+      ? visibleColumnKeys
+      : allColumnKeys;
+    const nextKeys = currentKeys.includes(columnKey)
+      ? currentKeys.filter((key) => key !== columnKey)
+      : [...currentKeys, columnKey];
+
+    if (nextKeys.length > 0) {
+      onVisibleColumnKeysChange?.(nextKeys);
+    }
+  };
 
   const handleSort = (column: ReportColumn<Row>) => {
     if (!column.sortValue) return;
@@ -156,7 +220,40 @@ export default function ReportTable<Row>({
             <p className={styles.reportDescription}>{description}</p>
           )}
         </div>
-        <span className={styles.reportCount}>{tableState.totalRows} rows</span>
+        <div className={styles.reportActions}>
+          <span className={styles.reportCount}>
+            {tableState.totalRows} rows
+          </span>
+          {onVisibleColumnKeysChange && (
+            <details className={styles.columnMenu}>
+              <summary aria-label={`${title} columns`} title="Columns">
+                <SlidersHorizontal size={16} aria-hidden />
+              </summary>
+              <div className={styles.columnMenuPanel}>
+                {columns.map((column) => (
+                  <label key={column.key}>
+                    <input
+                      type="checkbox"
+                      checked={visibleColumns.some(
+                        (visibleColumn) => visibleColumn.key === column.key,
+                      )}
+                      onChange={() => toggleColumn(column.key)}
+                    />
+                    <span>{column.header}</span>
+                  </label>
+                ))}
+              </div>
+            </details>
+          )}
+          {exportFilename && (
+            <CsvExport
+              columns={csvColumns}
+              rows={tableState.pageRows}
+              filename={exportFilename}
+              label={`Export ${title}`}
+            />
+          )}
+        </div>
       </div>
       <div className={ui.cardBody}>
         <label className={styles.reportSearch}>
@@ -181,7 +278,7 @@ export default function ReportTable<Row>({
               <table className={`${ui.table} ${styles.reportTable}`}>
                 <thead>
                   <tr>
-                    {columns.map((column) => (
+                    {visibleColumns.map((column) => (
                       <th
                         key={column.key}
                         className={
@@ -198,7 +295,7 @@ export default function ReportTable<Row>({
                             <ChevronDown
                               aria-hidden
                               className={
-                                sortKey === column.key &&
+                                activeSortKey === column.key &&
                                 sortDirection === "asc"
                                   ? styles.sortAsc
                                   : ""
@@ -215,7 +312,7 @@ export default function ReportTable<Row>({
                 <tbody>
                   {tableState.pageRows.map((row) => (
                     <tr key={rowKey(row)}>
-                      {columns.map((column) => (
+                      {visibleColumns.map((column) => (
                         <td
                           key={column.key}
                           data-label={column.header}
