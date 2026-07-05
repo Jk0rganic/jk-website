@@ -84,6 +84,38 @@
   }
 }
 
+.passwordInput {
+  position: relative;
+
+  input {
+    width: 100%;
+    padding-right: 2.75rem;
+  }
+
+  button {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #666666;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--brand-green);
+      outline: 2px solid rgba(36, 147, 70, 0.18);
+    }
+  }
+}
+
 .actions {
   display: flex;
   align-items: center;
