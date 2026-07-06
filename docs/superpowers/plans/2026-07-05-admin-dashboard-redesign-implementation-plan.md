@@ -434,11 +434,11 @@ git commit -m "feat: redesign admin fulfillment pages"
 - Modify: `src/app/(auth)/(dashboard)/admin-account/reviews/comp/admin-reviews-page.tsx`
 - Modify: `src/app/(auth)/(dashboard)/admin-account/reviews/styles.module.scss`
 
-- [ ] **Step 1: Redesign products list**
+- [x] **Step 1: Redesign products list**
 
 Use summary chips for total products, visible products, low stock, and out of stock. Use a table with thumbnail, product name, category, price, stock badge, status, and actions.
 
-- [ ] **Step 2: Redesign product forms**
+- [x] **Step 2: Redesign product forms**
 
 Split the existing form into visually clear sections without changing submission payloads:
 
@@ -452,19 +452,19 @@ Split the existing form into visually clear sections without changing submission
 
 Use a sticky bottom or top save area only on desktop; on mobile keep save action near the page header and at the end of the form.
 
-- [ ] **Step 3: Redesign coupons list**
+- [x] **Step 3: Redesign coupons list**
 
 Use a compact table/card layout with code, type, amount, usage, expiry, status, and row actions. Use amber badge for expiring coupons and muted badge for inactive/expired.
 
-- [ ] **Step 4: Redesign coupon form**
+- [x] **Step 4: Redesign coupon form**
 
 Group fields into discount, restrictions, usage limits, and expiry. Use toggles/inputs for binary/numeric settings and preserve current validation.
 
-- [ ] **Step 5: Redesign reviews page**
+- [x] **Step 5: Redesign reviews page**
 
 Use KPI cards for total reviews, average rating, low-rating count, and recent review count. Use rating distribution panel and a review list/table with product link, reviewer, rating, excerpt, and date.
 
-- [ ] **Step 6: Verify catalog pages**
+- [x] **Step 6: Verify catalog pages**
 
 Run:
 
@@ -477,7 +477,7 @@ curl -I http://127.0.0.1:3000/admin-account/reviews
 
 Expected: typecheck exits 0. Routes return protected redirects or 200 depending on session.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/products
