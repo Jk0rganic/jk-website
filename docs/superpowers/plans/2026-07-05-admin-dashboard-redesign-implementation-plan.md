@@ -253,7 +253,7 @@ git commit -m "feat: redesign admin shell foundation"
 - Modify: `src/app/(auth)/(dashboard)/admin-account/styles.module.scss`
 - Reuse: shared UI primitives from Task 1
 
-- [ ] **Step 1: Replace decorative dashboard structure with operations layout**
+- [x] **Step 1: Replace decorative dashboard structure with operations layout**
 
 Use this section order in `admin-dashboard.tsx`:
 
@@ -263,7 +263,7 @@ Use this section order in `admin-dashboard.tsx`:
 4. Right insight rail on wide screens: delivery fees/expense, sales/revenue, income/net revenue, growth/comparison, monthly earnings, payment gateways.
 5. Lower operations panels: recent orders, top products, top locations, pending/unpaid orders.
 
-- [ ] **Step 2: Use `AdminMetricCard` for KPI cards**
+- [x] **Step 2: Use `AdminMetricCard` for KPI cards**
 
 Map current dashboard totals into cards:
 
@@ -279,7 +279,7 @@ Map current dashboard totals into cards:
 
 Use `tone="neutral" | "success" | "info" | "warning" | "danger"` consistently.
 
-- [ ] **Step 3: Create reference-inspired dashboard grid classes**
+- [x] **Step 3: Create reference-inspired dashboard grid classes**
 
 In `styles.module.scss`, implement desktop areas close to the reference:
 
@@ -319,15 +319,15 @@ In `styles.module.scss`, implement desktop areas close to the reference:
 }
 ```
 
-- [ ] **Step 4: Make recent orders scannable**
+- [x] **Step 4: Make recent orders scannable**
 
 Render recent orders inside `AdminPanel` with customer, status badge, payment method, total, and link to `/admin-account/orders/${order.id}`. Use table on desktop and stacked cards via CSS on narrow screens.
 
-- [ ] **Step 5: Keep the dashboard original**
+- [x] **Step 5: Keep the dashboard original**
 
 Do not copy the reference character illustration, exact eMart labels, exact chart shapes, exact colors, or exact icon artwork. Use JK Organics metrics and simple original visual blocks/charts from Recharts or existing chart components.
 
-- [ ] **Step 6: Verify dashboard route**
+- [x] **Step 6: Verify dashboard route**
 
 Run:
 
@@ -338,7 +338,7 @@ curl -I http://127.0.0.1:3000/admin-account
 
 Expected: typecheck exits 0. Curl returns `307` to sign-in when logged out or `200` if logged in.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/components/dashboard/admin-dashboard.tsx
