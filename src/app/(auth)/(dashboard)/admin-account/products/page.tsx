@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Package } from "lucide-react";
+import {
+  AlertTriangle,
+  Boxes,
+  Eye,
+  Package,
+  PackageX,
+  Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/utils/format-price";
 import {
@@ -11,11 +18,17 @@ import {
   summarizeInventory,
   type ProductInventoryItem,
 } from "@/lib/admin/product-inventory";
+import { AdminBadge } from "../components/ui/admin-badge";
+import { AdminEmptyState } from "../components/ui/admin-empty-state";
+import { AdminMetricCard } from "../components/ui/admin-metric-card";
+import { AdminPanel } from "../components/ui/admin-panel";
+import { AdminToolbar } from "../components/ui/admin-toolbar";
 import { PageHeader } from "../components/ui/page-header";
 import ui from "../components/ui/admin-ui.module.scss";
 import k from "./products-list.module.scss";
 
 const ITEMS_PER_PAGE = 10;
+type BadgeTone = "success" | "info" | "warning" | "danger" | "neutral";
 
 function ProductThumbnail({
   name,
@@ -79,6 +92,10 @@ export default function AdminProductsPage() {
   }, []);
 
   const summary = useMemo(() => summarizeInventory(products), [products]);
+  const visibleProductCount = useMemo(
+    () => products.filter((product) => product.status === "publish").length,
+    [products],
+  );
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -124,10 +141,18 @@ export default function AdminProductsPage() {
   }, [search, stockFilter]);
 
   const statusClass = {
-    active: k.badgeActive,
-    draft: k.badgeDraft,
-    other: k.badgeOther,
+    active: "success",
+    draft: "neutral",
+    other: "info",
   } as const;
+
+  function getStockBadgeTone(product: ProductInventoryItem): BadgeTone {
+    if (product.stockStatus === "outofstock") return "danger";
+    if (product.stockQuantity !== null && product.stockQuantity <= 5) {
+      return "warning";
+    }
+    return "success";
+  }
 
   async function handleDeleteProduct(product: ProductInventoryItem) {
     const confirmed = window.confirm(
@@ -163,66 +188,87 @@ export default function AdminProductsPage() {
     <>
       <PageHeader
         title="Products"
-        subtitle="Manage your catalog, stock levels, and pricing."
+        subtitle={`${filteredProducts.length} shown of ${products.length} loaded products. Manage stock, pricing, and catalog visibility.`}
+        action={
+          <Link href="/admin-account/products/new" className={ui.btnPrimary}>
+            <Plus size={16} aria-hidden />
+            Add product
+          </Link>
+        }
       />
 
-      <div className={ui.statGrid}>
-        {[
-          { label: "Published", value: summary.total },
-          { label: "In stock", value: summary.inStock },
-          { label: "Low stock", value: summary.lowStock },
-          { label: "Out of stock", value: summary.outOfStock },
-        ].map((item) => (
-          <article key={item.label} className={ui.statCard}>
-            <span className={ui.statLabel}>{item.label}</span>
-            <div className={ui.statValue}>{item.value}</div>
-          </article>
-        ))}
-      </div>
+      <section className={k.metricGrid} aria-label="Catalog KPIs">
+        <AdminMetricCard
+          label="Total products"
+          value={summary.total}
+          icon={Boxes}
+          tone="neutral"
+          detail={`${summary.inStock} currently in stock`}
+        />
+        <AdminMetricCard
+          label="Visible products"
+          value={visibleProductCount}
+          icon={Eye}
+          tone="info"
+          detail="Published in catalog"
+        />
+        <AdminMetricCard
+          label="Low stock"
+          value={summary.lowStock}
+          icon={AlertTriangle}
+          tone="warning"
+          detail="Five units or fewer"
+        />
+        <AdminMetricCard
+          label="Out of stock"
+          value={summary.outOfStock}
+          icon={PackageX}
+          tone="danger"
+          detail="Unavailable to customers"
+        />
+      </section>
 
-      <section className={k.productListCard}>
-        <div className={k.listHeader}>
-          <h2>Products list</h2>
-          <div className={k.listActions}>
-            <Link href="/admin-account/products/new" className={k.addBtn}>
-              + Add
-            </Link>
-          </div>
-        </div>
+      <AdminPanel
+        title="Catalog table"
+        description="Thumbnail, category, price, stock, and publish status in one compact view."
+      >
+        <AdminToolbar
+          searchLabel="Search products"
+          searchPlaceholder="Search products, SKU, or category"
+          searchValue={search}
+          onSearchChange={(e) => setSearch(e.target.value)}
+        >
+          <label className={k.filterControl}>
+            <span>Stock</span>
+            <select
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+            >
+              <option value="all">All stock levels</option>
+              <option value="low">Low stock only</option>
+              <option value="out">Out of stock</option>
+            </select>
+          </label>
+        </AdminToolbar>
 
-        <div className={k.toolbar}>
-          <input
-            type="search"
-            placeholder="Search products or SKU…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={k.searchInput}
-          />
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className={k.filterSelect}
-          >
-            <option value="all">All stock levels</option>
-            <option value="low">Low stock only</option>
-            <option value="out">Out of stock</option>
-          </select>
-        </div>
-
-        {loading && <p className={k.loading}>Loading products…</p>}
+        {loading && <p className={k.stateText}>Loading products...</p>}
         {error && <p className={k.error}>{error}</p>}
 
         {!loading && !error && !filteredProducts.length && (
-          <p className={k.empty}>No products match your filters.</p>
+          <AdminEmptyState
+            title="No products match these filters"
+            description="Adjust the search or stock filter to widen the catalog view."
+            icon={Package}
+          />
         )}
 
         {!loading && !error && filteredProducts.length > 0 && (
           <>
             <div className={k.tableWrap}>
-              <table className={k.table}>
+              <table className={k.productsTable}>
                 <thead>
                   <tr>
-                    <th>Product name</th>
+                    <th>Product</th>
                     <th>Category</th>
                     <th>Price</th>
                     <th>Stock</th>
@@ -236,7 +282,7 @@ export default function AdminProductsPage() {
 
                     return (
                       <tr key={product.id}>
-                        <td>
+                        <td data-label="Product">
                           <div className={k.productCell}>
                             <ProductThumbnail
                               name={product.name}
@@ -254,19 +300,21 @@ export default function AdminProductsPage() {
                             </div>
                           </div>
                         </td>
-                        <td>{product.primaryCategory}</td>
-                        <td className={k.price}>{formatPrice(product.price)}</td>
-                        <td className={k.stock}>
-                          {formatStockCount(product)}
+                        <td data-label="Category">{product.primaryCategory}</td>
+                        <td data-label="Price" className={k.price}>
+                          {formatPrice(product.price)}
                         </td>
-                        <td>
-                          <span
-                            className={statusClass[publishStatus.tone]}
-                          >
+                        <td data-label="Stock">
+                          <AdminBadge tone={getStockBadgeTone(product)}>
+                            {formatStockCount(product)}
+                          </AdminBadge>
+                        </td>
+                        <td data-label="Status">
+                          <AdminBadge tone={statusClass[publishStatus.tone]}>
                             {publishStatus.label}
-                          </span>
+                          </AdminBadge>
                         </td>
-                        <td className={k.actionsCell}>
+                        <td data-label="Actions" className={k.actionsCell}>
                           <Link
                             href={`/admin-account/products/${product.id}`}
                             className={k.actionLink}
@@ -314,7 +362,7 @@ export default function AdminProductsPage() {
             </div>
           </>
         )}
-      </section>
+      </AdminPanel>
     </>
   );
 }

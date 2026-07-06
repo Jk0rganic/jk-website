@@ -1,8 +1,3 @@
-.iconRed {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
 .srOnly {
   clip: rect(0, 0, 0, 0);
   border: 0;
@@ -15,34 +10,79 @@
   width: 1px;
 }
 
-.filters {
-  align-items: stretch;
+.distributionList {
+  display: grid;
+  gap: 0.75rem;
 }
 
-.filterInput,
-.dateInput {
-  border: 1px solid var(--admin-border);
-  border-radius: var(--brand-radius);
-  background: var(--brand-white);
-  font: inherit;
-  padding: 0.65rem 0.9rem;
+.distributionRow {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 40px;
+  gap: 0.75rem;
+  align-items: center;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #854d0e;
+    font-size: 0.84rem;
+    font-weight: 750;
+  }
+
+  strong {
+    color: var(--admin-ink, #15211a);
+    font-size: 0.88rem;
+    text-align: right;
+  }
 }
 
-.filterInput {
-  flex: 1 1 190px;
-  min-width: 180px;
+.distributionTrack {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef3f6;
+
+  i {
+    display: block;
+    height: 100%;
+    min-width: 3px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #22a9e8, #22984f);
+  }
 }
 
-.dateInput {
-  flex: 0 1 150px;
-  min-width: 140px;
+.filterControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--admin-muted, #667482);
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  input,
+  select {
+    height: 40px;
+    border: 1px solid var(--admin-border, #dce8ee);
+    border-radius: var(--admin-radius, 8px);
+    background: var(--admin-surface, #fff);
+    color: var(--admin-ink, #15211a);
+    font: inherit;
+    font-weight: 600;
+    min-width: 140px;
+    padding: 0 0.7rem;
+  }
+
+  input[type="text"] {
+    min-width: 180px;
+  }
 }
 
 .clearButton,
 .detailButton {
   border: 1px solid var(--admin-border);
   border-radius: 8px;
-  background: var(--brand-white);
+  background: var(--admin-surface, #fff);
   color: var(--admin-accent);
   cursor: pointer;
   font: inherit;
@@ -52,7 +92,7 @@
 
   &:hover {
     border-color: var(--admin-accent);
-    background: #f8fbf8;
+    background: #f8fbfd;
   }
 }
 
@@ -67,6 +107,17 @@
   overflow-wrap: anywhere;
 }
 
+.productName {
+  color: var(--admin-accent, #22984f);
+  display: inline-block;
+  font-weight: 750;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .reviewer,
 .rating {
   align-items: center;
@@ -79,6 +130,14 @@
   color: #854d0e;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.lowRating {
+  color: var(--admin-warning, #b7791f);
+}
+
+.lowRatingRow {
+  box-shadow: inset 3px 0 0 #f4b740;
 }
 
 .excerpt {
@@ -144,18 +203,28 @@
 }
 
 @media (max-width: 640px) {
-  .filterInput,
-  .dateInput {
+  .filterControl {
     flex-basis: 100%;
-    min-width: 0;
     width: 100%;
+
+    input,
+    select {
+      min-width: 0;
+      width: 100%;
+    }
   }
 
+  .distributionRow {
+    grid-template-columns: 48px minmax(0, 1fr) 34px;
+  }
+}
+
+@media (max-width: 760px) {
   .detailGrid {
     grid-template-columns: 1fr;
   }
 
   .excerpt {
-    max-width: 24ch;
+    max-width: none;
   }
 }

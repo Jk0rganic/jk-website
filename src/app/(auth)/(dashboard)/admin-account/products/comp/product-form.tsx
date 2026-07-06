@@ -309,304 +309,379 @@ export default function ProductForm({
     }
   }
 
+  const saveLabel = saving
+    ? "Saving..."
+    : mode === "create"
+      ? "Create product"
+      : "Save changes";
+
   return (
     <form className={k.form} onSubmit={handleSubmit(onSubmit)}>
-      <section className={k.section}>
-        <h2>Basics</h2>
-        <p className={k.help}>
-          Give your product a clear name customers will recognize.
-        </p>
+      <div className={k.formLayout}>
+        <div className={k.sections}>
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>01</span>
+              <div>
+                <h2>Basics</h2>
+                <p className={k.help}>
+                  Give your product a clear name customers will recognize.
+                </p>
+              </div>
+            </div>
 
-        <label className={k.field}>
-          <span>Product name</span>
-          <input {...register("name")} placeholder="e.g. Organic Shea Butter" />
-          {errors.name && <em>{errors.name.message}</em>}
-        </label>
-
-        <label className={k.field}>
-          <span>Short summary</span>
-          <textarea
-            {...register("shortDescription")}
-            rows={3}
-            placeholder="A quick one-liner shown on product cards"
-          />
-        </label>
-
-        <label className={k.field}>
-          <span>Full description</span>
-          <textarea
-            {...register("description")}
-            rows={6}
-            placeholder="Ingredients, benefits, how to use..."
-          />
-        </label>
-
-        <label className={k.field}>
-          <span>Product code (SKU)</span>
-          <input {...register("sku")} placeholder="Optional internal code" />
-        </label>
-      </section>
-
-      <section className={k.section}>
-        <h2>Product image</h2>
-        <p className={k.help}>Choose the main image shown on product cards.</p>
-
-        <div className={k.imageUpload}>
-          <div className={k.imagePreview}>
-            {productImagePreview ? (
-              <img src={productImagePreview} alt="" />
-            ) : (
-              <span>No image selected</span>
-            )}
-          </div>
-
-          <label className={k.field}>
-            <span>Main image</span>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
-          </label>
-        </div>
-      </section>
-
-      <section className={k.section}>
-        <h2>Pricing</h2>
-        <p className={k.help}>Prices are in Kenyan Shillings (KSh).</p>
-
-        <div className={k.row}>
-          <label className={k.field}>
-            <span>Selling price</span>
-            <input
-              {...register("regularPrice")}
-              inputMode="decimal"
-              placeholder="1200"
-              disabled={isVariable}
-            />
-            {errors.regularPrice && <em>{errors.regularPrice.message}</em>}
-          </label>
-
-          <label className={k.field}>
-            <span>Discount price (optional)</span>
-            <input
-              {...register("salePrice")}
-              inputMode="decimal"
-              placeholder="999"
-              disabled={isVariable}
-            />
-            {errors.salePrice && <em>{errors.salePrice.message}</em>}
-          </label>
-        </div>
-
-        {isVariable && (
-          <p className={k.note}>
-            This product has size or variant options. Set prices for each option
-            below.
-          </p>
-        )}
-      </section>
-
-      {!isVariable && (
-        <section className={k.section}>
-          <h2>Stock</h2>
-
-          <label className={k.checkbox}>
-            <input type="checkbox" {...register("manageStock")} />
-            Track how many units are left
-          </label>
-
-          {manageStock && (
             <label className={k.field}>
-              <span>Units in stock</span>
+              <span>Product name</span>
               <input
-                {...register("stockQuantity")}
-                inputMode="numeric"
-                placeholder="25"
+                {...register("name")}
+                placeholder="e.g. Organic Shea Butter"
               />
-              {errors.stockQuantity && <em>{errors.stockQuantity.message}</em>}
+              {errors.name && <em>{errors.name.message}</em>}
             </label>
-          )}
 
-          <label className={k.checkbox}>
-            <input type="checkbox" {...register("inStock")} />
-            Available for customers to buy
-          </label>
-        </section>
-      )}
+            <label className={k.field}>
+              <span>Short summary</span>
+              <textarea
+                {...register("shortDescription")}
+                rows={3}
+                placeholder="A quick one-liner shown on product cards"
+              />
+            </label>
 
-      {isVariable && variations.length > 0 && (
-        <section className={k.section}>
-          <h2>Variants</h2>
-          <p className={k.help}>
-            Update price and stock for each size or option.
-          </p>
+            <label className={k.field}>
+              <span>Full description</span>
+              <textarea
+                {...register("description")}
+                rows={6}
+                placeholder="Ingredients, benefits, how to use..."
+              />
+            </label>
 
-          <div className={k.variationList}>
-            {variations.map((variation) => (
-              <div key={variation.id} className={k.variationCard}>
-                <h3>{variation.name}</h3>
-                <div className={k.row}>
-                  <label className={k.field}>
-                    <span>Price</span>
-                    <input
-                      value={variation.regularPrice}
-                      onChange={(e) =>
-                        updateVariation(
-                          variation.id,
-                          "regularPrice",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </label>
-                  <label className={k.field}>
-                    <span>Discount price</span>
-                    <input
-                      value={variation.salePrice}
-                      onChange={(e) =>
-                        updateVariation(
-                          variation.id,
-                          "salePrice",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </label>
-                </div>
+            <label className={k.field}>
+              <span>Product code (SKU)</span>
+              <input {...register("sku")} placeholder="Optional internal code" />
+            </label>
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>02</span>
+              <div>
+                <h2>Pricing</h2>
+                <p className={k.help}>Prices are in Kenyan Shillings (KSh).</p>
+              </div>
+            </div>
+
+            <div className={k.row}>
+              <label className={k.field}>
+                <span>Selling price</span>
+                <input
+                  {...register("regularPrice")}
+                  inputMode="decimal"
+                  placeholder="1200"
+                  disabled={isVariable}
+                />
+                {errors.regularPrice && <em>{errors.regularPrice.message}</em>}
+              </label>
+
+              <label className={k.field}>
+                <span>Discount price (optional)</span>
+                <input
+                  {...register("salePrice")}
+                  inputMode="decimal"
+                  placeholder="999"
+                  disabled={isVariable}
+                />
+                {errors.salePrice && <em>{errors.salePrice.message}</em>}
+              </label>
+            </div>
+
+            {isVariable && (
+              <p className={k.note}>
+                This product has size or variant options. Set prices for each
+                option in Variations.
+              </p>
+            )}
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>03</span>
+              <div>
+                <h2>Inventory</h2>
+                <p className={k.help}>
+                  Control availability and quantity tracking.
+                </p>
+              </div>
+            </div>
+
+            {!isVariable ? (
+              <>
                 <label className={k.checkbox}>
-                  <input
-                    type="checkbox"
-                    checked={variation.manageStock}
-                    onChange={(e) =>
-                      updateVariation(
-                        variation.id,
-                        "manageStock",
-                        e.target.checked,
-                      )
-                    }
-                  />
-                  Track stock for this variant
+                  <input type="checkbox" {...register("manageStock")} />
+                  <span>Track how many units are left</span>
                 </label>
-                {variation.manageStock && (
+
+                {manageStock && (
                   <label className={k.field}>
                     <span>Units in stock</span>
                     <input
-                      value={variation.stockQuantity}
-                      onChange={(e) =>
-                        updateVariation(
-                          variation.id,
-                          "stockQuantity",
-                          e.target.value,
-                        )
-                      }
+                      {...register("stockQuantity")}
+                      inputMode="numeric"
+                      placeholder="25"
                     />
+                    {errors.stockQuantity && (
+                      <em>{errors.stockQuantity.message}</em>
+                    )}
                   </label>
                 )}
+
                 <label className={k.checkbox}>
+                  <input type="checkbox" {...register("inStock")} />
+                  <span>Available for customers to buy</span>
+                </label>
+              </>
+            ) : (
+              <p className={k.note}>
+                Inventory for this product is managed per variation.
+              </p>
+            )}
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>04</span>
+              <div>
+                <h2>Images</h2>
+                <p className={k.help}>
+                  Choose the main image shown on product cards.
+                </p>
+              </div>
+            </div>
+
+            <div className={k.imageUpload}>
+              <div className={k.imagePreview}>
+                {productImagePreview ? (
+                  <img src={productImagePreview} alt="" />
+                ) : (
+                  <span>No image selected</span>
+                )}
+              </div>
+
+              <label className={k.field}>
+                <span>Main image</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>05</span>
+              <div>
+                <h2>Organization</h2>
+                <p className={k.help}>
+                  Choose where this product appears and whether it is visible.
+                </p>
+              </div>
+            </div>
+
+            <div className={k.categoryCreate}>
+              <input
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                placeholder="New category name"
+              />
+              <button
+                type="button"
+                onClick={createCategory}
+                disabled={creatingCategory}
+              >
+                {creatingCategory ? "Adding..." : "Add category"}
+              </button>
+            </div>
+
+            <div className={k.categoryGrid}>
+              {categories.map((category) => (
+                <label key={category.id} className={k.categoryChip}>
                   <input
                     type="checkbox"
-                    checked={variation.inStock}
-                    onChange={(e) =>
-                      updateVariation(variation.id, "inStock", e.target.checked)
-                    }
+                    checked={selectedCategoryIds.includes(category.id)}
+                    onChange={() => toggleCategory(category.id)}
                   />
-                  Available to buy
+                  {category.name}
                 </label>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
 
-      <section className={k.section}>
-        <h2>Categories</h2>
-        <p className={k.help}>Choose where this product appears in the shop.</p>
-
-        <div className={k.categoryCreate}>
-          <input
-            value={newCategoryName}
-            onChange={(event) => setNewCategoryName(event.target.value)}
-            placeholder="New category name"
-          />
-          <button
-            type="button"
-            onClick={createCategory}
-            disabled={creatingCategory}
-          >
-            {creatingCategory ? "Adding…" : "Add category"}
-          </button>
-        </div>
-
-        <div className={k.categoryGrid}>
-          {categories.map((category) => (
-            <label key={category.id} className={k.categoryChip}>
-              <input
-                type="checkbox"
-                checked={selectedCategoryIds.includes(category.id)}
-                onChange={() => toggleCategory(category.id)}
-              />
-              {category.name}
+            <label className={k.checkbox}>
+              <input type="checkbox" {...register("published")} />
+              <span>Show this product on the website</span>
             </label>
-          ))}
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>06</span>
+              <div>
+                <h2>Linked products</h2>
+                <p className={k.help}>
+                  Recommend other products customers may want to buy with this
+                  one.
+                </p>
+              </div>
+            </div>
+
+            <LinkedProductsPicker
+              label="Frequently bought together"
+              help="Shown as cross-sells in the cart when a customer adds this product."
+              value={crossSellProductIds}
+              options={productOptions}
+              excludeId={product?.id}
+              onChange={(ids) =>
+                setValue("crossSellProductIds", ids, { shouldDirty: true })
+              }
+            />
+
+            <LinkedProductsPicker
+              label="Related products"
+              help="Shown in the Related Products section on this product's page."
+              value={relatedProductIds}
+              options={productOptions}
+              excludeId={product?.id}
+              onChange={(ids) =>
+                setValue("relatedProductIds", ids, { shouldDirty: true })
+              }
+            />
+
+            <LinkedProductsPicker
+              label="Upsells"
+              help="Suggested as premium or alternative options on the product page."
+              value={upsellProductIds}
+              options={productOptions}
+              excludeId={product?.id}
+              onChange={(ids) =>
+                setValue("upsellProductIds", ids, { shouldDirty: true })
+              }
+            />
+          </section>
+
+          {isVariable && variations.length > 0 && (
+            <section className={k.section}>
+              <div className={k.sectionHeader}>
+                <span>07</span>
+                <div>
+                  <h2>Variations</h2>
+                  <p className={k.help}>
+                    Update price and stock for each size or option.
+                  </p>
+                </div>
+              </div>
+
+              <div className={k.variationList}>
+                {variations.map((variation) => (
+                  <div key={variation.id} className={k.variationCard}>
+                    <h3>{variation.name}</h3>
+                    <div className={k.row}>
+                      <label className={k.field}>
+                        <span>Price</span>
+                        <input
+                          value={variation.regularPrice}
+                          onChange={(e) =>
+                            updateVariation(
+                              variation.id,
+                              "regularPrice",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </label>
+                      <label className={k.field}>
+                        <span>Discount price</span>
+                        <input
+                          value={variation.salePrice}
+                          onChange={(e) =>
+                            updateVariation(
+                              variation.id,
+                              "salePrice",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label className={k.checkbox}>
+                      <input
+                        type="checkbox"
+                        checked={variation.manageStock}
+                        onChange={(e) =>
+                          updateVariation(
+                            variation.id,
+                            "manageStock",
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <span>Track stock for this variant</span>
+                    </label>
+                    {variation.manageStock && (
+                      <label className={k.field}>
+                        <span>Units in stock</span>
+                        <input
+                          value={variation.stockQuantity}
+                          onChange={(e) =>
+                            updateVariation(
+                              variation.id,
+                              "stockQuantity",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </label>
+                    )}
+                    <label className={k.checkbox}>
+                      <input
+                        type="checkbox"
+                        checked={variation.inStock}
+                        onChange={(e) =>
+                          updateVariation(
+                            variation.id,
+                            "inStock",
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <span>Available to buy</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
-      </section>
 
-      <section className={k.section}>
-        <h2>Linked products</h2>
-        <p className={k.help}>
-          Recommend other products customers may want to buy with this one — the
-          same linked-product settings as WooCommerce.
-        </p>
-
-        <LinkedProductsPicker
-          label="Frequently bought together"
-          help="Shown as cross-sells in the cart when a customer adds this product."
-          value={crossSellProductIds}
-          options={productOptions}
-          excludeId={product?.id}
-          onChange={(ids) =>
-            setValue("crossSellProductIds", ids, { shouldDirty: true })
-          }
-        />
-
-        <LinkedProductsPicker
-          label="Related products"
-          help="Shown in the Related Products section on this product's page."
-          value={relatedProductIds}
-          options={productOptions}
-          excludeId={product?.id}
-          onChange={(ids) =>
-            setValue("relatedProductIds", ids, { shouldDirty: true })
-          }
-        />
-
-        <LinkedProductsPicker
-          label="Upsells"
-          help="Suggested as premium or alternative options on the product page."
-          value={upsellProductIds}
-          options={productOptions}
-          excludeId={product?.id}
-          onChange={(ids) =>
-            setValue("upsellProductIds", ids, { shouldDirty: true })
-          }
-        />
-      </section>
-
-      <section className={k.section}>
-        <h2>Visibility</h2>
-        <label className={k.checkbox}>
-          <input type="checkbox" {...register("published")} />
-          Show this product on the website
-        </label>
-        <p className={k.help}>
-          Turn off to hide while you are still preparing the listing.
-        </p>
-      </section>
+        <aside className={k.saveRail} aria-label="Product save actions">
+          <span className={k.railEyebrow}>
+            {mode === "create" ? "New product" : "Editing product"}
+          </span>
+          <strong>{product?.name || "Unsaved product"}</strong>
+          <p>
+            Saves catalog fields, image changes, linked products, and variation
+            updates.
+          </p>
+          <button type="submit" disabled={saving}>
+            {saveLabel}
+          </button>
+        </aside>
+      </div>
 
       <div className={k.actions}>
         <button type="submit" disabled={saving}>
-          {saving
-            ? "Saving…"
-            : mode === "create"
-              ? "Create product"
-              : "Save changes"}
+          {saveLabel}
         </button>
       </div>
     </form>

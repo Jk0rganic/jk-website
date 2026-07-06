@@ -2,6 +2,7 @@
 
 import {
   AlertCircle,
+  BarChart3,
   MessageSquareText,
   Star,
   StarHalf,
@@ -13,6 +14,11 @@ import type {
   AdminReview,
   AdminReviewSummary,
 } from "@/lib/admin/review-service";
+import { AdminBadge } from "../../components/ui/admin-badge";
+import { AdminEmptyState } from "../../components/ui/admin-empty-state";
+import { AdminMetricCard } from "../../components/ui/admin-metric-card";
+import { AdminPanel } from "../../components/ui/admin-panel";
+import { AdminToolbar } from "../../components/ui/admin-toolbar";
 import ui from "../../components/ui/admin-ui.module.scss";
 import { PageHeader } from "../../components/ui/page-header";
 import k from "../styles.module.scss";
@@ -31,6 +37,7 @@ type ReviewsResponse = {
   summary?: AdminReviewSummary;
   error?: string;
 };
+type BadgeTone = "success" | "info" | "warning" | "danger" | "neutral";
 
 const EMPTY_SUMMARY: AdminReviewSummary = {
   total: 0,
@@ -144,27 +151,35 @@ export default function AdminReviewsPage() {
       label: "Total reviews",
       value: summary.total,
       icon: MessageSquareText,
-      iconClass: ui.iconGreen,
+      tone: "info" as const,
+      detail: "Loaded feedback",
     },
     {
       label: "Average rating",
       value: summary.averageRating ? summary.averageRating.toFixed(1) : "0.0",
       icon: Star,
-      iconClass: ui.iconAmber,
+      tone: "warning" as const,
+      detail: "Across rated reviews",
     },
     {
       label: "Low ratings",
       value: summary.lowRatingCount,
       icon: AlertCircle,
-      iconClass: k.iconRed,
+      tone: "warning" as const,
+      detail: "Two stars or below",
     },
     {
       label: "Pending",
       value: summary.pendingCount,
       icon: StarHalf,
-      iconClass: ui.iconBlue,
+      tone: "neutral" as const,
+      detail: "Awaiting moderation",
     },
   ];
+  const distributionMax = Math.max(
+    1,
+    ...Object.values(summary.ratingDistribution),
+  );
 
   return (
     <>
@@ -173,28 +188,50 @@ export default function AdminReviewsPage() {
         subtitle="Filter product reviews and inspect customer feedback."
       />
 
-      <div className={ui.statGrid}>
-        {statItems.map((item) => {
-          const Icon = item.icon;
+      <section className={ui.statGrid} aria-label="Review KPIs">
+        {statItems.map((item) => (
+          <AdminMetricCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            icon={item.icon}
+            tone={item.tone}
+            detail={item.detail}
+          />
+        ))}
+      </section>
 
-          return (
-            <article key={item.label} className={ui.statCard}>
-              <div className={ui.statTop}>
-                <span className={ui.statLabel}>{item.label}</span>
-                <span className={`${ui.statIcon} ${item.iconClass}`}>
-                  <Icon size={18} aria-hidden />
+      <AdminPanel
+        title="Rating distribution"
+        description="Count of customer ratings from five stars down to one."
+        action={<BarChart3 size={18} aria-hidden />}
+      >
+        <div className={k.distributionList}>
+          {([5, 4, 3, 2, 1] as const).map((rating) => {
+            const count = summary.ratingDistribution[rating];
+            const width = `${Math.round((count / distributionMax) * 100)}%`;
+
+            return (
+              <div key={rating} className={k.distributionRow}>
+                <span>
+                  <Star size={14} aria-hidden />
+                  {rating}
                 </span>
+                <div className={k.distributionTrack}>
+                  <i style={{ width }} />
+                </div>
+                <strong>{count}</strong>
               </div>
-              <div className={ui.statValue}>{item.value}</div>
-            </article>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </AdminPanel>
 
-      <section className={ui.card}>
-        <div className={ui.cardHeader}>
-          <h2>Review list</h2>
-          {hasFilters && (
+      <AdminPanel
+        title="Review list"
+        description="Product, customer, rating, excerpt, moderation status, and details."
+        action={
+          hasFilters && (
             <button
               type="button"
               className={k.clearButton}
@@ -202,23 +239,21 @@ export default function AdminReviewsPage() {
             >
               Clear filters
             </button>
-          )}
-        </div>
-        <div className={ui.cardBody}>
-          <div className={`${ui.toolbar} ${k.filters}`}>
-            <input
-              type="search"
-              aria-label="Search reviews"
-              placeholder="Search reviewer, email, product, content..."
-              value={filters.search}
-              onChange={(event) => updateFilter("search", event.target.value)}
-              className={ui.searchInput}
-            />
+          )
+        }
+      >
+        <AdminToolbar
+          searchLabel="Search reviews"
+          searchPlaceholder="Search reviewer, email, product, content"
+          searchValue={filters.search}
+          onSearchChange={(event) => updateFilter("search", event.target.value)}
+        >
+          <label className={k.filterControl}>
+            <span>Rating</span>
             <select
               aria-label="Filter reviews by rating"
               value={filters.rating}
               onChange={(event) => updateFilter("rating", event.target.value)}
-              className={ui.select}
             >
               {RATING_OPTIONS.map((option) => (
                 <option
@@ -229,11 +264,13 @@ export default function AdminReviewsPage() {
                 </option>
               ))}
             </select>
+          </label>
+          <label className={k.filterControl}>
+            <span>Status</span>
             <select
               aria-label="Filter reviews by status"
               value={filters.status}
               onChange={(event) => updateFilter("status", event.target.value)}
-              className={ui.select}
             >
               {STATUS_OPTIONS.map((option) => (
                 <option
@@ -244,48 +281,59 @@ export default function AdminReviewsPage() {
                 </option>
               ))}
             </select>
+          </label>
+          <label className={k.filterControl}>
+            <span>Product</span>
             <input
               type="text"
               aria-label="Filter reviews by product"
-              placeholder="Product name, slug, or ID"
+              placeholder="Name, slug, or ID"
               value={filters.product}
               onChange={(event) => updateFilter("product", event.target.value)}
-              className={k.filterInput}
             />
+          </label>
+          <label className={k.filterControl}>
+            <span>After</span>
             <input
               type="date"
               aria-label="Reviews after"
               value={filters.after}
               onChange={(event) => updateFilter("after", event.target.value)}
-              className={k.dateInput}
             />
+          </label>
+          <label className={k.filterControl}>
+            <span>Before</span>
             <input
               type="date"
               aria-label="Reviews before"
               value={filters.before}
               onChange={(event) => updateFilter("before", event.target.value)}
-              className={k.dateInput}
             />
-          </div>
+          </label>
+        </AdminToolbar>
 
-          {loading && <p className={k.stateText}>Loading reviews...</p>}
-          {error && <p className={ui.error}>{error}</p>}
+        {loading && <p className={k.stateText}>Loading reviews...</p>}
+        {error && <p className={ui.error}>{error}</p>}
 
-          {!loading && !error && reviews.length === 0 && (
-            <p className={ui.empty}>No reviews match your filters.</p>
-          )}
+        {!loading && !error && reviews.length === 0 && (
+          <AdminEmptyState
+            title="No reviews match these filters"
+            description="Adjust rating, product, date, search, or status filters to widen the queue."
+            icon={MessageSquareText}
+          />
+        )}
 
-          {!loading && !error && reviews.length > 0 && (
-            <div className={ui.tableWrap}>
-              <table className={ui.table}>
+        {!loading && !error && reviews.length > 0 && (
+          <div className={ui.tableWrap}>
+            <table className={ui.table}>
                 <thead>
                   <tr>
                     <th>Product</th>
                     <th>Reviewer</th>
                     <th>Rating</th>
-                    <th>Status</th>
-                    <th>Date</th>
                     <th>Excerpt</th>
+                    <th>Date</th>
+                    <th>Status</th>
                     <th>
                       <span className={k.srOnly}>Actions</span>
                     </th>
@@ -297,14 +345,24 @@ export default function AdminReviewsPage() {
 
                     return (
                       <Fragment key={review.id}>
-                        <tr key={review.id}>
-                          <td>
-                            <strong className={k.productName}>
+                        <tr
+                          key={review.id}
+                          className={
+                            review.rating > 0 && review.rating <= 2
+                              ? k.lowRatingRow
+                              : undefined
+                          }
+                        >
+                          <td data-label="Product">
+                            <Link
+                              href={`/admin-account/products/${review.productId}`}
+                              className={k.productName}
+                            >
                               {review.productName}
-                            </strong>
+                            </Link>
                             <div className={ui.muted}>#{review.productId}</div>
                           </td>
-                          <td>
+                          <td data-label="Reviewer">
                             <span className={k.reviewer}>
                               <UserRound size={15} aria-hidden />
                               {review.reviewer}
@@ -313,22 +371,30 @@ export default function AdminReviewsPage() {
                               {review.reviewerEmail || "No email"}
                             </div>
                           </td>
-                          <td>
-                            <span className={k.rating}>
+                          <td data-label="Rating">
+                            <span
+                              className={`${k.rating} ${
+                                review.rating > 0 && review.rating <= 2
+                                  ? k.lowRating
+                                  : ""
+                              }`}
+                            >
                               <Star size={15} aria-hidden />
                               {formatRating(review.rating)}
                             </span>
                           </td>
-                          <td>
-                            <span className={statusBadgeClass(review.status)}>
-                              {review.status || "unknown"}
-                            </span>
-                          </td>
-                          <td>{formatReviewDate(review.date)}</td>
-                          <td className={k.excerpt}>
+                          <td data-label="Excerpt" className={k.excerpt}>
                             {getExcerpt(review.content)}
                           </td>
-                          <td>
+                          <td data-label="Date">
+                            {formatReviewDate(review.date)}
+                          </td>
+                          <td data-label="Status">
+                            <AdminBadge tone={statusBadgeTone(review.status)}>
+                              {review.status || "unknown"}
+                            </AdminBadge>
+                          </td>
+                          <td data-label="Actions">
                             <button
                               type="button"
                               className={k.detailButton}
@@ -394,8 +460,7 @@ export default function AdminReviewsPage() {
               </table>
             </div>
           )}
-        </div>
-      </section>
+      </AdminPanel>
     </>
   );
 }
@@ -423,20 +488,20 @@ function getExcerpt(content: string) {
   return content.length > 120 ? `${content.slice(0, 117)}...` : content;
 }
 
-function statusBadgeClass(status: string) {
+function statusBadgeTone(status: string): BadgeTone {
   const normalized = status.toLowerCase();
 
   if (["approved", "approve", "published", "publish"].includes(normalized)) {
-    return `${ui.badge} ${ui.badgeGreen}`;
+    return "success";
   }
 
   if (["pending", "hold", "unapproved"].includes(normalized)) {
-    return `${ui.badge} ${ui.badgeYellow}`;
+    return "warning";
   }
 
   if (["spam", "trash"].includes(normalized)) {
-    return `${ui.badge} ${ui.badgeRed}`;
+    return "danger";
   }
 
-  return `${ui.badge} ${ui.badgeGray}`;
+  return "neutral";
 }

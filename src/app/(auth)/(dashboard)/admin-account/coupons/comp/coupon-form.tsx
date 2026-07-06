@@ -106,137 +106,205 @@ export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps)
     }
   }
 
+  const saveLabel = saving
+    ? "Saving..."
+    : mode === "create"
+      ? "Create coupon"
+      : "Save changes";
+
   return (
     <form className={k.form} onSubmit={handleSubmit(onSubmit)}>
-      <section className={k.section}>
-        <h2>Coupon details</h2>
-        <p className={k.help}>
-          Customers enter this code at checkout. Codes are saved in uppercase.
-        </p>
+      <div className={k.formLayout}>
+        <div className={k.sections}>
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>01</span>
+              <div>
+                <h2>Discount</h2>
+                <p className={k.help}>
+                  Customers enter this code at checkout. Codes are saved in
+                  uppercase.
+                </p>
+              </div>
+            </div>
 
-        <label className={k.field}>
-          <span>Coupon code</span>
-          <input
-            {...register("code")}
-            placeholder="e.g. WELCOME10"
-            style={{ textTransform: "uppercase" }}
-          />
-          {errors.code && <em>{errors.code.message}</em>}
-          {codeValue && (
-            <span className={k.codePreview}>{codeValue.toUpperCase()}</span>
+            <label className={k.field}>
+              <span>Coupon code</span>
+              <input
+                {...register("code")}
+                placeholder="e.g. WELCOME10"
+                style={{ textTransform: "uppercase" }}
+              />
+              {errors.code && <em>{errors.code.message}</em>}
+              {codeValue && (
+                <span className={k.codePreview}>
+                  {codeValue.toUpperCase()}
+                </span>
+              )}
+            </label>
+
+            <label className={k.field}>
+              <span>Description (optional)</span>
+              <textarea
+                {...register("description")}
+                rows={2}
+                placeholder="Internal note, e.g. Launch week promo"
+              />
+            </label>
+
+            <div className={k.row}>
+              <label className={k.field}>
+                <span>Discount type</span>
+                <select {...register("discountType")}>
+                  <option value="percent">Percentage off cart</option>
+                  <option value="fixed_cart">Fixed amount off cart</option>
+                </select>
+              </label>
+
+              <label className={k.field}>
+                <span>
+                  {discountType === "percent" ? "Percentage" : "Amount (KSh)"}
+                </span>
+                <input
+                  {...register("amount")}
+                  inputMode="decimal"
+                  placeholder={discountType === "percent" ? "10" : "500"}
+                />
+                {errors.amount && <em>{errors.amount.message}</em>}
+              </label>
+            </div>
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>02</span>
+              <div>
+                <h2>Restrictions</h2>
+                <p className={k.help}>
+                  Optional order rules for when this coupon can be used.
+                </p>
+              </div>
+            </div>
+
+            <div className={k.row}>
+              <label className={k.field}>
+                <span>Minimum order (KSh)</span>
+                <input
+                  {...register("minimumAmount")}
+                  inputMode="decimal"
+                  placeholder="0"
+                />
+                {errors.minimumAmount && (
+                  <em>{errors.minimumAmount.message}</em>
+                )}
+              </label>
+
+              <label className={k.field}>
+                <span>Maximum order (KSh)</span>
+                <input
+                  {...register("maximumAmount")}
+                  inputMode="decimal"
+                  placeholder="No maximum"
+                />
+                {errors.maximumAmount && (
+                  <em>{errors.maximumAmount.message}</em>
+                )}
+              </label>
+            </div>
+
+            <label className={k.checkbox}>
+              <input type="checkbox" {...register("individualUse")} />
+              <span>Individual use only</span>
+            </label>
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>03</span>
+              <div>
+                <h2>Usage limits</h2>
+                <p className={k.help}>
+                  Cap total redemptions and repeat use by the same customer.
+                </p>
+              </div>
+            </div>
+
+            <div className={k.row}>
+              <label className={k.field}>
+                <span>Usage limit</span>
+                <input
+                  {...register("usageLimit")}
+                  inputMode="numeric"
+                  placeholder="Unlimited"
+                />
+                {errors.usageLimit && <em>{errors.usageLimit.message}</em>}
+              </label>
+
+              <label className={k.field}>
+                <span>Usage limit per customer</span>
+                <input
+                  {...register("usageLimitPerUser")}
+                  inputMode="numeric"
+                  placeholder="Unlimited"
+                />
+                {errors.usageLimitPerUser && (
+                  <em>{errors.usageLimitPerUser.message}</em>
+                )}
+              </label>
+            </div>
+          </section>
+
+          <section className={k.section}>
+            <div className={k.sectionHeader}>
+              <span>04</span>
+              <div>
+                <h2>Expiry and status</h2>
+                <p className={k.help}>
+                  Control when the code stops working and whether it is active.
+                </p>
+              </div>
+            </div>
+
+            <div className={k.row}>
+              <label className={k.field}>
+                <span>Expiry date</span>
+                <input type="date" {...register("expiresAt")} />
+              </label>
+
+              <label className={k.checkbox}>
+                <input type="checkbox" {...register("published")} />
+                <span>Active at checkout</span>
+              </label>
+            </div>
+          </section>
+        </div>
+
+        <aside className={k.saveRail} aria-label="Coupon save actions">
+          <span className={k.railEyebrow}>
+            {mode === "create" ? "New coupon" : "Editing coupon"}
+          </span>
+          <strong>{codeValue ? codeValue.toUpperCase() : "Unsaved code"}</strong>
+          <p>Save the discount rules, limits, expiry, and checkout status.</p>
+          <button type="submit" disabled={saving || deleting}>
+            {saveLabel}
+          </button>
+
+          {mode === "edit" && (
+            <button
+              type="button"
+              className={k.dangerButton}
+              onClick={handleDelete}
+              disabled={saving || deleting}
+            >
+              {deleting ? "Deleting..." : "Delete coupon"}
+            </button>
           )}
-        </label>
-
-        <label className={k.field}>
-          <span>Description (optional)</span>
-          <textarea
-            {...register("description")}
-            rows={2}
-            placeholder="Internal note, e.g. Launch week promo"
-          />
-        </label>
-      </section>
-
-      <section className={k.section}>
-        <h2>Discount</h2>
-
-        <div className={k.row}>
-          <label className={k.field}>
-            <span>Discount type</span>
-            <select {...register("discountType")}>
-              <option value="percent">Percentage off cart</option>
-              <option value="fixed_cart">Fixed amount off cart</option>
-            </select>
-          </label>
-
-          <label className={k.field}>
-            <span>
-              {discountType === "percent" ? "Percentage" : "Amount (KSh)"}
-            </span>
-            <input
-              {...register("amount")}
-              inputMode="decimal"
-              placeholder={discountType === "percent" ? "10" : "500"}
-            />
-            {errors.amount && <em>{errors.amount.message}</em>}
-          </label>
-        </div>
-      </section>
-
-      <section className={k.section}>
-        <h2>Limits</h2>
-        <p className={k.help}>Optional rules for when this coupon can be used.</p>
-
-        <div className={k.row}>
-          <label className={k.field}>
-            <span>Minimum order (KSh)</span>
-            <input
-              {...register("minimumAmount")}
-              inputMode="decimal"
-              placeholder="0"
-            />
-            {errors.minimumAmount && <em>{errors.minimumAmount.message}</em>}
-          </label>
-
-          <label className={k.field}>
-            <span>Usage limit</span>
-            <input
-              {...register("usageLimit")}
-              inputMode="numeric"
-              placeholder="Unlimited"
-            />
-            {errors.usageLimit && <em>{errors.usageLimit.message}</em>}
-          </label>
-
-          <label className={k.field}>
-            <span>Maximum order (KSh)</span>
-            <input
-              {...register("maximumAmount")}
-              inputMode="decimal"
-              placeholder="No maximum"
-            />
-            {errors.maximumAmount && <em>{errors.maximumAmount.message}</em>}
-          </label>
-
-          <label className={k.field}>
-            <span>Usage limit per customer</span>
-            <input
-              {...register("usageLimitPerUser")}
-              inputMode="numeric"
-              placeholder="Unlimited"
-            />
-            {errors.usageLimitPerUser && (
-              <em>{errors.usageLimitPerUser.message}</em>
-            )}
-          </label>
-
-          <label className={k.field}>
-            <span>Expiry date</span>
-            <input type="date" {...register("expiresAt")} />
-          </label>
-        </div>
-
-        <label className={k.checkbox}>
-          <input type="checkbox" {...register("individualUse")} />
-          Individual use only
-        </label>
-      </section>
-
-      <section className={k.section}>
-        <h2>Status</h2>
-        <label className={k.checkbox}>
-          <input type="checkbox" {...register("published")} />
-          Active — customers can use this coupon at checkout
-        </label>
-      </section>
+        </aside>
+      </div>
 
       <div className={k.actions}>
         <button type="submit" disabled={saving || deleting}>
-          {saving
-            ? "Saving…"
-            : mode === "create"
-              ? "Create coupon"
-              : "Save changes"}
+          {saveLabel}
         </button>
 
         {mode === "edit" && (
@@ -246,7 +314,7 @@ export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps)
             onClick={handleDelete}
             disabled={saving || deleting}
           >
-            {deleting ? "Deleting…" : "Delete coupon"}
+            {deleting ? "Deleting..." : "Delete coupon"}
           </button>
         )}
       </div>
