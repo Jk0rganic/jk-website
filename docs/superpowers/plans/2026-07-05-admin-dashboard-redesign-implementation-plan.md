@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Redesign the full JK Organics admin area into a calm operations console with workflow navigation, reusable admin UI primitives, and refreshed pages for dashboard, fulfillment, catalog, growth, team, and settings.
+**Goal:** Redesign the full JK Organics admin area into a calm operations console closely inspired by the selected eMart-style dashboard reference, with workflow navigation, reusable admin UI primitives, and refreshed pages for dashboard, fulfillment, catalog, growth, team, and settings.
 
 **Architecture:** Build a shared admin design system first, then migrate pages by workflow group. Keep existing data APIs and business logic intact; this is primarily shell, layout, interaction, and page-composition work. Use SCSS Modules and local reusable components instead of adding a new UI framework.
 
@@ -17,6 +17,7 @@ Spec: `docs/superpowers/specs/2026-07-05-admin-dashboard-redesign-design.md`
 Resolved decisions:
 
 - Visual direction: Calm Operations Console.
+- Reference anchor: eMart-style Dribbble dashboard layout with dark left rail, pale blue-gray canvas, white analytics cards, top search/action bar, central chart grid, and compact right-side metric widgets. Do not copy third-party artwork or exact pixels; translate the structure into an original JK Organics admin.
 - Navigation: workflow groups.
 - Scope: full admin redesign, including list pages, detail pages, forms, team, settings, and analytics.
 - Remaining UI decisions are delegated to implementation under this plan.
@@ -205,15 +206,17 @@ In `admin-shell.module.scss` define the calm console tokens:
 ```scss
 .shell {
   --admin-sidebar-w: 264px;
-  --admin-bg: #f5f7f8;
+  --admin-bg: #f3f8fb;
   --admin-surface: #ffffff;
-  --admin-border: #dde5df;
+  --admin-border: #dce8ee;
   --admin-ink: #15211a;
-  --admin-muted: #66736b;
-  --admin-sidebar: #121a16;
+  --admin-muted: #667482;
+  --admin-sidebar: #171c24;
   --admin-accent: #22984f;
   --admin-accent-soft: #e7f6ed;
-  --admin-info: #2563eb;
+  --admin-info: #22a9e8;
+  --admin-chart-blue: #2f54d8;
+  --admin-chart-cyan: #55c7ee;
   --admin-warning: #b7791f;
   --admin-danger: #c2413f;
   --admin-radius: 8px;
@@ -254,10 +257,11 @@ git commit -m "feat: redesign admin shell foundation"
 
 Use this section order in `admin-dashboard.tsx`:
 
-1. `PageHeader` with actions: Add product, View orders, Analytics.
-2. Metric grid: revenue, orders, average order value, unpaid/pending orders.
-3. Attention row: needs fulfillment, low stock if available, low-rating reviews if available, payment issues.
-4. Main grid: revenue/orders chart, payment split, recent orders, top products, top locations.
+1. Top workspace row inherited from shell: search/action bar and compact admin identity.
+2. Welcome/performance strip in the reference style: admin avatar/name, today's sales, overall performance, and a non-copied JK Organics visual area or compact product/operations summary.
+3. Main dashboard grid: revenue updates chart, sales overview donut, weekly stats, yearly/monthly sales.
+4. Right insight rail on wide screens: delivery fees/expense, sales/revenue, income/net revenue, growth/comparison, monthly earnings, payment gateways.
+5. Lower operations panels: recent orders, top products, top locations, pending/unpaid orders.
 
 - [ ] **Step 2: Use `AdminMetricCard` for KPI cards**
 
@@ -267,7 +271,7 @@ Map current dashboard totals into cards:
 <AdminMetricCard
   label="Revenue"
   value={formatCurrency(stats.revenue)}
-  tone="success"
+  tone="info"
   icon={Banknote}
   detail="Selected recent orders"
 />
@@ -275,29 +279,55 @@ Map current dashboard totals into cards:
 
 Use `tone="neutral" | "success" | "info" | "warning" | "danger"` consistently.
 
-- [ ] **Step 3: Make recent orders scannable**
+- [ ] **Step 3: Create reference-inspired dashboard grid classes**
 
-Render recent orders inside `AdminPanel` with customer, status badge, payment method, total, and link to `/admin-account/orders/${order.id}`. Use table on desktop and stacked cards via CSS on narrow screens.
-
-- [ ] **Step 4: Style dashboard grid**
-
-In `styles.module.scss`, set:
+In `styles.module.scss`, implement desktop areas close to the reference:
 
 ```scss
-.dashboardGrid {
+.dashboardCanvas {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 16px;
 }
 
-@media (max-width: 980px) {
-  .dashboardGrid {
+.primaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+  gap: 16px;
+}
+
+.insightRail {
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-width: 1180px) {
+  .dashboardCanvas {
+    grid-template-columns: 1fr;
+  }
+
+  .insightRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .primaryGrid,
+  .insightRail {
     grid-template-columns: 1fr;
   }
 }
 ```
 
-- [ ] **Step 5: Verify dashboard route**
+- [ ] **Step 4: Make recent orders scannable**
+
+Render recent orders inside `AdminPanel` with customer, status badge, payment method, total, and link to `/admin-account/orders/${order.id}`. Use table on desktop and stacked cards via CSS on narrow screens.
+
+- [ ] **Step 5: Keep the dashboard original**
+
+Do not copy the reference character illustration, exact eMart labels, exact chart shapes, exact colors, or exact icon artwork. Use JK Organics metrics and simple original visual blocks/charts from Recharts or existing chart components.
+
+- [ ] **Step 6: Verify dashboard route**
 
 Run:
 
@@ -308,7 +338,7 @@ curl -I http://127.0.0.1:3000/admin-account
 
 Expected: typecheck exits 0. Curl returns `307` to sign-in when logged out or `200` if logged in.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/components/dashboard/admin-dashboard.tsx

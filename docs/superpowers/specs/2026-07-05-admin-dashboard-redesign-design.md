@@ -6,7 +6,7 @@ Date: 2026-07-05
 
 Redesign the full admin dashboard into a calm, modern operations console for JK Organics. The current admin feature set is strong, but the UI should feel simpler, more consistent, and easier for a shop owner to scan during daily work.
 
-The chosen direction is **Calm Operations Console**: a compact dark sidebar, clean light workspace, restrained JK Organics green accents, high-clarity cards and tables, and dense but comfortable layouts for repeated admin workflows.
+The chosen direction is **Calm Operations Console**, now anchored to the eMart-style Dribbble reference the owner selected: a compact dark sidebar, pale blue-gray workspace, white metric/chart cards, dense analytics widgets, and a right-side insight column on wide screens. The implementation should be close in layout rhythm and dashboard composition, while remaining an original JK Organics interface using real store data, JK branding, and accessible components.
 
 ## Scope
 
@@ -51,23 +51,25 @@ The sidebar should keep familiar labels visible inside the new groups so existin
 
 ## Visual System
 
-The UI should be quiet and operational, not decorative.
+The UI should be quiet and operational, not decorative. The main dashboard should feel close to the provided eMart reference, translated for JK Organics rather than copied pixel-for-pixel.
 
-- Background: very light neutral workspace.
-- Sidebar: deep charcoal or deep green-black, not a bright gradient.
-- Accent: JK Organics green for primary actions, success states, and active navigation.
-- Supporting colors: blue for informational analytics, amber for attention, red only for destructive or failed states.
-- Cards: 8px radius or less, subtle border, minimal shadow.
+- Background: pale blue-gray workspace similar to the reference, not pure white.
+- Sidebar: deep charcoal or deep green-black with compact grouped navigation and soft active row highlights.
+- Accent: JK Organics green for primary actions, success states, and active navigation, supported by cyan/blue chart accents inspired by the reference.
+- Supporting colors: blue/cyan for informational analytics, amber for attention, red only for destructive or failed states.
+- Cards: 8px radius or less, subtle border, soft shadow, and white surface on the pale workspace.
 - Tables: crisp row separation, sticky or visually stable headers where useful, compact controls.
 - Typography: smaller, tighter headings inside panels; no oversized marketing-style hero sections.
 - Icons: lucide icons for navigation and icon buttons.
 - Spacing: consistent page gutters, dense enough for operations but not cramped.
+- Dashboard composition: search/action topbar, welcome/performance strip, central chart grid, compact right-side KPI widgets, and lower payment/product/order panels on desktop.
 
 Avoid:
 
 - Decorative orbs, heavy gradients, oversized hero sections, card-in-card layouts, and one-color green-only screens.
 - In-app explanatory text that describes how to use obvious controls.
 - Large illustrated characters or decorative SaaS art inside the admin dashboard.
+- Direct copying of third-party artwork, characters, logos, exact text, exact icons, or exact chart graphics from the reference.
 
 ## Shared Shell
 
@@ -77,7 +79,7 @@ Desktop:
 
 - Fixed-width dark sidebar with grouped navigation.
 - Topbar with page title, optional search, compact quick actions, and admin identity.
-- Main content uses a max readable width only where appropriate; operational tables can span wider.
+- Main content uses the eMart-like dashboard rhythm: wide central working area plus a compact right insight rail on dashboard/analytics pages where viewport width allows it.
 - Breadcrumb or back affordance appears on detail/create/edit pages.
 
 Mobile:
@@ -111,12 +113,12 @@ The dashboard should answer: what needs attention today, how is revenue doing, a
 
 Layout:
 
-- KPI row: revenue, orders, average order value, pending orders or unpaid orders.
-- Operations strip: orders needing action, low stock if available, recent reviews needing attention.
-- Revenue/orders chart.
-- Recent orders table.
-- Top products and top locations panels.
-- Payment split panel for cash vs M-Pesa/IntaSend.
+- Topbar with search, quick actions, notifications/account controls where useful.
+- Welcome/performance strip similar in structure to the reference, but using JK Organics copy and metrics.
+- KPI widgets: today's sales, overall performance, expenses/delivery fees, sales/revenue, income/net revenue, growth/comparison.
+- Central cards: revenue updates chart, sales overview donut, weekly stats, yearly/monthly sales.
+- Right rail on wide screens: compact sales/payment/earnings widgets and payment gateways.
+- Lower panels: recent orders, top products, top locations, and payment split for cash vs M-Pesa/IntaSend.
 
 Primary actions:
 
