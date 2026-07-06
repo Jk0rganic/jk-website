@@ -111,7 +111,7 @@ Tests:
 - Create: `src/app/(auth)/(dashboard)/admin-account/components/ui/admin-empty-state.tsx`
 - Test: `src/app/(auth)/(dashboard)/admin-account/layout.test.ts`
 
-- [ ] **Step 1: Update nav groups**
+- [x] **Step 1: Update nav groups**
 
 Replace `adminNavGroups` with workflow groups:
 
@@ -153,7 +153,7 @@ export const adminNavGroups: AdminNavGroup[] = [
 
 Update `adminPageTitles` so `/admin-account/team` is `"Admins"` and `/admin-account/details` is `"Account"`. Keep detail route title helpers for product, coupon, and order routes.
 
-- [ ] **Step 2: Add descriptions by route group**
+- [x] **Step 2: Add descriptions by route group**
 
 In `admin-topbar.tsx`, replace `pageDescriptions` with concise operational copy:
 
@@ -171,7 +171,7 @@ const pageDescriptions: Record<string, string> = {
 };
 ```
 
-- [ ] **Step 3: Close mobile drawer on route change**
+- [x] **Step 3: Close mobile drawer on route change**
 
 In `admin-shell.tsx`, import `useEffect` and close the drawer when `pathname` changes:
 
@@ -181,7 +181,7 @@ useEffect(() => {
 }, [pathname]);
 ```
 
-- [ ] **Step 4: Create reusable UI primitives**
+- [x] **Step 4: Create reusable UI primitives**
 
 Create `AdminMetricCard`, `AdminPanel`, `AdminToolbar`, `AdminBadge`, and `AdminEmptyState` using typed props and classes from `admin-ui.module.scss`. Keep them simple wrappers:
 
@@ -199,7 +199,7 @@ export function AdminPanel({ title, action, children }: AdminPanelProps) {
 }
 ```
 
-- [ ] **Step 5: Refresh shared SCSS tokens**
+- [x] **Step 5: Refresh shared SCSS tokens**
 
 In `admin-shell.module.scss` define the calm console tokens:
 
@@ -227,7 +227,7 @@ In `admin-shell.module.scss` define the calm console tokens:
 
 Use these tokens in sidebar, topbar, and shared UI styles.
 
-- [ ] **Step 6: Run focused shell checks**
+- [x] **Step 6: Run focused shell checks**
 
 Run:
 
@@ -238,7 +238,7 @@ pnpm exec tsc --noEmit
 
 Expected: both commands exit 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/components
