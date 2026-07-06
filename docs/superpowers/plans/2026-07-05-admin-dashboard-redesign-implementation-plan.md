@@ -611,7 +611,7 @@ git commit -m "feat: redesign admin team and settings"
 - Modify as needed: UI components touched in Tasks 1-6
 - Optional create: `docs/admin-dashboard-redesign-verification.md`
 
-- [ ] **Step 1: Run automated checks**
+- [x] **Step 1: Run automated checks**
 
 Run:
 
@@ -623,7 +623,7 @@ pnpm exec biome check src/app/\(auth\)/\(dashboard\)/admin-account src/lib/admin
 
 Expected: all commands exit 0.
 
-- [ ] **Step 2: Check protected routes**
+- [x] **Step 2: Check protected routes**
 
 Run:
 
@@ -666,7 +666,7 @@ Confirm:
 - destructive modals fit mobile screens
 - primary actions are visible
 
-- [ ] **Step 4: Fix polish issues**
+- [x] **Step 4: Fix polish issues**
 
 Only fix issues found in Step 3. Do not add new features. Keep changes scoped to layout, spacing, overflow, responsive behavior, accessibility labels, and visual consistency.
 

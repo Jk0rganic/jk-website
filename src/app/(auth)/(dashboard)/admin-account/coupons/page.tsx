@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   BadgePercent,
   CheckCircle2,
@@ -9,19 +7,18 @@ import {
   Plus,
   TicketPercent,
 } from "lucide-react";
-import { formatDate } from "@/utils/formatDate";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { type AdminCoupon, summarizeCoupons } from "@/lib/admin/coupon-service";
 import { formatPrice } from "@/utils/format-price";
-import {
-  summarizeCoupons,
-  type AdminCoupon,
-} from "@/lib/admin/coupon-service";
+import { formatDate } from "@/utils/formatDate";
 import { AdminBadge } from "../components/ui/admin-badge";
 import { AdminEmptyState } from "../components/ui/admin-empty-state";
 import { AdminMetricCard } from "../components/ui/admin-metric-card";
 import { AdminPanel } from "../components/ui/admin-panel";
 import { AdminToolbar } from "../components/ui/admin-toolbar";
-import { PageHeader } from "../components/ui/page-header";
 import ui from "../components/ui/admin-ui.module.scss";
+import { PageHeader } from "../components/ui/page-header";
 
 const EXPIRING_SOON_DAYS = 7;
 type BadgeTone = "success" | "info" | "warning" | "danger" | "neutral";
@@ -74,10 +71,7 @@ export default function AdminCouponsPage() {
     label: string;
     tone: BadgeTone;
   } {
-    if (
-      coupon.usageLimit !== null &&
-      coupon.usageCount >= coupon.usageLimit
-    ) {
+    if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
       return { label: "Exhausted", tone: "danger" as const };
     }
 
@@ -110,9 +104,7 @@ export default function AdminCouponsPage() {
   }
 
   function formatDiscountType(coupon: AdminCoupon) {
-    return coupon.discountType === "fixed_cart"
-      ? "Fixed cart"
-      : "Percentage";
+    return coupon.discountType === "fixed_cart" ? "Fixed cart" : "Percentage";
   }
 
   return (
@@ -128,7 +120,7 @@ export default function AdminCouponsPage() {
         }
       />
 
-      <div className={ui.statGrid} aria-label="Coupon KPIs">
+      <section className={ui.statGrid} aria-label="Coupon KPIs">
         <AdminMetricCard
           label="Total coupons"
           value={summary.total}
@@ -157,7 +149,7 @@ export default function AdminCouponsPage() {
           tone="danger"
           detail="Usage limit reached"
         />
-      </div>
+      </section>
 
       <AdminPanel
         title="Coupon table"
@@ -170,76 +162,74 @@ export default function AdminCouponsPage() {
           onSearchChange={(e) => setSearch(e.target.value)}
         />
 
-          {loading && <p className={ui.muted}>Loading coupons…</p>}
-          {error && <p className={ui.error}>{error}</p>}
+        {loading && <p className={ui.muted}>Loading coupons…</p>}
+        {error && <p className={ui.error}>{error}</p>}
 
-          {!loading && !error && !filteredCoupons.length && (
-            <AdminEmptyState
-              title="No coupons match this search"
-              description="Clear or adjust the search to see more checkout discounts."
-              icon={TicketPercent}
-            />
-          )}
+        {!loading && !error && !filteredCoupons.length && (
+          <AdminEmptyState
+            title="No coupons match this search"
+            description="Clear or adjust the search to see more checkout discounts."
+            icon={TicketPercent}
+          />
+        )}
 
-          {!loading && !error && filteredCoupons.length > 0 && (
-            <div className={ui.tableWrap}>
-              <table className={ui.table}>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Type / discount</th>
-                    <th>Amount</th>
-                    <th>Usage</th>
-                    <th>Expiry</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCoupons.map((coupon) => {
-                    const status = getCouponStatus(coupon);
+        {!loading && !error && filteredCoupons.length > 0 && (
+          <div className={ui.tableWrap}>
+            <table className={ui.table}>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Type / discount</th>
+                  <th>Amount</th>
+                  <th>Usage</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCoupons.map((coupon) => {
+                  const status = getCouponStatus(coupon);
 
-                    return (
-                      <tr key={coupon.id}>
-                        <td data-label="Code">
-                          <strong>{coupon.code}</strong>
-                          {coupon.description && (
-                            <div className={ui.muted}>{coupon.description}</div>
-                          )}
-                        </td>
-                        <td data-label="Type / discount">
-                          <strong>{formatDiscountType(coupon)}</strong>
-                          <div className={ui.muted}>{coupon.discountLabel}</div>
-                        </td>
-                        <td data-label="Amount">{formatCouponAmount(coupon)}</td>
-                        <td data-label="Usage">
-                          {coupon.usageCount}
-                          {coupon.usageLimit !== null
-                            ? ` / ${coupon.usageLimit}`
-                            : ""}
-                        </td>
-                        <td data-label="Expiry">
-                          {coupon.expiresAt
-                            ? formatDate(coupon.expiresAt)
-                            : "—"}
-                        </td>
-                        <td data-label="Status">
-                          <AdminBadge tone={status.tone}>
-                            {status.label}
-                          </AdminBadge>
-                        </td>
-                        <td data-label="Actions">
-                          <Link href={`/admin-account/coupons/${coupon.id}`}>
-                            Edit
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  return (
+                    <tr key={coupon.id}>
+                      <td data-label="Code">
+                        <strong>{coupon.code}</strong>
+                        {coupon.description && (
+                          <div className={ui.muted}>{coupon.description}</div>
+                        )}
+                      </td>
+                      <td data-label="Type / discount">
+                        <strong>{formatDiscountType(coupon)}</strong>
+                        <div className={ui.muted}>{coupon.discountLabel}</div>
+                      </td>
+                      <td data-label="Amount">{formatCouponAmount(coupon)}</td>
+                      <td data-label="Usage">
+                        {coupon.usageCount}
+                        {coupon.usageLimit !== null
+                          ? ` / ${coupon.usageLimit}`
+                          : ""}
+                      </td>
+                      <td data-label="Expiry">
+                        {coupon.expiresAt ? formatDate(coupon.expiresAt) : "—"}
+                      </td>
+                      <td data-label="Status">
+                        <AdminBadge tone={status.tone}>
+                          {status.label}
+                        </AdminBadge>
+                      </td>
+                      <td data-label="Actions">
+                        <Link href={`/admin-account/coupons/${coupon.id}`}>
+                          Edit
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </AdminPanel>
     </>
   );

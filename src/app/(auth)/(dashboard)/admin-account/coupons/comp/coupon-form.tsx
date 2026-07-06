@@ -1,12 +1,12 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
-  couponFormSchema,
   type CouponFormValues,
+  couponFormSchema,
 } from "@/lib/admin/coupon-schema";
 import type { AdminCoupon } from "@/lib/admin/coupon-service";
 import { couponToFormValues } from "@/lib/admin/coupon-service";
@@ -32,7 +32,11 @@ const defaultValues: CouponFormValues = {
   expiresAt: "",
 };
 
-export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps) {
+export default function CouponForm({
+  mode,
+  coupon,
+  onSuccess,
+}: CouponFormProps) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -100,7 +104,9 @@ export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps)
       toast.success("Coupon deleted");
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete coupon");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete coupon",
+      );
     } finally {
       setDeleting(false);
     }
@@ -137,9 +143,7 @@ export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps)
               />
               {errors.code && <em>{errors.code.message}</em>}
               {codeValue && (
-                <span className={k.codePreview}>
-                  {codeValue.toUpperCase()}
-                </span>
+                <span className={k.codePreview}>{codeValue.toUpperCase()}</span>
               )}
             </label>
 
@@ -283,7 +287,9 @@ export default function CouponForm({ mode, coupon, onSuccess }: CouponFormProps)
           <span className={k.railEyebrow}>
             {mode === "create" ? "New coupon" : "Editing coupon"}
           </span>
-          <strong>{codeValue ? codeValue.toUpperCase() : "Unsaved code"}</strong>
+          <strong>
+            {codeValue ? codeValue.toUpperCase() : "Unsaved code"}
+          </strong>
           <p>Save the discount rules, limits, expiry, and checkout status.</p>
           <button type="submit" disabled={saving || deleting}>
             {saveLabel}

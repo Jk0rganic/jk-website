@@ -1,5 +1,5 @@
-import type { ChangeEventHandler, ReactNode } from "react";
 import { Search } from "lucide-react";
+import type { ChangeEventHandler, ReactNode } from "react";
 import ui from "./admin-ui.module.scss";
 
 type AdminToolbarProps = {

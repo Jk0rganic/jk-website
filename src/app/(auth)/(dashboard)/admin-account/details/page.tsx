@@ -1,6 +1,6 @@
-import { seoMeta } from "@/utils/seo/seoMeta";
 import { logoutTo } from "@/app/(auth)/auth/signup/comp/social_login/action";
 import { ADMIN_SIGN_IN_PATH } from "@/lib/auth/admin-login";
+import { seoMeta } from "@/utils/seo/seoMeta";
 import DetailsPage from "../../(resources)/dashboard-comp/(pages-comp)/detailsPage/details-page";
 import { AdminBadge } from "../components/ui/admin-badge";
 import { AdminPanel } from "../components/ui/admin-panel";

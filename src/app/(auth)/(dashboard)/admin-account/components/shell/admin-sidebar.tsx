@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { adminNavGroups } from "./admin-nav";
+import { useState } from "react";
 import { logoutTo } from "@/app/(auth)/auth/signup/comp/social_login/action";
-import { ADMIN_SIGN_IN_PATH } from "@/lib/auth/admin-login";
 import { getRoleLabel } from "@/lib/admin/roles";
+import { ADMIN_SIGN_IN_PATH } from "@/lib/auth/admin-login";
 import { BRAND_LOGO_URL } from "@/lib/brand";
+import { adminNavGroups } from "./admin-nav";
 import k from "./admin-sidebar.module.scss";
 
 type AdminSidebarProps = {
@@ -134,7 +134,9 @@ export default function AdminSidebar({
               className={k.avatar}
             />
           ) : (
-            <div className={k.initials}>{getInitials(user.name, user.email)}</div>
+            <div className={k.initials}>
+              {getInitials(user.name, user.email)}
+            </div>
           )}
           <div className={k.userMeta}>
             <strong>{user.name || "Admin"}</strong>

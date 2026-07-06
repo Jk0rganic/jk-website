@@ -6,6 +6,7 @@ import {
   BarChart3,
   Boxes,
   CreditCard,
+  type LucideIcon,
   MapPin,
   Package,
   Percent,
@@ -14,7 +15,6 @@ import {
   ShoppingBag,
   TrendingUp,
   Wallet,
-  type LucideIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -297,9 +297,7 @@ function formatDeliveryType(value: string) {
     .join(" ");
 }
 
-function statusTone(
-  status: string,
-): "success" | "warning" | "neutral" {
+function statusTone(status: string): "success" | "warning" | "neutral" {
   if (status === "Top seller" || status === "Active") return "success";
   if (status === "Slow mover") return "warning";
   return "neutral";

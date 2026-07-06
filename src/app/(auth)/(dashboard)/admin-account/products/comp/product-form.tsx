@@ -359,7 +359,10 @@ export default function ProductForm({
 
             <label className={k.field}>
               <span>Product code (SKU)</span>
-              <input {...register("sku")} placeholder="Optional internal code" />
+              <input
+                {...register("sku")}
+                placeholder="Optional internal code"
+              />
             </label>
           </section>
 

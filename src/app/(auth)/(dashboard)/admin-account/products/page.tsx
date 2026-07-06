@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   AlertTriangle,
   Boxes,
@@ -10,21 +8,23 @@ import {
   PackageX,
   Plus,
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { formatPrice } from "@/utils/format-price";
 import {
   formatStockCount,
   getProductPublishStatus,
-  summarizeInventory,
   type ProductInventoryItem,
+  summarizeInventory,
 } from "@/lib/admin/product-inventory";
+import { formatPrice } from "@/utils/format-price";
 import { AdminBadge } from "../components/ui/admin-badge";
 import { AdminEmptyState } from "../components/ui/admin-empty-state";
 import { AdminMetricCard } from "../components/ui/admin-metric-card";
 import { AdminPanel } from "../components/ui/admin-panel";
 import { AdminToolbar } from "../components/ui/admin-toolbar";
-import { PageHeader } from "../components/ui/page-header";
 import ui from "../components/ui/admin-ui.module.scss";
+import { PageHeader } from "../components/ui/page-header";
 import k from "./products-list.module.scss";
 
 const ITEMS_PER_PAGE = 10;
@@ -65,7 +65,9 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     async function loadProducts() {
@@ -82,7 +84,9 @@ export default function AdminProductsPage() {
 
         setProducts(data.products);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load products");
+        setError(
+          err instanceof Error ? err.message : "Failed to load products",
+        );
       } finally {
         setLoading(false);
       }
@@ -101,11 +105,7 @@ export default function AdminProductsPage() {
     return products.filter((product) => {
       if (stockFilter === "low") {
         const qty = product.stockQuantity;
-        if (
-          product.stockStatus === "outofstock" ||
-          qty === null ||
-          qty > 5
-        ) {
+        if (product.stockStatus === "outofstock" || qty === null || qty > 5) {
           return false;
         }
       }
@@ -135,10 +135,6 @@ export default function AdminProductsPage() {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, stockFilter]);
 
   const statusClass = {
     active: "success",
@@ -173,7 +169,9 @@ export default function AdminProductsPage() {
         throw new Error(data.error || "Failed to delete product");
       }
 
-      setProducts((current) => current.filter((item) => item.id !== product.id));
+      setProducts((current) =>
+        current.filter((item) => item.id !== product.id),
+      );
       toast.success(`Deleted ${product.name}`);
     } catch (err) {
       toast.error(
@@ -236,13 +234,19 @@ export default function AdminProductsPage() {
           searchLabel="Search products"
           searchPlaceholder="Search products, SKU, or category"
           searchValue={search}
-          onSearchChange={(e) => setSearch(e.target.value)}
+          onSearchChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
         >
           <label className={k.filterControl}>
             <span>Stock</span>
             <select
               value={stockFilter}
-              onChange={(e) => setStockFilter(e.target.value)}
+              onChange={(e) => {
+                setStockFilter(e.target.value);
+                setCurrentPage(1);
+              }}
             >
               <option value="all">All stock levels</option>
               <option value="low">Low stock only</option>
@@ -278,7 +282,9 @@ export default function AdminProductsPage() {
                 </thead>
                 <tbody>
                   {paginatedProducts.map((product) => {
-                    const publishStatus = getProductPublishStatus(product.status);
+                    const publishStatus = getProductPublishStatus(
+                      product.status,
+                    );
 
                     return (
                       <tr key={product.id}>

@@ -46,9 +46,13 @@ import { redirect } from "next/navigation";
 import { fetchAdminOrders } from "@/lib/admin/fetch-admin-orders";
 import { requireAdminSession } from "@/lib/admin/require-admin";
 import { getSession } from "@/lib/auth/getSession";
-import { adminNavGroups, getAdminPageTitle } from "./components/shell/admin-nav";
-import AdminSidebar from "./components/shell/admin-sidebar";
-import { getSidebarAccessibilityProps } from "./components/shell/admin-sidebar";
+import {
+  adminNavGroups,
+  getAdminPageTitle,
+} from "./components/shell/admin-nav";
+import AdminSidebar, {
+  getSidebarAccessibilityProps,
+} from "./components/shell/admin-sidebar";
 import { AdminMetricCard } from "./components/ui/admin-metric-card";
 import AdminLayout from "./layout";
 

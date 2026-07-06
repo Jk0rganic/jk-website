@@ -1,23 +1,23 @@
 "use client";
 
-import { formatPrice } from "@/utils/format-price";
-import k from "./styles.module.scss";
 import { useMemo, useState } from "react";
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
 import {
   computeMonthlyChartData,
   computeYearOverYearGrowth,
   getOrderYears,
 } from "@/lib/admin/admin-stats";
+import { formatPrice } from "@/utils/format-price";
+import k from "./styles.module.scss";
 
 interface Props {
   orders: DashboardOrder[];
@@ -36,21 +36,6 @@ export default function OrdersChart({ orders = [] }: Props) {
     [orders],
   );
 
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
   const data = useMemo(
     () => computeMonthlyChartData(orders, selectedYear),
     [orders, selectedYear],
@@ -60,6 +45,18 @@ export default function OrdersChart({ orders = [] }: Props) {
     () => computeYearOverYearGrowth(orders, selectedYear),
     [orders, selectedYear],
   );
+
+  function handleLegendMouseEnter(entry: unknown) {
+    if (!entry || typeof entry !== "object" || !("dataKey" in entry)) {
+      return;
+    }
+
+    const { dataKey } = entry as { dataKey?: unknown };
+
+    if (dataKey === "revenue" || dataKey === "orders") {
+      setHoveringKey(dataKey);
+    }
+  }
 
   return (
     <div className={k.two}>
@@ -100,7 +97,7 @@ export default function OrdersChart({ orders = [] }: Props) {
             <Tooltip labelFormatter={(month) => month} />
 
             <Legend
-              onMouseEnter={(e: any) => setHoveringKey(e.dataKey)}
+              onMouseEnter={handleLegendMouseEnter}
               onMouseLeave={() => setHoveringKey(null)}
             />
 

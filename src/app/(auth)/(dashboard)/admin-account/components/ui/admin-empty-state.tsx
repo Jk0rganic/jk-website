@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Inbox } from "lucide-react";
+import type { ReactNode } from "react";
 import ui from "./admin-ui.module.scss";
 
 type AdminEmptyStateProps = {

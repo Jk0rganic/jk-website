@@ -1,11 +1,10 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import {
   ArrowDown,
   ArrowUp,
-  BarChart3,
   Banknote,
+  BarChart3,
   CircleDollarSign,
   CreditCard,
   MapPin,
@@ -17,6 +16,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { useMemo } from "react";
 import {
   computeOrderStatusSummary,
@@ -29,11 +29,11 @@ import { formatPrice } from "@/utils/format-price";
 import { formatDate } from "@/utils/formatDate";
 import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
 import OrdersChart from "../../comp/accountPage/two";
+import styles from "../../styles.module.scss";
 import { AdminBadge } from "../ui/admin-badge";
 import { AdminEmptyState } from "../ui/admin-empty-state";
 import { AdminMetricCard } from "../ui/admin-metric-card";
 import { AdminPanel } from "../ui/admin-panel";
-import styles from "../../styles.module.scss";
 
 function TrendBadge({
   current,
@@ -326,7 +326,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className={styles.gardenSummary} aria-label="JK Organics summary">
+        <section
+          className={styles.gardenSummary}
+          aria-label="JK Organics summary"
+        >
           <div className={styles.summaryRows}>
             <span style={{ inlineSize: `${Math.max(completedRate, 8)}%` }} />
             <span
@@ -353,7 +356,7 @@ export default function AdminDashboard() {
             and {topProducts[0]?.name || "new product activity"} leading the
             board.
           </p>
-        </div>
+        </section>
       </section>
 
       <section className={styles.metricGrid} aria-label="Weekly KPI cards">
@@ -365,10 +368,7 @@ export default function AdminDashboard() {
             icon={metric.icon}
             tone={metric.tone}
             detail={
-              <TrendBadge
-                current={metric.current}
-                previous={metric.previous}
-              />
+              <TrendBadge current={metric.current} previous={metric.previous} />
             }
           />
         ))}
@@ -381,7 +381,10 @@ export default function AdminDashboard() {
               title="Revenue updates"
               description="Order totals over time from the existing sales feed."
               action={
-                <Link href="/admin-account/analytics" className={styles.panelLink}>
+                <Link
+                  href="/admin-account/analytics"
+                  className={styles.panelLink}
+                >
                   <BarChart3 size={16} aria-hidden />
                   Analytics
                 </Link>
@@ -493,7 +496,9 @@ export default function AdminDashboard() {
                         <strong>{product.name}</strong>
                         <span>{formatPrice(product.revenue)}</span>
                       </div>
-                      <AdminBadge tone="success">{product.quantity} units</AdminBadge>
+                      <AdminBadge tone="success">
+                        {product.quantity} units
+                      </AdminBadge>
                     </div>
                   ))}
                 </div>

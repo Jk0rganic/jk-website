@@ -1,22 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
 import { CheckCircle2, Clock3, PackageCheck, WalletCards } from "lucide-react";
-import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import {
   filterOrders,
   ORDER_STATUS_OPTIONS,
   PAYMENT_METHOD_OPTIONS,
 } from "@/lib/admin/admin-stats";
-import { formatDate } from "@/utils/formatDate";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
-import { PageHeader } from "../../components/ui/page-header";
+import { formatDate } from "@/utils/formatDate";
+import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
 import { AdminBadge } from "../../components/ui/admin-badge";
 import { AdminEmptyState } from "../../components/ui/admin-empty-state";
 import { AdminMetricCard } from "../../components/ui/admin-metric-card";
 import { AdminPanel } from "../../components/ui/admin-panel";
 import { AdminToolbar } from "../../components/ui/admin-toolbar";
+import { PageHeader } from "../../components/ui/page-header";
 import styles from "./styles.module.scss";
 
 const ITEMS_PER_PAGE = 15;
@@ -236,7 +236,9 @@ export default function AdminOrdersPage() {
                           <AdminBadge tone={orderBadgeTone(order.status)}>
                             {display.orderLabel}
                           </AdminBadge>
-                          {display.orderHint && <span>{display.orderHint}</span>}
+                          {display.orderHint && (
+                            <span>{display.orderHint}</span>
+                          )}
                         </td>
                         <td data-label="Payment">
                           <AdminBadge tone={paymentBadgeTone(order)}>
@@ -253,9 +255,14 @@ export default function AdminOrdersPage() {
                         <td data-label="Total" className={styles.totalCell}>
                           {order.total} {order.currency}
                         </td>
-                        <td data-label="Date">{formatDate(order.date_created)}</td>
+                        <td data-label="Date">
+                          {formatDate(order.date_created)}
+                        </td>
                         <td data-label="Actions">
-                          <Link className={styles.manageLink} href={`${link}${order.id}`}>
+                          <Link
+                            className={styles.manageLink}
+                            href={`${link}${order.id}`}
+                          >
                             Manage
                           </Link>
                         </td>

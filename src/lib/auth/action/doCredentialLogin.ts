@@ -1,7 +1,7 @@
 "use server";
 
-import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { AuthError } from "next-auth";
 
 import { signIn } from "./auth/auth";
 

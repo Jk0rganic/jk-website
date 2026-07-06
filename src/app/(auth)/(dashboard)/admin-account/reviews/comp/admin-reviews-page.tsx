@@ -326,140 +326,136 @@ export default function AdminReviewsPage() {
         {!loading && !error && reviews.length > 0 && (
           <div className={ui.tableWrap}>
             <table className={ui.table}>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Reviewer</th>
-                    <th>Rating</th>
-                    <th>Excerpt</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>
-                      <span className={k.srOnly}>Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reviews.map((review) => {
-                    const expanded = expandedReviewId === review.id;
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Reviewer</th>
+                  <th>Rating</th>
+                  <th>Excerpt</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>
+                    <span className={k.srOnly}>Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviews.map((review) => {
+                  const expanded = expandedReviewId === review.id;
 
-                    return (
-                      <Fragment key={review.id}>
-                        <tr
-                          key={review.id}
-                          className={
-                            review.rating > 0 && review.rating <= 2
-                              ? k.lowRatingRow
-                              : undefined
-                          }
-                        >
-                          <td data-label="Product">
-                            <Link
-                              href={`/admin-account/products/${review.productId}`}
-                              className={k.productName}
-                            >
-                              {review.productName}
-                            </Link>
-                            <div className={ui.muted}>#{review.productId}</div>
-                          </td>
-                          <td data-label="Reviewer">
-                            <span className={k.reviewer}>
-                              <UserRound size={15} aria-hidden />
-                              {review.reviewer}
-                            </span>
-                            <div className={ui.muted}>
-                              {review.reviewerEmail || "No email"}
+                  return (
+                    <Fragment key={review.id}>
+                      <tr
+                        key={review.id}
+                        className={
+                          review.rating > 0 && review.rating <= 2
+                            ? k.lowRatingRow
+                            : undefined
+                        }
+                      >
+                        <td data-label="Product">
+                          <Link
+                            href={`/admin-account/products/${review.productId}`}
+                            className={k.productName}
+                          >
+                            {review.productName}
+                          </Link>
+                          <div className={ui.muted}>#{review.productId}</div>
+                        </td>
+                        <td data-label="Reviewer">
+                          <span className={k.reviewer}>
+                            <UserRound size={15} aria-hidden />
+                            {review.reviewer}
+                          </span>
+                          <div className={ui.muted}>
+                            {review.reviewerEmail || "No email"}
+                          </div>
+                        </td>
+                        <td data-label="Rating">
+                          <span
+                            className={`${k.rating} ${
+                              review.rating > 0 && review.rating <= 2
+                                ? k.lowRating
+                                : ""
+                            }`}
+                          >
+                            <Star size={15} aria-hidden />
+                            {formatRating(review.rating)}
+                          </span>
+                        </td>
+                        <td data-label="Excerpt" className={k.excerpt}>
+                          {getExcerpt(review.content)}
+                        </td>
+                        <td data-label="Date">
+                          {formatReviewDate(review.date)}
+                        </td>
+                        <td data-label="Status">
+                          <AdminBadge tone={statusBadgeTone(review.status)}>
+                            {review.status || "unknown"}
+                          </AdminBadge>
+                        </td>
+                        <td data-label="Actions">
+                          <button
+                            type="button"
+                            className={k.detailButton}
+                            aria-expanded={expanded}
+                            onClick={() =>
+                              setExpandedReviewId(expanded ? null : review.id)
+                            }
+                          >
+                            {expanded ? "Hide" : "Details"}
+                          </button>
+                        </td>
+                      </tr>
+                      {expanded && (
+                        <tr key={`${review.id}-details`}>
+                          <td colSpan={7} className={k.detailsCell}>
+                            <div className={k.detailsPanel}>
+                              <div>
+                                <span className={k.detailLabel}>
+                                  Full review
+                                </span>
+                                <p>{review.content || "No review content."}</p>
+                              </div>
+                              <dl className={k.detailGrid}>
+                                <div>
+                                  <dt>Reviewer email</dt>
+                                  <dd>{review.reviewerEmail || "No email"}</dd>
+                                </div>
+                                <div>
+                                  <dt>Product ID</dt>
+                                  <dd>{review.productId}</dd>
+                                </div>
+                                <div>
+                                  <dt>Product name</dt>
+                                  <dd>{review.productName}</dd>
+                                </div>
+                                <div>
+                                  <dt>Product link</dt>
+                                  <dd>
+                                    {review.productSlug ? (
+                                      <Link
+                                        href={`/product/${review.productSlug}`}
+                                      >
+                                        /product/{review.productSlug}
+                                      </Link>
+                                    ) : (
+                                      "No slug"
+                                    )}
+                                  </dd>
+                                </div>
+                              </dl>
                             </div>
                           </td>
-                          <td data-label="Rating">
-                            <span
-                              className={`${k.rating} ${
-                                review.rating > 0 && review.rating <= 2
-                                  ? k.lowRating
-                                  : ""
-                              }`}
-                            >
-                              <Star size={15} aria-hidden />
-                              {formatRating(review.rating)}
-                            </span>
-                          </td>
-                          <td data-label="Excerpt" className={k.excerpt}>
-                            {getExcerpt(review.content)}
-                          </td>
-                          <td data-label="Date">
-                            {formatReviewDate(review.date)}
-                          </td>
-                          <td data-label="Status">
-                            <AdminBadge tone={statusBadgeTone(review.status)}>
-                              {review.status || "unknown"}
-                            </AdminBadge>
-                          </td>
-                          <td data-label="Actions">
-                            <button
-                              type="button"
-                              className={k.detailButton}
-                              aria-expanded={expanded}
-                              onClick={() =>
-                                setExpandedReviewId(expanded ? null : review.id)
-                              }
-                            >
-                              {expanded ? "Hide" : "Details"}
-                            </button>
-                          </td>
                         </tr>
-                        {expanded && (
-                          <tr key={`${review.id}-details`}>
-                            <td colSpan={7} className={k.detailsCell}>
-                              <div className={k.detailsPanel}>
-                                <div>
-                                  <span className={k.detailLabel}>
-                                    Full review
-                                  </span>
-                                  <p>
-                                    {review.content || "No review content."}
-                                  </p>
-                                </div>
-                                <dl className={k.detailGrid}>
-                                  <div>
-                                    <dt>Reviewer email</dt>
-                                    <dd>
-                                      {review.reviewerEmail || "No email"}
-                                    </dd>
-                                  </div>
-                                  <div>
-                                    <dt>Product ID</dt>
-                                    <dd>{review.productId}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Product name</dt>
-                                    <dd>{review.productName}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Product link</dt>
-                                    <dd>
-                                      {review.productSlug ? (
-                                        <Link
-                                          href={`/product/${review.productSlug}`}
-                                        >
-                                          /product/{review.productSlug}
-                                        </Link>
-                                      ) : (
-                                        "No slug"
-                                      )}
-                                    </dd>
-                                  </div>
-                                </dl>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </AdminPanel>
     </>
   );

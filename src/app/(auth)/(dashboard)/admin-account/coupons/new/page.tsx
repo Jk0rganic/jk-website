@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import CouponForm from "../comp/coupon-form";
-import { BackLink } from "../../components/ui/page-header";
 import ui from "../../components/ui/admin-ui.module.scss";
+import { BackLink } from "../../components/ui/page-header";
+import CouponForm from "../comp/coupon-form";
 
 export default function NewCouponPage() {
   const router = useRouter();

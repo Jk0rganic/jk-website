@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Menu, Plus, Search, Store } from "lucide-react";
+import Link from "next/link";
 import { getAdminPageTitle } from "./admin-nav";
 import k from "./admin-topbar.module.scss";
 

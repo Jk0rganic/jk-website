@@ -593,7 +593,10 @@ export default function TeamPage() {
             </form>
           </AdminPanel>
 
-          <AdminPanel title="Access rules" description="Security defaults for this console.">
+          <AdminPanel
+            title="Access rules"
+            description="Security defaults for this console."
+          >
             <ul className={k.ruleList}>
               <li>Only super admins can manage admin accounts.</li>
               <li>Password resets invalidate the admin's active sessions.</li>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { AdminProductDetail } from "@/lib/admin/product-service";
-import ProductForm from "../comp/product-form";
-import { BackLink } from "../../components/ui/page-header";
 import ui from "../../components/ui/admin-ui.module.scss";
+import { BackLink } from "../../components/ui/page-header";
+import ProductForm from "../comp/product-form";
 
 export default function EditProductPage({ productId }: { productId: number }) {
   const router = useRouter();

@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 import { formatDate } from "@/utils/formatDate";
 import SingleOrderAccount from "../../../(resources)/dashboard-comp/(pages-comp)/orders/comp/single-order-acc/page";
 import { AdminBadge } from "../../components/ui/admin-badge";
@@ -75,7 +75,8 @@ function formatAddress(address?: Partial<BillingAddress | ShippingAddress>) {
 
 function getDeliverySummary(order: DashboardOrder) {
   return {
-    method: order.shipping_lines?.[0]?.method_title || "Delivery method not set",
+    method:
+      order.shipping_lines?.[0]?.method_title || "Delivery method not set",
     location:
       [
         order.shipping?.city || order.billing?.city,
@@ -328,14 +329,18 @@ export default function AdminSingleOrder({
 
             <div className={k.customerNote}>
               <span>Customer checkout note</span>
-              <p>{currentOrder.customer_note || "No customer note supplied."}</p>
+              <p>
+                {currentOrder.customer_note || "No customer note supplied."}
+              </p>
             </div>
           </AdminPanel>
 
           <AdminPanel
             title="Fulfillment notes"
             description="Private admin notes and customer-facing updates."
-            action={notesLoading ? <span className={k.loading}>Loading…</span> : null}
+            action={
+              notesLoading ? <span className={k.loading}>Loading…</span> : null
+            }
           >
             <form className={k.noteForm} onSubmit={handleAddNote}>
               <textarea
@@ -466,7 +471,9 @@ export default function AdminSingleOrder({
                   Note
                   <input
                     value={manualPaymentNote}
-                    onChange={(event) => setManualPaymentNote(event.target.value)}
+                    onChange={(event) =>
+                      setManualPaymentNote(event.target.value)
+                    }
                     placeholder="Optional internal note"
                     disabled={markPaidSaving}
                   />
