@@ -670,7 +670,7 @@ Confirm:
 
 Only fix issues found in Step 3. Do not add new features. Keep changes scoped to layout, spacing, overflow, responsive behavior, accessibility labels, and visual consistency.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account
