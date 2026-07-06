@@ -26,18 +26,20 @@ export type AdminNavGroup = {
 export const adminNavGroups: AdminNavGroup[] = [
   {
     title: "Overview",
+    items: [{ label: "Dashboard", href: "/admin-account", icon: LayoutDashboard }],
+  },
+  {
+    title: "Fulfillment",
     items: [
-      { label: "Dashboard", href: "/admin-account", icon: LayoutDashboard },
-      { label: "Analytics", href: "/admin-account/analytics", icon: BarChart3 },
+      { label: "Orders", href: "/admin-account/orders", icon: ShoppingBag },
+      { label: "Payments", href: "/admin-account/payments", icon: CreditCard },
     ],
   },
   {
-    title: "Store",
+    title: "Catalog",
     items: [
-      { label: "Orders", href: "/admin-account/orders", icon: ShoppingBag },
       { label: "Products", href: "/admin-account/products", icon: Package },
       { label: "Coupons", href: "/admin-account/coupons", icon: Ticket },
-      { label: "Payments", href: "/admin-account/payments", icon: CreditCard },
       {
         label: "Reviews",
         href: "/admin-account/reviews",
@@ -46,16 +48,27 @@ export const adminNavGroups: AdminNavGroup[] = [
     ],
   },
   {
-    title: "Settings",
+    title: "Growth",
+    items: [
+      { label: "Analytics", href: "/admin-account/analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "Team",
     items: [
       {
-        label: "Team",
+        label: "Admins",
         href: "/admin-account/team",
         icon: Users,
         superAdminOnly: true,
       },
+    ],
+  },
+  {
+    title: "Settings",
+    items: [
       {
-        label: "Profile",
+        label: "Account",
         href: "/admin-account/details",
         icon: Settings,
       },
@@ -73,8 +86,8 @@ export const adminPageTitles: Record<string, string> = {
   "/admin-account/coupons/new": "Create coupon",
   "/admin-account/payments": "Payments",
   "/admin-account/reviews": "Reviews",
-  "/admin-account/team": "Team",
-  "/admin-account/details": "Profile",
+  "/admin-account/team": "Admins",
+  "/admin-account/details": "Account",
 };
 
 export function getAdminPageTitle(pathname: string): string {
