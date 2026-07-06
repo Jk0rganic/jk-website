@@ -1,192 +1,381 @@
-.formSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.metricGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 1.25rem;
+}
+
+.teamLayout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.38fr);
+}
+
+.sideRail {
+  display: grid;
+  gap: 1rem;
+}
+
+.formSection,
+.dialogForm {
+  display: grid;
+  gap: 0.85rem;
 }
 
 .field {
-  display: flex;
-  flex-direction: column;
+  color: var(--admin-muted);
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 800;
   gap: 0.35rem;
-
-  span {
-    font-weight: 600;
-    font-size: 0.88rem;
-  }
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 
   input {
-    padding: 0.65rem 0.85rem;
-    border: 1px solid var(--admin-border, #e8ebe9);
-    border-radius: 10px;
+    background: var(--brand-white);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    color: var(--brand-black);
     font: inherit;
-    background: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 0.58rem 0.75rem;
+    text-transform: none;
+    width: 100%;
   }
 
   em {
-    color: #b91c1c;
-    font-size: 0.82rem;
+    color: var(--admin-danger);
+    font-size: 0.78rem;
     font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
   }
 }
 
-.row {
+.passwordField {
+  align-items: center;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  input {
+    border-bottom-right-radius: 0;
+    border-right: 0;
+    border-top-right-radius: 0;
+  }
+
+  button {
+    align-items: center;
+    background: var(--brand-white);
+    border: 1px solid var(--admin-border);
+    border-bottom-right-radius: 8px;
+    border-left: 0;
+    border-top-right-radius: 8px;
+    color: var(--admin-muted);
+    cursor: pointer;
+    display: inline-flex;
+    height: 40px;
+    justify-content: center;
+    width: 42px;
+
+    &:hover {
+      color: var(--admin-accent);
+    }
+  }
+}
+
+.filterControl {
+  color: var(--admin-muted);
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 0.25rem;
+  letter-spacing: 0.04em;
+  min-width: 150px;
+  text-transform: uppercase;
+
+  select {
+    background: var(--brand-white);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    color: var(--brand-black);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    min-height: 38px;
+    padding: 0.52rem 0.7rem;
+    text-transform: none;
+  }
+}
+
+.teamTableWrap {
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+}
+
+.teamTable {
+  th,
+  td {
+    white-space: nowrap;
+  }
+}
+
+.adminName {
+  color: var(--brand-black);
+  display: block;
+  font-weight: 800;
+}
+
+.adminEmail {
+  color: var(--admin-muted);
+  overflow-wrap: anywhere;
 }
 
 .actions {
-  display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
+  display: flex;
   flex-wrap: wrap;
-  min-width: 240px;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  min-width: 260px;
 }
 
 .actionBtn,
 .dangerBtn,
 .cancelBtn {
-  border: 1px solid var(--admin-border, #e8ebe9);
-  background: #fff;
-  color: var(--brand-black, #1c1c1c);
-  padding: 0.4rem 0.65rem;
+  align-items: center;
+  background: var(--brand-white);
+  border: 1px solid var(--admin-border);
   border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: var(--brand-black);
   cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0.38rem 0.58rem;
   white-space: nowrap;
 
   &:disabled {
-    opacity: 0.55;
     cursor: not-allowed;
+    opacity: 0.55;
   }
 }
 
-.actionBtn {
-  &:hover:not(:disabled) {
-    border-color: var(--admin-accent, #249346);
-    color: var(--admin-accent, #249346);
-  }
+.actionBtn:hover:not(:disabled) {
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
 }
 
 .dangerBtn {
-  border: 1px solid #fecaca;
-  background: #fff;
-  color: #dc2626;
+  border-color: #f5c2c1;
+  color: var(--admin-danger);
 
   &:hover:not(:disabled) {
-    background: #fef2f2;
+    background: #fdecec;
   }
 }
 
 .cancelBtn {
-  color: var(--admin-muted, #6b7280);
+  color: var(--admin-muted);
+}
+
+.ruleList {
+  color: var(--admin-muted);
+  display: grid;
+  font-size: 0.9rem;
+  gap: 0.65rem;
+  line-height: 1.45;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.stateText,
+.error {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.stateText {
+  color: var(--admin-muted);
+}
+
+.error {
+  color: var(--admin-danger);
 }
 
 .modalLayer {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
+  background: rgba(17, 24, 39, 0.46);
   display: grid;
-  place-items: center;
+  inset: 0;
   padding: 1rem;
-  background: rgba(17, 24, 39, 0.42);
+  place-items: center;
+  position: fixed;
+  z-index: 50;
 }
 
 .dialog {
-  width: min(100%, 460px);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
   max-height: min(90vh, 720px);
   overflow-y: auto;
-  background: var(--admin-surface, #fff);
-  border: 1px solid var(--admin-border, rgba(28, 28, 28, 0.1));
-  border-radius: var(--admin-radius, 0.4rem);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
   padding: 1.15rem;
+  width: min(100%, 460px);
 }
 
 .dialogHeader {
-  display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  display: flex;
   gap: 1rem;
+  justify-content: space-between;
   margin-bottom: 0.9rem;
 
   h2 {
+    color: var(--brand-black);
+    font-size: 1.05rem;
+    font-weight: 800;
     margin: 0;
-    font-family: var(--font-cormorant), serif;
-    font-size: 1.15rem;
-    font-weight: 700;
   }
 }
 
 .closeBtn {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--admin-border, #e8ebe9);
+  align-items: center;
+  background: var(--brand-white);
+  border: 1px solid var(--admin-border);
   border-radius: 8px;
-  background: #fff;
-  color: var(--admin-muted, #6b7280);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1;
+  color: var(--admin-muted);
   cursor: pointer;
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 800;
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  width: 32px;
 
   &:disabled {
-    opacity: 0.55;
     cursor: not-allowed;
+    opacity: 0.55;
   }
 }
 
 .target {
-  display: flex;
-  flex-direction: column;
+  background: #f8fbf8;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  display: grid;
   gap: 0.15rem;
   padding: 0.75rem;
-  border: 1px solid var(--admin-border, #e8ebe9);
-  border-radius: 8px;
-  background: #fafbfa;
 
   strong {
+    color: var(--brand-black);
     font-size: 0.95rem;
   }
 
   span {
-    color: var(--admin-muted, #6b7280);
+    color: var(--admin-muted);
     font-size: 0.86rem;
     overflow-wrap: anywhere;
   }
 }
 
 .warning {
-  margin: 0.85rem 0 1rem;
-  color: var(--admin-muted, #6b7280);
+  color: var(--admin-muted);
   font-size: 0.9rem;
   line-height: 1.45;
-}
-
-.dialogForm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  margin: 0.85rem 0 1rem;
 }
 
 .dialogActions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.55rem;
   flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
   margin-top: 1rem;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 1280px) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teamLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sideRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .metricGrid,
+  .sideRail {
+    grid-template-columns: 1fr;
+  }
+
+  .filterControl {
+    min-width: 0;
+    width: 100%;
+  }
+
   .actions {
     justify-content: flex-start;
     min-width: 0;
   }
 
-  .dialog {
-    padding: 1rem;
+  .teamTableWrap {
+    border: 0;
+    overflow: visible;
+  }
+
+  .teamTable {
+    border-collapse: separate;
+    border-spacing: 0 0.65rem;
+
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      background: #fbfcfb;
+      border: 1px solid var(--admin-border);
+      border-radius: 8px;
+      display: grid;
+      gap: 0.45rem;
+      padding: 0.75rem;
+    }
+
+    tbody tr:hover {
+      background: #fbfcfb;
+    }
+
+    td {
+      align-items: start;
+      border-bottom: 0;
+      display: grid;
+      gap: 0.6rem;
+      grid-template-columns: minmax(88px, 0.36fr) minmax(0, 1fr);
+      padding: 0;
+      white-space: normal;
+
+      &::before {
+        color: var(--admin-muted);
+        content: attr(data-label);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+    }
   }
 
   .dialogActions {

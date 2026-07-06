@@ -1,6 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Ban,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  ShieldCheck,
+  UserPlus,
+  UsersRound,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,13 +23,19 @@ import {
 import type { AdminUserListItem } from "@/lib/admin/admin-user-service";
 import { ADMIN_ROLE, SUPER_ADMIN_ROLE } from "@/lib/admin/roles";
 import { formatDate } from "@/utils/formatDate";
+import { AdminBadge } from "../components/ui/admin-badge";
+import { AdminEmptyState } from "../components/ui/admin-empty-state";
+import { AdminMetricCard } from "../components/ui/admin-metric-card";
+import { AdminPanel } from "../components/ui/admin-panel";
+import { AdminToolbar } from "../components/ui/admin-toolbar";
 import ui from "../components/ui/admin-ui.module.scss";
-import { AdminCard, PageHeader } from "../components/ui/page-header";
+import { PageHeader } from "../components/ui/page-header";
 import k from "./team.module.scss";
 
 type ActionType = "password" | "block" | "unblock" | "delete" | "demote";
 type RoleFilter = "all" | "admin" | "super_admin";
 type StatusFilter = "all" | "active" | "blocked";
+type BadgeTone = "success" | "info" | "warning" | "danger" | "neutral";
 
 const actionCopy: Record<
   ActionType,
@@ -83,6 +99,12 @@ export default function TeamPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [showCreateConfirmPassword, setShowCreateConfirmPassword] =
+    useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] =
+    useState(false);
 
   const {
     register,
@@ -132,6 +154,18 @@ export default function TeamPage() {
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [roleFilter, search, statusFilter, users]);
+
+  const teamSummary = useMemo(() => {
+    return users.reduce(
+      (summary, user) => {
+        if (user.role === SUPER_ADMIN_ROLE) summary.superAdmins += 1;
+        if (user.isDisabled && !user.isDeleted) summary.blocked += 1;
+        if (!user.isDisabled && !user.isDeleted) summary.active += 1;
+        return summary;
+      },
+      { active: 0, blocked: 0, superAdmins: 0 },
+    );
+  }, [users]);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -198,6 +232,8 @@ export default function TeamPage() {
     if (actionLoading) return;
     setActionUser(null);
     setActionType(null);
+    setShowResetPassword(false);
+    setShowResetConfirmPassword(false);
     resetPasswordForm();
   }
 
@@ -246,6 +282,8 @@ export default function TeamPage() {
       toast.success(actionCopy[actionType].success(actionUser));
       setActionUser(null);
       setActionType(null);
+      setShowResetPassword(false);
+      setShowResetConfirmPassword(false);
       resetPasswordForm();
       await loadUsers();
     } catch (err) {
@@ -261,221 +299,309 @@ export default function TeamPage() {
   const showActionDialog = Boolean(actionUser && actionType && currentAction);
   const actionButtonsDisabled = actionLoading;
 
+  function roleTone(user: AdminUserListItem): BadgeTone {
+    return user.role === SUPER_ADMIN_ROLE ? "info" : "success";
+  }
+
+  function statusTone(user: AdminUserListItem): BadgeTone {
+    if (user.isDeleted) return "neutral";
+    if (user.isDisabled) return "danger";
+    return "success";
+  }
+
   return (
     <>
       <PageHeader
-        title="Team"
-        subtitle="Invite store managers and control who can access the admin panel."
+        title="Admins"
+        subtitle="Manage admin access, password resets, and account safety."
       />
 
-      <AdminCard title="Create admin">
-        <form className={k.formSection} onSubmit={handleSubmit(onSubmit)}>
-          <label className={k.field}>
-            <span>Full name</span>
-            <input {...register("name")} placeholder="Jane Kamau" />
-            {errors.name && <em>{errors.name.message}</em>}
-          </label>
+      <section className={k.metricGrid} aria-label="Admin team KPIs">
+        <AdminMetricCard
+          label="Total admins"
+          value={users.length}
+          icon={UsersRound}
+          tone="neutral"
+          detail={`${filteredUsers.length} shown with filters`}
+        />
+        <AdminMetricCard
+          label="Active access"
+          value={teamSummary.active}
+          icon={ShieldCheck}
+          tone="success"
+          detail="Can enter the admin console"
+        />
+        <AdminMetricCard
+          label="Blocked"
+          value={teamSummary.blocked}
+          icon={Ban}
+          tone="danger"
+          detail="Access currently disabled"
+        />
+        <AdminMetricCard
+          label="Super admins"
+          value={teamSummary.superAdmins}
+          icon={LockKeyhole}
+          tone="info"
+          detail="Can manage other admins"
+        />
+      </section>
 
-          <label className={k.field}>
-            <span>Email</span>
-            <input
-              {...register("email")}
-              type="email"
-              placeholder="jane@jkorganics.com"
+      <div className={k.teamLayout}>
+        <AdminPanel
+          title="Current admins"
+          description="Review access, reset passwords, block accounts, or remove admin privileges."
+        >
+          <AdminToolbar
+            searchLabel="Search admins"
+            searchPlaceholder="Search name or email"
+            searchValue={search}
+            onSearchChange={(event) => setSearch(event.target.value)}
+          >
+            <label className={k.filterControl}>
+              <span>Role</span>
+              <select
+                value={roleFilter}
+                onChange={(event) =>
+                  setRoleFilter(event.target.value as RoleFilter)
+                }
+              >
+                <option value="all">All roles</option>
+                <option value="admin">Admin</option>
+                <option value="super_admin">Super admin</option>
+              </select>
+            </label>
+            <label className={k.filterControl}>
+              <span>Status</span>
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as StatusFilter)
+                }
+              >
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </label>
+          </AdminToolbar>
+
+          {loading && <p className={k.stateText}>Loading team...</p>}
+          {error && <p className={k.error}>{error}</p>}
+
+          {!loading && !error && !users.length && (
+            <AdminEmptyState
+              title="No admin accounts yet"
+              description="Create the first admin account from the side panel."
             />
-            {errors.email && <em>{errors.email.message}</em>}
-          </label>
+          )}
 
-          <div className={k.row}>
-            <label className={k.field}>
-              <span>Temporary password</span>
-              <input
-                {...register("password")}
-                type="password"
-                autoComplete="new-password"
-              />
-              {errors.password && <em>{errors.password.message}</em>}
-            </label>
+          {!loading && !error && users.length > 0 && !filteredUsers.length && (
+            <AdminEmptyState
+              title="No admins match these filters"
+              description="Adjust search, role, or status filters to widen the list."
+            />
+          )}
 
-            <label className={k.field}>
-              <span>Confirm password</span>
-              <input
-                {...register("confirmPassword")}
-                type="password"
-                autoComplete="new-password"
-              />
-              {errors.confirmPassword && (
-                <em>{errors.confirmPassword.message}</em>
-              )}
-            </label>
-          </div>
-
-          <button type="submit" className={ui.btnAccent} disabled={saving}>
-            {saving ? "Creating…" : "Create admin"}
-          </button>
-        </form>
-      </AdminCard>
-
-      <AdminCard title="Current admins">
-        <div className={ui.toolbar}>
-          <input
-            className={ui.searchInput}
-            type="search"
-            placeholder="Search name or email"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <select
-            className={ui.select}
-            value={roleFilter}
-            onChange={(event) =>
-              setRoleFilter(event.target.value as RoleFilter)
-            }
-            aria-label="Filter by role"
-          >
-            <option value="all">All roles</option>
-            <option value="admin">Admin</option>
-            <option value="super_admin">Super admin</option>
-          </select>
-          <select
-            className={ui.select}
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as StatusFilter)
-            }
-            aria-label="Filter by status"
-          >
-            <option value="all">All statuses</option>
-            <option value="active">Active</option>
-            <option value="blocked">Blocked</option>
-          </select>
-        </div>
-
-        {loading && <p className={ui.muted}>Loading team…</p>}
-        {error && <p className={ui.error}>{error}</p>}
-
-        {!loading && !error && !users.length && (
-          <p className={ui.empty}>No admin accounts yet.</p>
-        )}
-
-        {!loading && !error && users.length > 0 && !filteredUsers.length && (
-          <p className={ui.empty}>No admins match these filters.</p>
-        )}
-
-        {!loading && !error && filteredUsers.length > 0 && (
-          <div className={ui.tableWrap}>
-            <table className={ui.table}>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Added</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span
-                        className={`${ui.badge} ${
-                          user.role === SUPER_ADMIN_ROLE
-                            ? ui.badgeViolet
-                            : ui.badgeGreen
-                        }`}
-                      >
-                        {user.roleLabel}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        className={`${ui.badge} ${
-                          user.isDeleted
-                            ? ui.badgeGray
-                            : user.isDisabled
-                              ? ui.badgeRed
-                              : ui.badgeGreen
-                        }`}
-                      >
-                        {user.statusLabel === "Disabled"
-                          ? "Blocked"
-                          : user.statusLabel}
-                      </span>
-                    </td>
-                    <td>{formatDate(user.createdAt)}</td>
-                    <td>
-                      {user.canResetPassword ||
-                      user.canBlock ||
-                      user.canUnblock ||
-                      user.canDelete ||
-                      user.canDemote ? (
-                        <div className={k.actions}>
-                          {user.canResetPassword && (
-                            <button
-                              type="button"
-                              className={k.actionBtn}
-                              onClick={() => openAction(user, "password")}
-                              disabled={actionButtonsDisabled}
-                            >
-                              Password
-                            </button>
-                          )}
-                          {user.canBlock && (
-                            <button
-                              type="button"
-                              className={k.actionBtn}
-                              onClick={() => openAction(user, "block")}
-                              disabled={actionButtonsDisabled}
-                            >
-                              Block
-                            </button>
-                          )}
-                          {user.canUnblock && (
-                            <button
-                              type="button"
-                              className={k.actionBtn}
-                              onClick={() => openAction(user, "unblock")}
-                              disabled={actionButtonsDisabled}
-                            >
-                              Unblock
-                            </button>
-                          )}
-                          {user.canDemote && (
-                            <button
-                              type="button"
-                              className={k.actionBtn}
-                              onClick={() => openAction(user, "demote")}
-                              disabled={actionButtonsDisabled}
-                            >
-                              Remove role
-                            </button>
-                          )}
-                          {user.canDelete && (
-                            <button
-                              type="button"
-                              className={k.dangerBtn}
-                              onClick={() => openAction(user, "delete")}
-                              disabled={actionButtonsDisabled}
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className={ui.muted}>—</span>
-                      )}
-                    </td>
+          {!loading && !error && filteredUsers.length > 0 && (
+            <div className={`${ui.tableWrap} ${k.teamTableWrap}`}>
+              <table className={`${ui.table} ${k.teamTable}`}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Added</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </AdminCard>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id}>
+                      <td data-label="Name">
+                        <strong className={k.adminName}>{user.name}</strong>
+                      </td>
+                      <td data-label="Email">
+                        <span className={k.adminEmail}>{user.email}</span>
+                      </td>
+                      <td data-label="Role">
+                        <AdminBadge tone={roleTone(user)}>
+                          {user.roleLabel}
+                        </AdminBadge>
+                      </td>
+                      <td data-label="Status">
+                        <AdminBadge tone={statusTone(user)}>
+                          {user.statusLabel === "Disabled"
+                            ? "Blocked"
+                            : user.statusLabel}
+                        </AdminBadge>
+                      </td>
+                      <td data-label="Added">{formatDate(user.createdAt)}</td>
+                      <td data-label="Actions">
+                        {user.canResetPassword ||
+                        user.canBlock ||
+                        user.canUnblock ||
+                        user.canDelete ||
+                        user.canDemote ? (
+                          <div className={k.actions}>
+                            {user.canResetPassword && (
+                              <button
+                                type="button"
+                                className={k.actionBtn}
+                                onClick={() => openAction(user, "password")}
+                                disabled={actionButtonsDisabled}
+                              >
+                                Password
+                              </button>
+                            )}
+                            {user.canBlock && (
+                              <button
+                                type="button"
+                                className={k.actionBtn}
+                                onClick={() => openAction(user, "block")}
+                                disabled={actionButtonsDisabled}
+                              >
+                                Block
+                              </button>
+                            )}
+                            {user.canUnblock && (
+                              <button
+                                type="button"
+                                className={k.actionBtn}
+                                onClick={() => openAction(user, "unblock")}
+                                disabled={actionButtonsDisabled}
+                              >
+                                Unblock
+                              </button>
+                            )}
+                            {user.canDemote && (
+                              <button
+                                type="button"
+                                className={k.actionBtn}
+                                onClick={() => openAction(user, "demote")}
+                                disabled={actionButtonsDisabled}
+                              >
+                                Remove role
+                              </button>
+                            )}
+                            {user.canDelete && (
+                              <button
+                                type="button"
+                                className={k.dangerBtn}
+                                onClick={() => openAction(user, "delete")}
+                                disabled={actionButtonsDisabled}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className={ui.muted}>Protected</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </AdminPanel>
+
+        <aside className={k.sideRail} aria-label="Admin account tools">
+          <AdminPanel
+            title="Create admin"
+            description="Add a trusted staff account with a secure temporary password."
+            action={<UserPlus size={18} aria-hidden />}
+          >
+            <form className={k.formSection} onSubmit={handleSubmit(onSubmit)}>
+              <label className={k.field}>
+                <span>Full name</span>
+                <input {...register("name")} autoComplete="name" />
+                {errors.name && <em>{errors.name.message}</em>}
+              </label>
+
+              <label className={k.field}>
+                <span>Email</span>
+                <input
+                  {...register("email")}
+                  type="email"
+                  autoComplete="email"
+                />
+                {errors.email && <em>{errors.email.message}</em>}
+              </label>
+
+              <label className={k.field}>
+                <span>Temporary password</span>
+                <div className={k.passwordField}>
+                  <input
+                    {...register("password")}
+                    type={showCreatePassword ? "text" : "password"}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCreatePassword((value) => !value)}
+                    aria-label={
+                      showCreatePassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showCreatePassword ? (
+                      <EyeOff size={16} aria-hidden />
+                    ) : (
+                      <Eye size={16} aria-hidden />
+                    )}
+                  </button>
+                </div>
+                {errors.password && <em>{errors.password.message}</em>}
+              </label>
+
+              <label className={k.field}>
+                <span>Confirm password</span>
+                <div className={k.passwordField}>
+                  <input
+                    {...register("confirmPassword")}
+                    type={showCreateConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowCreateConfirmPassword((value) => !value)
+                    }
+                    aria-label={
+                      showCreateConfirmPassword
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                  >
+                    {showCreateConfirmPassword ? (
+                      <EyeOff size={16} aria-hidden />
+                    ) : (
+                      <Eye size={16} aria-hidden />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <em>{errors.confirmPassword.message}</em>
+                )}
+              </label>
+
+              <button type="submit" className={ui.btnAccent} disabled={saving}>
+                {saving ? "Creating..." : "Create admin"}
+              </button>
+            </form>
+          </AdminPanel>
+
+          <AdminPanel title="Access rules" description="Security defaults for this console.">
+            <ul className={k.ruleList}>
+              <li>Only super admins can manage admin accounts.</li>
+              <li>Password resets invalidate the admin's active sessions.</li>
+              <li>Blocked admins cannot access the admin console.</li>
+            </ul>
+          </AdminPanel>
+        </aside>
+      </div>
 
       {showActionDialog && actionUser && currentAction && (
         <div className={k.modalLayer} role="presentation">
@@ -494,7 +620,7 @@ export default function TeamPage() {
                 disabled={actionLoading}
                 aria-label="Close dialog"
               >
-                x
+                <X size={16} aria-hidden />
               </button>
             </div>
 
@@ -514,11 +640,26 @@ export default function TeamPage() {
               >
                 <label className={k.field}>
                   <span>New password</span>
-                  <input
-                    {...registerPassword("password")}
-                    type="password"
-                    autoComplete="new-password"
-                  />
+                  <div className={k.passwordField}>
+                    <input
+                      {...registerPassword("password")}
+                      type={showResetPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword((value) => !value)}
+                      aria-label={
+                        showResetPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showResetPassword ? (
+                        <EyeOff size={16} aria-hidden />
+                      ) : (
+                        <Eye size={16} aria-hidden />
+                      )}
+                    </button>
+                  </div>
                   {passwordErrors.password && (
                     <em>{passwordErrors.password.message}</em>
                   )}
@@ -526,11 +667,30 @@ export default function TeamPage() {
 
                 <label className={k.field}>
                   <span>Confirm password</span>
-                  <input
-                    {...registerPassword("confirmPassword")}
-                    type="password"
-                    autoComplete="new-password"
-                  />
+                  <div className={k.passwordField}>
+                    <input
+                      {...registerPassword("confirmPassword")}
+                      type={showResetConfirmPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowResetConfirmPassword((value) => !value)
+                      }
+                      aria-label={
+                        showResetConfirmPassword
+                          ? "Hide confirm password"
+                          : "Show confirm password"
+                      }
+                    >
+                      {showResetConfirmPassword ? (
+                        <EyeOff size={16} aria-hidden />
+                      ) : (
+                        <Eye size={16} aria-hidden />
+                      )}
+                    </button>
+                  </div>
                   {passwordErrors.confirmPassword && (
                     <em>{passwordErrors.confirmPassword.message}</em>
                   )}

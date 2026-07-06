@@ -499,6 +499,11 @@
   gap: 1rem;
 }
 
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
 @media (max-width: 1024px) {
   .dashboardGrid {
     grid-template-columns: 1fr;
