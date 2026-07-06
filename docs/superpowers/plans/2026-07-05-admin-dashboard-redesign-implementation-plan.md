@@ -356,11 +356,11 @@ git commit -m "feat: redesign admin overview dashboard"
 - Modify: `src/app/(auth)/(dashboard)/admin-account/payments/payment-page/page.tsx`
 - Modify: `src/app/(auth)/(dashboard)/admin-account/payments/payment-page/styles.module.scss`
 
-- [ ] **Step 1: Redesign orders list header and toolbar**
+- [x] **Step 1: Redesign orders list header and toolbar**
 
 Use `PageHeader` and `AdminToolbar`. Controls should include search, status filter, payment method filter if available, and date/location filters only if the current data already supports them. Do not add new backend query params unless existing route support exists.
 
-- [ ] **Step 2: Add fulfillment KPI chips**
+- [x] **Step 2: Add fulfillment KPI chips**
 
 Compute visible counts client-side from loaded orders:
 
@@ -375,11 +375,11 @@ const fulfillmentCounts = {
 
 Render them in a compact `.statusStrip`.
 
-- [ ] **Step 3: Redesign orders table/cards**
+- [x] **Step 3: Redesign orders table/cards**
 
 Desktop columns: order, customer, status, payment, delivery/location, total, date, actions. Mobile layout: one card per order with status and total at the top.
 
-- [ ] **Step 4: Redesign order detail**
+- [x] **Step 4: Redesign order detail**
 
 Use two-column layout:
 
@@ -388,7 +388,7 @@ Use two-column layout:
 
 Keep mark-paid, notes, and payment-prompt interactions intact.
 
-- [ ] **Step 5: Redesign payments page**
+- [x] **Step 5: Redesign payments page**
 
 Use KPI row and reconciliation table:
 
@@ -400,7 +400,7 @@ Use KPI row and reconciliation table:
 
 Keep existing payment API fields and links to orders.
 
-- [ ] **Step 6: Verify fulfillment pages**
+- [x] **Step 6: Verify fulfillment pages**
 
 Run:
 
@@ -412,7 +412,7 @@ curl -I http://127.0.0.1:3000/admin-account/payments
 
 Expected: typecheck exits 0. Routes return protected redirects or 200 depending on session.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/orders
