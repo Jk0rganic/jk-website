@@ -498,11 +498,11 @@ git commit -m "feat: redesign admin catalog pages"
 - Test: `src/app/(auth)/(dashboard)/admin-account/analytics/comp/report-table.test.ts`
 - Test: `src/app/(auth)/(dashboard)/admin-account/analytics/comp/analytics-page.test.ts`
 
-- [ ] **Step 1: Preserve analytics data contracts**
+- [x] **Step 1: Preserve analytics data contracts**
 
 Do not change `/api/admin/analytics/*` response shapes. Redesign the presentation layer around existing `AnalyticsOverviewResponse`, report responses, and CSV helpers.
 
-- [ ] **Step 2: Recompose analytics page**
+- [x] **Step 2: Recompose analytics page**
 
 Use this order:
 
@@ -512,7 +512,7 @@ Use this order:
 4. Insight callouts.
 5. Report tabs and report table.
 
-- [ ] **Step 3: Redesign report tabs**
+- [x] **Step 3: Redesign report tabs**
 
 Use segmented controls with icons:
 
@@ -523,11 +523,11 @@ Use segmented controls with icons:
 
 Keep URL/query state behavior already present.
 
-- [ ] **Step 4: Redesign report table**
+- [x] **Step 4: Redesign report table**
 
 Make the table visually consistent with other admin tables: compact header, sortable indicators, empty state, CSV action near report title, and mobile stacked rows when columns cannot fit.
 
-- [ ] **Step 5: Verify analytics tests**
+- [x] **Step 5: Verify analytics tests**
 
 Run:
 
@@ -538,7 +538,7 @@ pnpm exec tsc --noEmit
 
 Expected: all tests pass and typecheck exits 0.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/analytics
