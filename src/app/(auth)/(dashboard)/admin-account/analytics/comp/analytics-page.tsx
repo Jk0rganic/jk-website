@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   Banknote,
+  BarChart3,
   Boxes,
   CreditCard,
   MapPin,
@@ -13,6 +14,7 @@ import {
   ShoppingBag,
   TrendingUp,
   Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -28,6 +30,10 @@ import {
 } from "recharts";
 import { buildAnalyticsExportFilename } from "@/lib/admin/analytics-csv";
 import { formatPrice } from "@/utils/format-price";
+import { AdminBadge } from "../../components/ui/admin-badge";
+import { AdminEmptyState } from "../../components/ui/admin-empty-state";
+import { AdminMetricCard } from "../../components/ui/admin-metric-card";
+import { AdminPanel } from "../../components/ui/admin-panel";
 import ui from "../../components/ui/admin-ui.module.scss";
 import { PageHeader } from "../../components/ui/page-header";
 import styles from "../styles.module.scss";
@@ -114,8 +120,9 @@ type AnalyticsOverviewResponse = {
 type KpiItem = {
   label: string;
   value: string;
-  icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
-  iconClass: string;
+  icon: LucideIcon;
+  tone: "neutral" | "success" | "info" | "warning" | "danger";
+  detail: string;
 };
 
 type ProductReportRow = {
@@ -290,10 +297,12 @@ function formatDeliveryType(value: string) {
     .join(" ");
 }
 
-function statusClass(status: string) {
-  if (status === "Top seller" || status === "Active") return styles.statusGood;
-  if (status === "Slow mover") return styles.statusWarn;
-  return styles.statusNeutral;
+function statusTone(
+  status: string,
+): "success" | "warning" | "neutral" {
+  if (status === "Top seller" || status === "Active") return "success";
+  if (status === "Slow mover") return "warning";
+  return "neutral";
 }
 
 function buildQuery(range: DateRangeControlValue, nonce: number) {
@@ -373,24 +382,14 @@ function getInsights(data: AnalyticsOverviewResponse | null) {
   return insights;
 }
 
-function KpiCard({ item }: { item: KpiItem }) {
-  const Icon = item.icon;
-
-  return (
-    <article className={ui.statCard}>
-      <div className={ui.statTop}>
-        <span className={ui.statLabel}>{item.label}</span>
-        <span className={`${ui.statIcon} ${item.iconClass}`}>
-          <Icon size={18} aria-hidden />
-        </span>
-      </div>
-      <div className={ui.statValue}>{item.value}</div>
-    </article>
-  );
-}
-
 function EmptyState({ message }: { message: string }) {
-  return <p className={ui.empty}>{message}</p>;
+  return (
+    <AdminEmptyState
+      icon={BarChart3}
+      title={message}
+      description="Try a different date range or refresh once recent orders sync."
+    />
+  );
 }
 
 function LoadingState() {
@@ -678,7 +677,8 @@ export default function AnalyticsPage() {
           label: "Total revenue",
           value: formatPrice(overview.revenue.totalOrderRevenue),
           icon: Wallet,
-          iconClass: ui.iconGreen,
+          tone: "success",
+          detail: `${formatNumber(overview.revenue.orderCount)} orders in range`,
         },
         {
           label: "Net product revenue",
@@ -687,37 +687,43 @@ export default function AnalyticsPage() {
               overview.revenue.totalDiscounts,
           ),
           icon: ReceiptText,
-          iconClass: ui.iconBlue,
+          tone: "info",
+          detail: "Gross products minus discounts",
         },
         {
           label: "Delivery fees",
           value: formatPrice(overview.revenue.totalDeliveryFees),
           icon: Package,
-          iconClass: styles.iconCyan,
+          tone: "neutral",
+          detail: "Collected for fulfillment",
         },
         {
           label: "Discounts",
           value: formatPrice(overview.revenue.totalDiscounts),
           icon: Percent,
-          iconClass: styles.iconRed,
+          tone: "danger",
+          detail: `${formatNumber(overview.discounts.discountedOrders)} discounted orders`,
         },
         {
           label: "Orders",
           value: formatNumber(overview.revenue.orderCount),
           icon: ShoppingBag,
-          iconClass: ui.iconAmber,
+          tone: "warning",
+          detail: `${formatNumber(overview.behavior.unpaidOrPendingOrders)} unpaid or pending`,
         },
         {
           label: "Average order value",
           value: formatPrice(overview.revenue.averageOrderValue),
           icon: TrendingUp,
-          iconClass: ui.iconViolet,
+          tone: "info",
+          detail: "Revenue per order",
         },
         {
           label: "Units sold",
           value: formatNumber(overview.revenue.unitsSold),
           icon: Boxes,
-          iconClass: styles.iconSlate,
+          tone: "neutral",
+          detail: "Product units moved",
         },
       ]
     : [];
@@ -807,9 +813,7 @@ export default function AnalyticsPage() {
         sortValue: (row) => row.status,
         csvValue: (row) => row.status,
         render: (row) => (
-          <span className={`${styles.statusBadge} ${statusClass(row.status)}`}>
-            {row.status}
-          </span>
+          <AdminBadge tone={statusTone(row.status)}>{row.status}</AdminBadge>
         ),
       },
     ],
@@ -1087,133 +1091,62 @@ export default function AnalyticsPage() {
       ) : loading && !overview ? (
         <LoadingState />
       ) : !overview || !hasOrders ? (
-        <section className={ui.card}>
+        <AdminPanel>
           <EmptyState message="No analytics data for this range." />
-        </section>
+        </AdminPanel>
       ) : (
         <>
           <div className={styles.kpiGrid}>
             {kpis.map((item) => (
-              <KpiCard key={item.label} item={item} />
+              <AdminMetricCard
+                key={item.label}
+                label={item.label}
+                value={item.value}
+                icon={item.icon}
+                tone={item.tone}
+                detail={item.detail}
+              />
             ))}
           </div>
 
           <div className={styles.mainGrid}>
-            <section className={ui.card}>
-              <div className={ui.cardHeader}>
-                <h2>Revenue and orders</h2>
-                {loading && <RefreshCw className={styles.spin} aria-hidden />}
-              </div>
-              <div className={ui.cardBody}>
-                <RevenueChart
-                  current={overview}
-                  comparison={data?.comparisonOverview}
-                  currentLabel={currentLabel}
-                  comparisonLabel={comparisonLabel}
-                />
-              </div>
-            </section>
+            <AdminPanel
+              title="Revenue and orders"
+              description={`${currentLabel} compared with ${comparisonLabel.toLowerCase()}`}
+              action={
+                loading ? (
+                  <RefreshCw className={styles.spin} aria-hidden />
+                ) : undefined
+              }
+            >
+              <RevenueChart
+                current={overview}
+                comparison={data?.comparisonOverview}
+                currentLabel={currentLabel}
+                comparisonLabel={comparisonLabel}
+              />
+            </AdminPanel>
 
-            <section className={ui.card}>
-              <div className={ui.cardHeader}>
-                <h2>Payment split</h2>
+            <AdminPanel
+              title="Payment split"
+              description="Cash, M-Pesa, and other tender totals."
+            >
+              <div className={styles.paymentGrid}>
+                {paymentCards.map((payment) => {
+                  const Icon = payment.icon;
+                  return (
+                    <article key={payment.label} className={styles.paymentCard}>
+                      <div>
+                        <span>{payment.label}</span>
+                        <strong>{formatPrice(payment.total)}</strong>
+                      </div>
+                      <Icon aria-hidden />
+                      <small>{formatNumber(payment.orders)} orders</small>
+                    </article>
+                  );
+                })}
               </div>
-              <div className={ui.cardBody}>
-                <div className={styles.paymentGrid}>
-                  {paymentCards.map((payment) => {
-                    const Icon = payment.icon;
-                    return (
-                      <article
-                        key={payment.label}
-                        className={styles.paymentCard}
-                      >
-                        <div>
-                          <span>{payment.label}</span>
-                          <strong>{formatPrice(payment.total)}</strong>
-                        </div>
-                        <Icon aria-hidden />
-                        <small>{formatNumber(payment.orders)} orders</small>
-                      </article>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <div className={styles.secondaryGrid}>
-            <section className={ui.card}>
-              <div className={ui.cardHeader}>
-                <h2>Top products</h2>
-              </div>
-              <div className={ui.cardBody}>
-                {!overview.products.topProducts.length ? (
-                  <EmptyState message="No product sales for this range." />
-                ) : (
-                  <div className={ui.tableWrap}>
-                    <table className={ui.table}>
-                      <thead>
-                        <tr>
-                          <th>Product</th>
-                          <th>Units</th>
-                          <th>Revenue</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {overview.products.topProducts
-                          .slice(0, 6)
-                          .map((product) => (
-                            <tr key={product.productId}>
-                              <td>{product.name}</td>
-                              <td>{formatNumber(product.unitsSold)}</td>
-                              <td>{formatPrice(product.revenue)}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className={ui.card}>
-              <div className={ui.cardHeader}>
-                <h2>Top locations</h2>
-              </div>
-              <div className={ui.cardBody}>
-                {!overview.locations.topLocations.length ? (
-                  <EmptyState message="No location demand for this range." />
-                ) : (
-                  <div className={ui.tableWrap}>
-                    <table className={ui.table}>
-                      <thead>
-                        <tr>
-                          <th>Location</th>
-                          <th>Orders</th>
-                          <th>Revenue</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {overview.locations.topLocations
-                          .slice(0, 6)
-                          .map((location) => (
-                            <tr key={location.location}>
-                              <td>
-                                <span className={styles.locationName}>
-                                  <MapPin size={14} aria-hidden />
-                                  {location.location}
-                                </span>
-                              </td>
-                              <td>{formatNumber(location.orders)}</td>
-                              <td>{formatPrice(location.revenue)}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </section>
+            </AdminPanel>
           </div>
 
           {insights.length > 0 && (
@@ -1229,6 +1162,77 @@ export default function AnalyticsPage() {
               ))}
             </section>
           )}
+
+          <div className={styles.secondaryGrid}>
+            <AdminPanel
+              title="Top products"
+              description="Fast-moving items worth keeping visible and stocked."
+            >
+              {!overview.products.topProducts.length ? (
+                <EmptyState message="No product sales for this range." />
+              ) : (
+                <div className={ui.tableWrap}>
+                  <table className={ui.table}>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Units</th>
+                        <th>Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {overview.products.topProducts
+                        .slice(0, 6)
+                        .map((product) => (
+                          <tr key={product.productId}>
+                            <td>{product.name}</td>
+                            <td>{formatNumber(product.unitsSold)}</td>
+                            <td>{formatPrice(product.revenue)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </AdminPanel>
+
+            <AdminPanel
+              title="Top locations"
+              description="Demand pockets to guide delivery planning and campaigns."
+            >
+              {!overview.locations.topLocations.length ? (
+                <EmptyState message="No location demand for this range." />
+              ) : (
+                <div className={ui.tableWrap}>
+                  <table className={ui.table}>
+                    <thead>
+                      <tr>
+                        <th>Location</th>
+                        <th>Orders</th>
+                        <th>Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {overview.locations.topLocations
+                        .slice(0, 6)
+                        .map((location) => (
+                          <tr key={location.location}>
+                            <td>
+                              <span className={styles.locationName}>
+                                <MapPin size={14} aria-hidden />
+                                {location.location}
+                              </span>
+                            </td>
+                            <td>{formatNumber(location.orders)}</td>
+                            <td>{formatPrice(location.revenue)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </AdminPanel>
+          </div>
 
           <section
             className={styles.reportShell}

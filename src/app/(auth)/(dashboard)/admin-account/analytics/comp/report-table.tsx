@@ -10,6 +10,8 @@ import {
 import type React from "react";
 import { useMemo, useState } from "react";
 import type { CsvCellValue, CsvColumn } from "@/lib/admin/analytics-csv";
+import { AdminEmptyState } from "../../components/ui/admin-empty-state";
+import { AdminPanel } from "../../components/ui/admin-panel";
 import ui from "../../components/ui/admin-ui.module.scss";
 import styles from "../styles.module.scss";
 import CsvExport from "./csv-export";
@@ -211,153 +213,147 @@ export default function ReportTable<Row>({
     });
   };
 
-  return (
-    <section className={ui.card}>
-      <div className={ui.cardHeader}>
-        <div>
-          <h2>{title}</h2>
-          {description && (
-            <p className={styles.reportDescription}>{description}</p>
-          )}
-        </div>
-        <div className={styles.reportActions}>
-          <span className={styles.reportCount}>
-            {tableState.totalRows} rows
-          </span>
-          {onVisibleColumnKeysChange && (
-            <details className={styles.columnMenu}>
-              <summary aria-label={`${title} columns`} title="Columns">
-                <SlidersHorizontal size={16} aria-hidden />
-              </summary>
-              <div className={styles.columnMenuPanel}>
-                {columns.map((column) => (
-                  <label key={column.key}>
-                    <input
-                      type="checkbox"
-                      checked={visibleColumns.some(
-                        (visibleColumn) => visibleColumn.key === column.key,
-                      )}
-                      onChange={() => toggleColumn(column.key)}
-                    />
-                    <span>{column.header}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          )}
-          {exportFilename && (
-            <CsvExport
-              columns={csvColumns}
-              rows={tableState.pageRows}
-              filename={exportFilename}
-              label={`Export ${title}`}
-            />
-          )}
-        </div>
-      </div>
-      <div className={ui.cardBody}>
-        <label className={styles.reportSearch}>
-          <Search size={16} aria-hidden />
-          <span className={styles.visuallyHidden}>Search {title}</span>
-          <input
-            type="search"
-            value={search}
-            placeholder={searchPlaceholder}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-          />
-        </label>
+  const actions = (
+    <div className={styles.reportActions}>
+      <span className={styles.reportCount}>{tableState.totalRows} rows</span>
+      {onVisibleColumnKeysChange && (
+        <details className={styles.columnMenu}>
+          <summary aria-label={`${title} columns`} title="Columns">
+            <SlidersHorizontal size={16} aria-hidden />
+          </summary>
+          <div className={styles.columnMenuPanel}>
+            {columns.map((column) => (
+              <label key={column.key}>
+                <input
+                  type="checkbox"
+                  checked={visibleColumns.some(
+                    (visibleColumn) => visibleColumn.key === column.key,
+                  )}
+                  onChange={() => toggleColumn(column.key)}
+                />
+                <span>{column.header}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+      )}
+      {exportFilename && (
+        <CsvExport
+          columns={csvColumns}
+          rows={tableState.pageRows}
+          filename={exportFilename}
+          label={`Export ${title}`}
+        />
+      )}
+    </div>
+  );
 
-        {tableState.totalRows === 0 ? (
-          <p className={ui.empty}>{emptyMessage}</p>
-        ) : (
-          <>
-            <div className={`${ui.tableWrap} ${styles.reportTableWrap}`}>
-              <table className={`${ui.table} ${styles.reportTable}`}>
-                <thead>
-                  <tr>
+  return (
+    <AdminPanel title={title} description={description} action={actions}>
+      <label className={styles.reportSearch}>
+        <Search size={16} aria-hidden />
+        <span className={styles.visuallyHidden}>Search {title}</span>
+        <input
+          type="search"
+          value={search}
+          placeholder={searchPlaceholder}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(1);
+          }}
+        />
+      </label>
+
+      {tableState.totalRows === 0 ? (
+        <AdminEmptyState
+          title={emptyMessage}
+          description="Adjust the filters or date range to inspect another slice of the business."
+        />
+      ) : (
+        <>
+          <div className={`${ui.tableWrap} ${styles.reportTableWrap}`}>
+            <table className={`${ui.table} ${styles.reportTable}`}>
+              <thead>
+                <tr>
+                  {visibleColumns.map((column) => (
+                    <th
+                      key={column.key}
+                      className={
+                        column.align === "right" ? styles.alignRight : ""
+                      }
+                    >
+                      {column.sortValue ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSort(column)}
+                          className={styles.sortButton}
+                        >
+                          {column.header}
+                          <ChevronDown
+                            aria-hidden
+                            className={
+                              activeSortKey === column.key &&
+                              sortDirection === "asc"
+                                ? styles.sortAsc
+                                : ""
+                            }
+                          />
+                        </button>
+                      ) : (
+                        column.header
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tableState.pageRows.map((row) => (
+                  <tr key={rowKey(row)}>
                     {visibleColumns.map((column) => (
-                      <th
+                      <td
                         key={column.key}
+                        data-label={column.header}
                         className={
                           column.align === "right" ? styles.alignRight : ""
                         }
                       >
-                        {column.sortValue ? (
-                          <button
-                            type="button"
-                            onClick={() => handleSort(column)}
-                            className={styles.sortButton}
-                          >
-                            {column.header}
-                            <ChevronDown
-                              aria-hidden
-                              className={
-                                activeSortKey === column.key &&
-                                sortDirection === "asc"
-                                  ? styles.sortAsc
-                                  : ""
-                              }
-                            />
-                          </button>
-                        ) : (
-                          column.header
-                        )}
-                      </th>
+                        {column.render?.(row) ??
+                          String(column.searchValue?.(row) ?? "")}
+                      </td>
                     ))}
                   </tr>
-                </thead>
-                <tbody>
-                  {tableState.pageRows.map((row) => (
-                    <tr key={rowKey(row)}>
-                      {visibleColumns.map((column) => (
-                        <td
-                          key={column.key}
-                          data-label={column.header}
-                          className={
-                            column.align === "right" ? styles.alignRight : ""
-                          }
-                        >
-                          {column.render?.(row) ??
-                            String(column.searchValue?.(row) ?? "")}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            <div className={styles.reportPagination}>
-              <button
-                type="button"
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={tableState.page <= 1}
-                aria-label={`Previous ${title} page`}
-              >
-                <ChevronLeft size={16} aria-hidden />
-              </button>
-              <span>
-                Page {tableState.page} of {tableState.totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setPage((current) =>
-                    Math.min(tableState.totalPages, current + 1),
-                  )
-                }
-                disabled={tableState.page >= tableState.totalPages}
-                aria-label={`Next ${title} page`}
-              >
-                <ChevronRight size={16} aria-hidden />
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+          <div className={styles.reportPagination}>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={tableState.page <= 1}
+              aria-label={`Previous ${title} page`}
+            >
+              <ChevronLeft size={16} aria-hidden />
+            </button>
+            <span>
+              Page {tableState.page} of {tableState.totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setPage((current) =>
+                  Math.min(tableState.totalPages, current + 1),
+                )
+              }
+              disabled={tableState.page >= tableState.totalPages}
+              aria-label={`Next ${title} page`}
+            >
+              <ChevronRight size={16} aria-hidden />
+            </button>
+          </div>
+        </>
+      )}
+    </AdminPanel>
   );
 }
