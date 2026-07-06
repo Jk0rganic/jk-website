@@ -554,11 +554,11 @@ git commit -m "feat: redesign admin growth analytics"
 - Modify: `src/app/(auth)/(dashboard)/admin-account/details/page.tsx`
 - Test: `src/app/(auth)/(dashboard)/admin-account/team/layout.test.ts`
 
-- [ ] **Step 1: Redesign team page hierarchy**
+- [x] **Step 1: Redesign team page hierarchy**
 
 Make the current admins list primary. Place create-admin in a compact panel beside or below it depending on viewport.
 
-- [ ] **Step 2: Replace destructive inline actions with modal pattern**
+- [x] **Step 2: Replace destructive inline actions with modal pattern**
 
 Use the shared `AdminPanel`, `AdminBadge`, and modal styles from Task 1. Keep existing behavior for:
 
@@ -569,11 +569,11 @@ Use the shared `AdminPanel`, `AdminBadge`, and modal styles from Task 1. Keep ex
 
 Every destructive modal must show target `name` or `email`.
 
-- [ ] **Step 3: Redesign create-admin form**
+- [x] **Step 3: Redesign create-admin form**
 
 Keep schema and endpoint unchanged. Use compact labels, secure password fields, and clear validation.
 
-- [ ] **Step 4: Redesign account details**
+- [x] **Step 4: Redesign account details**
 
 Use simple panels:
 
@@ -583,7 +583,7 @@ Use simple panels:
 
 Do not invent store settings in this pass.
 
-- [ ] **Step 5: Verify team/settings**
+- [x] **Step 5: Verify team/settings**
 
 Run:
 
@@ -596,7 +596,7 @@ curl -I http://127.0.0.1:3000/admin-account/details
 
 Expected: tests pass, typecheck exits 0, routes return protected redirects or 200 depending on session.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/app/\(auth\)/\(dashboard\)/admin-account/team
