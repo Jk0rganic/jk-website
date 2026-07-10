@@ -70,7 +70,7 @@ $bg: url("https://res.cloudinary.com/dj200tags/images/v1765566065/engin-akyurt-g
   .card_wrapper {
     // @include mixin.gridbox(20rem);
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: clamp(0.5rem, 1.5vw, 1rem);
 
     .card {

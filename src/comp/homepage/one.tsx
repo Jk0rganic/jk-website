@@ -1,21 +1,15 @@
-import k from "./styles.module.scss";
-import Section from "../section/section";
-import ImgBox from "../imgbox/ImgBox";
 import Link from "next/link";
+import ImgBox from "../imgbox/ImgBox";
+import Section from "../section/section";
+import k from "./styles.module.scss";
 
 export default function Categories() {
   const categories = [
     {
-      name: "Face Care",
+      name: "Skin Care",
       image:
-        "https://res.cloudinary.com/dj200tags/images/w_1707,h_2560,c_scale/v1768509216/kimia-kazemi-Xxs9WvkUPLo-unsplash_11zon/kimia-kazemi-Xxs9WvkUPLo-unsplash_11zon.webp",
-      link: "/products/face-care",
-    },
-    {
-      name: "Body Care",
-      image:
-        "https://res.cloudinary.com/dj200tags/images/v1768509551/5034_11zon/5034_11zon.webp",
-      link: "/products/body-care",
+        "https://res.cloudinary.com/dj200tags/images/v1768508598/gideon-hezekiah-WCEMFqEIVek-unsplash_11zon/gideon-hezekiah-WCEMFqEIVek-unsplash_11zon.webp",
+      link: "/products/skin-care",
     },
     {
       name: "Hair Care",
@@ -24,10 +18,11 @@ export default function Categories() {
       link: "/products/hair-care",
     },
     {
-      name: "skin care",
+      // TODO: swap for a dedicated Wellness photo from the admin media library.
+      name: "Wellness",
       image:
-        "https://res.cloudinary.com/dj200tags/images/v1768508598/gideon-hezekiah-WCEMFqEIVek-unsplash_11zon/gideon-hezekiah-WCEMFqEIVek-unsplash_11zon.webp",
-      link: "/products/skin-care",
+        "https://res.cloudinary.com/dj200tags/images/v1768509551/5034_11zon/5034_11zon.webp",
+      link: "/products/wellness",
     },
   ];
   return (
@@ -37,10 +32,10 @@ export default function Categories() {
         <Link href="/products/all">View All Collection</Link>
       </div>
       <div className={k.card_wrapper}>
-        {categories.map((category, index) => (
+        {categories.map((category) => (
           <Link
             href={category.link}
-            key={index}
+            key={category.link}
             className={k.card}
             aria-label={category.name}
           >

@@ -14,7 +14,13 @@ export type SpotlightProduct = {
   imageUrl: string | null;
   imageAlt: string;
   badge: SpotlightBadge;
+  rating: number;
+  ratingCount: number;
+  lowStockRemaining: number | null;
 };
+
+// Below this, "only N left" is genuine urgency rather than a manufactured one.
+const LOW_STOCK_THRESHOLD = 10;
 
 type WooRestProduct = {
   id: number;
@@ -23,6 +29,10 @@ type WooRestProduct = {
   price: string;
   regular_price: string;
   sale_price: string;
+  average_rating: string;
+  rating_count: number;
+  manage_stock: boolean;
+  stock_quantity: number | null;
   images?: Array<{ src: string; alt?: string }>;
 };
 
@@ -36,6 +46,13 @@ function mapProduct(
   product: WooRestProduct,
   badge: SpotlightBadge,
 ): SpotlightProduct {
+  const lowStockRemaining =
+    product.manage_stock &&
+    product.stock_quantity !== null &&
+    product.stock_quantity <= LOW_STOCK_THRESHOLD
+      ? product.stock_quantity
+      : null;
+
   return {
     id: product.id,
     name: product.name,
@@ -46,6 +63,9 @@ function mapProduct(
     imageUrl: product.images?.[0]?.src ?? null,
     imageAlt: product.images?.[0]?.alt || product.name,
     badge,
+    rating: parseFloat(product.average_rating) || 0,
+    ratingCount: product.rating_count || 0,
+    lowStockRemaining,
   };
 }
 

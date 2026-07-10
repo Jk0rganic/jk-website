@@ -22,14 +22,18 @@
 
 .close {
   position: absolute;
-  top: 0.35rem;
-  right: 0.35rem;
+  top: 0.1rem;
+  right: 0.1rem;
   display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
   color: mixin.$grey;
-  padding: 0.3rem;
+  // Thumb-friendly hit area even though the icon itself stays small.
+  width: 2.75rem;
+  height: 2.75rem;
 
   &:hover {
     color: mixin.$black;
@@ -102,4 +106,26 @@
 .newPrice {
   color: mixin.$price-color;
   font-weight: 600;
+}
+
+.socialProof {
+  font-size: type.$tiny;
+  color: mixin.$grey;
+}
+
+.urgency {
+  font-size: type.$tiny;
+  color: mixin.$red;
+  font-weight: 600;
+}
+
+.cta {
+  align-self: flex-start;
+  margin-top: 0.15rem;
+  font-size: type.$tiny;
+  font-weight: 600;
+  color: mixin.$pure-white;
+  background-color: mixin.$green;
+  padding: 0.3rem 0.75rem;
+  @include mixin.borderRadius(1rem);
 }
