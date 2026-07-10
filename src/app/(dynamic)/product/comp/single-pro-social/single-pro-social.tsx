@@ -1,7 +1,6 @@
-import styles from "./styles.module.scss";
-
 // Import icons from lucide‑react
-import { Facebook, Twitter, Linkedin } from "lucide-react";
+import { Facebook, Linkedin, Twitter } from "lucide-react";
+import styles from "./styles.module.scss";
 
 export default function SingleProSocial() {
   return (

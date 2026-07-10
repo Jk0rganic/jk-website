@@ -16,10 +16,7 @@ export interface PaymentFailureDetails {
 const DEFAULT_MESSAGE =
   "Payment was not completed. You can send a new M-Pesa prompt to try again.";
 
-function matchReason(
-  reason: string,
-  patterns: RegExp[],
-): boolean {
+function matchReason(reason: string, patterns: RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(reason));
 }
 
@@ -79,12 +76,7 @@ export function getPaymentFailureDetails(
   }
 
   if (
-    matchReason(reason, [
-      /insufficient/,
-      /\b1\b/,
-      /low balance/,
-      /not enough/,
-    ])
+    matchReason(reason, [/insufficient/, /\b1\b/, /low balance/, /not enough/])
   ) {
     return {
       kind: "insufficient_balance",

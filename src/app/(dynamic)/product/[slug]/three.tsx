@@ -1,6 +1,6 @@
-import k from "./styles.module.scss";
 import ProductCard from "@/comp/card/product/product-card/productCard";
 import Section from "@/comp/section/section";
+import k from "./styles.module.scss";
 
 type Props = {
   relatedProducts?: Product[];

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import k from "./styles.module.scss";
 import { User } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import k from "./styles.module.scss";
 
 interface SessionUser {
   role: "user" | "min_admin" | "super_admin";

@@ -1,15 +1,15 @@
+import type { Metadata } from "next";
 import Head from "next/head";
 import Script from "next/script";
-import type { SinglePagePropsType } from "@/types/types";
-import type { Metadata } from "next";
 import { cache } from "react";
 import { GET_POST_BY_SLUG } from "@/graphql/graphql";
-import One from "./one";
-import Two from "./two";
 import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import type { SinglePagePropsType } from "@/types/types";
+import { blogSchema } from "@/utils/seo/schema";
 import { siteMetadata } from "@/utils/seo/siteMetadata";
 import Hero from "./hero";
-import { blogSchema } from "@/utils/seo/schema";
+import One from "./one";
+import Two from "./two";
 
 const stripHtml = (value?: string) => value?.replace(/<[^>]*>/g, "").trim();
 

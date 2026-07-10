@@ -1,8 +1,5 @@
 import prisma from "@/lib/prisma";
-import {
-  getPaymentStatus,
-  getPaymentStatusByCheckoutId,
-} from "./client";
+import { getPaymentStatus, getPaymentStatusByCheckoutId } from "./client";
 import { syncPaymentFromInvoice } from "./sync-payment";
 
 const MIN_AGE_MS = 2 * 60 * 1000;

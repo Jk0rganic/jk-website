@@ -1,11 +1,11 @@
 "use client";
-import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import k from "./styles.module.scss";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { contactFormSchema, ContactFormSchemaType } from "@/utils/zod/zod";
 import { FormInput, FormTextarea } from "@/comp/form/formInput/formInput";
+import { type ContactFormSchemaType, contactFormSchema } from "@/utils/zod/zod";
 import { sendEmailNodemailer } from "../../lib/sendEmailNodemailer";
+import k from "./styles.module.scss";
 
 export default function ContactForm() {
   const {

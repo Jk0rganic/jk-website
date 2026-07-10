@@ -1,11 +1,11 @@
+import type { Metadata } from "next";
+import { cache } from "react";
+import { GET_PAGE } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import type { SinglePagePropsType } from "@/types/types";
+import { siteMetadata } from "@/utils/seo/siteMetadata";
 import Hero from "./hero";
 import One from "./one";
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
-import { GET_PAGE } from "@/graphql/graphql";
-import { siteMetadata } from "@/utils/seo/siteMetadata";
-import { Metadata } from "next";
-import { cache } from "react";
-import type { SinglePagePropsType } from "@/types/types";
 
 export interface PageProps {
   slug: string;
@@ -34,8 +34,8 @@ export async function generateMetadata({
 
   const plainText =
     pageData?.content
-      ?.replace(/<[^>]*>/g, "") 
-      .replace(/\s+/g, " ") 
+      ?.replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
       .trim() || "";
 
   const shortDescription =

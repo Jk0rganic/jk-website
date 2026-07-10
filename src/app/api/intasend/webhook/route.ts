@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getIntaSendConfig } from "@/lib/intasend/config";
 import { syncPaymentFromInvoice } from "@/lib/intasend/sync-payment";
 import prisma from "@/lib/prisma";
@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
     const { webhookChallenge } = getIntaSendConfig();
 
     if (webhookChallenge && challenge !== webhookChallenge) {
-      return NextResponse.json({ message: "Invalid challenge" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Invalid challenge" },
+        { status: 401 },
+      );
     }
 
     const orderIdMatch = api_ref?.match(/^ORD-(\d+)$/);

@@ -8,6 +8,7 @@ import {
   Settings,
   ShoppingBag,
   Ticket,
+  UserRound,
   Users,
 } from "lucide-react";
 
@@ -50,6 +51,17 @@ export const adminNavGroups: AdminNavGroup[] = [
     ],
   },
   {
+    title: "Customers",
+    items: [
+      {
+        label: "Customers",
+        href: "/admin-account/customers",
+        icon: UserRound,
+        superAdminOnly: true,
+      },
+    ],
+  },
+  {
     title: "Growth",
     items: [
       { label: "Analytics", href: "/admin-account/analytics", icon: BarChart3 },
@@ -82,6 +94,7 @@ export const adminPageTitles: Record<string, string> = {
   "/admin-account": "Dashboard",
   "/admin-account/analytics": "Analytics",
   "/admin-account/orders": "Orders",
+  "/admin-account/customers": "Customers",
   "/admin-account/products": "Products",
   "/admin-account/products/new": "Add product",
   "/admin-account/coupons": "Coupons",

@@ -1,5 +1,5 @@
-import k from "./styles.module.scss";
 import ProductRating from "@/comp/card/product/product-rating/product-rating";
+import k from "./styles.module.scss";
 
 export default function RatingReviews({
   reviewCount,

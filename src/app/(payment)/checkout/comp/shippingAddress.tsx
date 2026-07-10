@@ -1,6 +1,6 @@
+import { FormInput } from "@/comp/form/formInput/formInput";
 import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import k from "./styles.module.scss";
-import { FormInput } from "@/comp/form/formInput/formInput";
 
 type ShippingAddressProps = Pick<CheckoutFormProps, "register" | "errors">;
 

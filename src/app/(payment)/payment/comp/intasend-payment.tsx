@@ -65,12 +65,15 @@ export default function IntaSendPayment({
     }
   }, []);
 
-  const notifyOnce = useCallback((type: "success" | "error", message: string) => {
-    if (notifiedRef.current) return;
-    notifiedRef.current = true;
-    if (type === "success") toast.success(message);
-    else toast.error(message, { duration: 6000 });
-  }, []);
+  const notifyOnce = useCallback(
+    (type: "success" | "error", message: string) => {
+      if (notifiedRef.current) return;
+      notifiedRef.current = true;
+      if (type === "success") toast.success(message);
+      else toast.error(message, { duration: 6000 });
+    },
+    [],
+  );
 
   const applyStatusResponse = useCallback((data: StatusResponse) => {
     setAmount(data.amount);
@@ -122,29 +125,30 @@ export default function IntaSendPayment({
     [notifyOnce],
   );
 
-  const fetchStatus = useCallback(async (): Promise<FetchStatusResult | null> => {
-    if (!orderId) return null;
+  const fetchStatus =
+    useCallback(async (): Promise<FetchStatusResult | null> => {
+      if (!orderId) return null;
 
-    const query = checkoutId
-      ? `checkoutId=${encodeURIComponent(checkoutId)}`
-      : `orderId=${encodeURIComponent(orderId)}`;
+      const query = checkoutId
+        ? `checkoutId=${encodeURIComponent(checkoutId)}`
+        : `orderId=${encodeURIComponent(orderId)}`;
 
-    const res = await fetch(`/api/intasend/status?${query}`);
-    const data = (await res.json()) as StatusResponse;
+      const res = await fetch(`/api/intasend/status?${query}`);
+      const data = (await res.json()) as StatusResponse;
 
-    if (res.status === 404) {
-      return "NOT_FOUND";
-    }
+      if (res.status === 404) {
+        return "NOT_FOUND";
+      }
 
-    if (!res.ok) {
-      throw new Error(
-        (data as { message?: string }).message ||
-          "Could not check payment status.",
-      );
-    }
+      if (!res.ok) {
+        throw new Error(
+          (data as { message?: string }).message ||
+            "Could not check payment status.",
+        );
+      }
 
-    return applyStatusResponse(data);
-  }, [applyStatusResponse, checkoutId, orderId]);
+      return applyStatusResponse(data);
+    }, [applyStatusResponse, checkoutId, orderId]);
 
   const pollStatus = useCallback(async () => {
     if (!orderId || terminalRef.current) return;
@@ -201,7 +205,10 @@ export default function IntaSendPayment({
         setTimedOut(true);
         setStatus("PENDING");
         setUserMessage("Unable to verify payment status. Try checking again.");
-        notifyOnce("error", "Unable to verify payment status. Try checking again.");
+        notifyOnce(
+          "error",
+          "Unable to verify payment status. Try checking again.",
+        );
         return;
       }
 
@@ -210,7 +217,14 @@ export default function IntaSendPayment({
         void pollStatus();
       }, nextInterval);
     }
-  }, [clearPollTimer, fetchStatus, handleFailed, handleSuccess, notifyOnce, orderId]);
+  }, [
+    clearPollTimer,
+    fetchStatus,
+    handleFailed,
+    handleSuccess,
+    notifyOnce,
+    orderId,
+  ]);
 
   const resumePolling = useCallback(() => {
     clearPollTimer();
@@ -372,9 +386,9 @@ export default function IntaSendPayment({
                 : "Payment not completed"
               : needsPaymentStart
                 ? "Payment pending"
-              : showTimedOut
-                ? "Still waiting for payment"
-                : "Waiting for payment"}
+                : showTimedOut
+                  ? "Still waiting for payment"
+                  : "Waiting for payment"}
         </h1>
 
         <PaymentDetails

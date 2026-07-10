@@ -1,8 +1,8 @@
-import k from "./styles.module.scss";
 import Link from "next/link";
-import ImgBox from "../../imgbox/ImgBox";
-import Article from "../../article/Article";
 import { formatDate } from "@/utils/formatDate";
+import Article from "../../article/Article";
+import ImgBox from "../../imgbox/ImgBox";
+import k from "./styles.module.scss";
 
 export default function BlogCard({ blog }: { blog: Blog }) {
   const imageUrl =

@@ -1,10 +1,10 @@
-import k from "./styles.module.scss";
+import Link from "next/link";
 import {
   SharedEmail,
   SharedPhone,
 } from "@/comp/shared-components/shared-components";
 import SocialMediaLinks from "@/comp/shared-components/social-media-links/social-media-links";
-import Link from "next/link";
+import k from "./styles.module.scss";
 
 type FooterItem =
   | { type: "text"; value: string }

@@ -1,5 +1,5 @@
-import k from "./styles.module.scss";
 import { logoutAll } from "@/app/(auth)/auth/signup/comp/social_login/action";
+import k from "./styles.module.scss";
 
 export default function DashLogout() {
   return (

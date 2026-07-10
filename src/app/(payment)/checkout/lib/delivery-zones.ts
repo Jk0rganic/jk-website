@@ -43,7 +43,9 @@ export function resolveDeliveryZone(
 
   if (subtype === "door_to_door") {
     return (
-      zones.find((zone) => /nairobi/i.test(zone.zone) && /door/i.test(zone.zone)) ??
+      zones.find(
+        (zone) => /nairobi/i.test(zone.zone) && /door/i.test(zone.zone),
+      ) ??
       zones.find((zone) => /nairobi/i.test(zone.zone)) ??
       zones[0]
     );

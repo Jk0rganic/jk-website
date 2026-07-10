@@ -1,9 +1,9 @@
 "use server";
 
-import prisma from "@/lib/prisma";
-import { registerUserSchema, type RegisterUserSchema } from "@/utils/zod/zod";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import prisma from "@/lib/prisma";
+import { type RegisterUserSchema, registerUserSchema } from "@/utils/zod/zod";
 
 export async function registerUserAction(data: RegisterUserSchema) {
   try {

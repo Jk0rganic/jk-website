@@ -28,7 +28,10 @@ export function PendingPaymentBanner({
           {total ? ` of ${currency} ${total}` : ""} to confirm this order.
         </p>
       </div>
-      <Link href={`/payment?orderId=${orderId}`} className={displayStyles.pay_btn}>
+      <Link
+        href={`/payment?orderId=${orderId}`}
+        className={displayStyles.pay_btn}
+      >
         Pay with M-Pesa
       </Link>
     </div>
@@ -55,7 +58,10 @@ export function OrderPaidBanner() {
 
 export function PendingPaymentLink({ orderId }: { orderId: number }) {
   return (
-    <Link href={`/payment?orderId=${orderId}`} className={displayStyles.pay_link}>
+    <Link
+      href={`/payment?orderId=${orderId}`}
+      className={displayStyles.pay_link}
+    >
       Pay now
     </Link>
   );

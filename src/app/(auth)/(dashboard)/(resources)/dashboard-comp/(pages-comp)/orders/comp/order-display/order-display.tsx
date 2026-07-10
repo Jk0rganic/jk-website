@@ -1,8 +1,8 @@
-import k from "./styles.module.scss";
 import type {
   OrderDisplayTone,
   PaymentDisplayTone,
 } from "@/lib/checkout/get-order-display";
+import k from "./styles.module.scss";
 
 const orderToneClass: Record<OrderDisplayTone, string> = {
   action: k.tone_action,

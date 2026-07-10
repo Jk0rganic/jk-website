@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { reconcilePendingPayments } from "@/lib/intasend/reconcile-pending-payments";
 
 function isAuthorized(req: NextRequest) {

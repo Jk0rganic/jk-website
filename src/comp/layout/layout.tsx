@@ -1,8 +1,9 @@
 import { GoogleTagManager } from "@next/third-parties/google";
-import { Quintessential, Inter, Cormorant_Garamond } from "next/font/google";
+import { Cormorant_Garamond, Inter, Quintessential } from "next/font/google";
+import type { ReactNode } from "react";
 import { Providers } from "@/provider/provider";
 import AppChrome from "./app-chrome";
-import { ReactNode } from "react";
+
 // Fonts
 const quintessential = Quintessential({
   subsets: ["latin"],

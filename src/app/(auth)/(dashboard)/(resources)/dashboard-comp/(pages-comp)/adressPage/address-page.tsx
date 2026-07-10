@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import k from "./styles.module.scss";
 import { useAccount } from "../../../dashboard-utils/account-context";
+import k from "./styles.module.scss";
 
 export default function AddressesPage() {
   const { orders } = useAccount();

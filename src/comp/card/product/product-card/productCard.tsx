@@ -1,17 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-
-import k from "./styles.module.scss";
-
-import ImgBox from "../../../imgbox/ImgBox";
-import Article from "../../../article/Article";
-import ProductSizeVariations from "../product-size-variations/product-size-variations";
-import ProductOfferDiscount from "../product-offer-discount/product-offer-discount";
-import CatStarComp from "../cat-star-comp/cat-star-comp";
-
+import { useEffect, useState } from "react";
 import { decodeHTML } from "@/utils/decode-html";
+import Article from "../../../article/Article";
+import ImgBox from "../../../imgbox/ImgBox";
+import CatStarComp from "../cat-star-comp/cat-star-comp";
+import ProductOfferDiscount from "../product-offer-discount/product-offer-discount";
+import ProductSizeVariations from "../product-size-variations/product-size-variations";
+import k from "./styles.module.scss";
 
 type Props = {
   product: Product;

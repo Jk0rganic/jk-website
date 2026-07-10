@@ -1,4 +1,4 @@
-import { Quintessential, Inter, Cormorant_Garamond } from "next/font/google";
+import { Cormorant_Garamond, Inter, Quintessential } from "next/font/google";
 
 const quintessential = Quintessential({
   subsets: ["latin"],

@@ -1,9 +1,9 @@
 import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
-import ExclusiveEmail from "./exclusiveEmail";
-import PickUpPoint from "./pickUpPoint/pickUpPoint";
 import BillingAddress from "./billingAddress";
 import DeliveryLocationSelector from "./delivery-location/deliveryLocationSelector";
+import ExclusiveEmail from "./exclusiveEmail";
+import PickUpPoint from "./pickUpPoint/pickUpPoint";
 
 type BillingSectionProps = Pick<
   CheckoutFormProps,

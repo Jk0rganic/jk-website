@@ -1,16 +1,14 @@
 "use client";
 
-import { useRef, useState, useCallback, useTransition } from "react";
-
-import Section from "../section/section";
-import ProductCard from "../card/product/product-card/productCard";
-import ProductCategory from "../card/product/product-categories/productCategory";
-import PostSkeleton from "../card/skeleton/product-skeleton/productSkeleton";
-import ProductCategorySkeleton from "../card/skeleton/product-category-skeleton/product-category-skeleton";
-
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import { useCallback, useRef, useState, useTransition } from "react";
 import { GET_PRODUCTS } from "@/graphql/graphql";
 import useIsMobile from "@/hooks/useIsMobile";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import ProductCard from "../card/product/product-card/productCard";
+import ProductCategory from "../card/product/product-categories/productCategory";
+import ProductCategorySkeleton from "../card/skeleton/product-category-skeleton/product-category-skeleton";
+import PostSkeleton from "../card/skeleton/product-skeleton/productSkeleton";
+import Section from "../section/section";
 
 import k from "./styles.module.scss";
 
@@ -62,7 +60,10 @@ export default function Two({
               ? { first: ITEMS_PER_PAGE }
               : { first: ITEMS_PER_PAGE, categorySlug: slug };
 
-          const data = await fetchGraphQL<ProductsResponse>(GET_PRODUCTS, variables);
+          const data = await fetchGraphQL<ProductsResponse>(
+            GET_PRODUCTS,
+            variables,
+          );
           const fetched = data?.products?.nodes ?? [];
 
           cacheRef.current[slug] = fetched;
@@ -74,7 +75,7 @@ export default function Two({
         }
       });
     },
-    [activeCategory]
+    [activeCategory],
   );
 
   return (
@@ -96,7 +97,9 @@ export default function Two({
         {isPending && <PostSkeleton count={ITEMS_PER_PAGE} />}
 
         {!isPending && error && (
-          <p className={k.empty} aria-live="polite">{error}</p>
+          <p className={k.empty} aria-live="polite">
+            {error}
+          </p>
         )}
 
         {!isPending && !error && products.length === 0 && (

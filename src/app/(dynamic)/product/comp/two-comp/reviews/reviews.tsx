@@ -1,8 +1,8 @@
-import k from "./import.module.scss";
-import { formatDate } from "@/utils/formatDate";
 import ProductRating from "@/comp/card/product/product-rating/product-rating";
-import { maskEmail } from "@/utils/mask";
 import { ReviewForm } from "@/comp/comments-form/comments-form";
+import { formatDate } from "@/utils/formatDate";
+import { maskEmail } from "@/utils/mask";
+import k from "./import.module.scss";
 
 interface Props {
   product: Product | null;

@@ -1,11 +1,10 @@
 import "server-only";
 
-import ResetPasswordForm from "./forms/resetPasswordForm";
-import NewPasswordForm from "./forms/newPasswordForm";
-import ReUseLogo from "../signin/comp/re-use-logo/re-use-logo";
 import ImgBox from "@/comp/imgbox/ImgBox";
-
+import ReUseLogo from "../signin/comp/re-use-logo/re-use-logo";
 import { validateResetToken } from "./action";
+import NewPasswordForm from "./forms/newPasswordForm";
+import ResetPasswordForm from "./forms/resetPasswordForm";
 
 import k from "./styles.module.scss";
 

@@ -1,9 +1,9 @@
 import { CircleX } from "lucide-react";
-import k from "./styles.module.scss";
-import QuantityControl from "../quantityControl/quantityControl";
-import { formatPrice } from "@/utils/format-price";
 import ImgBox from "@/comp/imgbox/ImgBox";
+import { formatPrice } from "@/utils/format-price";
+import QuantityControl from "../quantityControl/quantityControl";
 import CartProductTableMobile from "./cart-product-table-mobile/cart-product-table-mobile";
+import k from "./styles.module.scss";
 
 interface Props {
   cartDetails: NonNullable<CheckoutFormType["cartDetails"]>;

@@ -1,6 +1,6 @@
-import k from "./styles.module.scss";
-import Section from "../section/section";
 import ImgBox from "../imgbox/ImgBox";
+import Section from "../section/section";
+import k from "./styles.module.scss";
 
 export default function Six() {
   const cardData = [

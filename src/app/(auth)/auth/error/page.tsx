@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import { toast } from "sonner";
 
 import Section from "@/comp/section/section";
@@ -11,7 +11,8 @@ import k from "./styles.module.scss";
 const ERROR_MESSAGES: Record<string, string> = {
   AccessDenied: "You do not have permission to sign in.",
   CredentialsSignin: "Invalid email or password.",
-  OAuthAccountNotLinked: "This email is already linked to a different sign-in method.",
+  OAuthAccountNotLinked:
+    "This email is already linked to a different sign-in method.",
   Configuration: "Authentication configuration error.",
   Default: "Something went wrong during authentication.",
 };

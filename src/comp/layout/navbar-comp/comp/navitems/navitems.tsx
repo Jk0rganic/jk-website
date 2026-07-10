@@ -1,7 +1,7 @@
-import k from "./styles.module.scss";
-import { MenuData } from "./comp/menudata";
-import { X, Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { NavLink } from "../navlink/navlinks";
+import { MenuData } from "./comp/menudata";
+import k from "./styles.module.scss";
 
 interface NavItemsProps {
   handleClicked: () => void;

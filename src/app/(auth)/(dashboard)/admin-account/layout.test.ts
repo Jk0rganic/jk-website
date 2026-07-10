@@ -136,6 +136,7 @@ describe("admin navigation foundation", () => {
       { title: "Overview", items: ["Dashboard"] },
       { title: "Fulfillment", items: ["Orders", "Payments"] },
       { title: "Catalog", items: ["Products", "Coupons", "Reviews"] },
+      { title: "Customers", items: ["Customers"] },
       { title: "Growth", items: ["Analytics"] },
       { title: "Team", items: ["Admins"] },
       { title: "Settings", items: ["Account"] },

@@ -1,13 +1,12 @@
-import Section from "../../comp/section/section";
-import k from "./styles.module.scss";
-import ContactForm from "./comp/contact-form/contact-form";
-
 // Import icons from lucide-react
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import {
   SharedEmail,
   SharedPhone,
 } from "@/comp/shared-components/shared-components";
+import Section from "../../comp/section/section";
+import ContactForm from "./comp/contact-form/contact-form";
+import k from "./styles.module.scss";
 
 export default function One() {
   const contactData = [

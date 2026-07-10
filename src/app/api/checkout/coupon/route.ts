@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { WooCoupon } from "@/lib/admin/coupon-service";
 import {
@@ -26,7 +26,10 @@ export async function POST(req: NextRequest) {
     const coupon = coupons?.[0];
 
     if (!coupon) {
-      return NextResponse.json({ error: "Invalid coupon code" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Invalid coupon code" },
+        { status: 404 },
+      );
     }
 
     const validationError = validateCouponForCheckout(coupon, body.itemsTotal);

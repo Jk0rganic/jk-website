@@ -1,16 +1,16 @@
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
-import { GET_PRODUCT_BY_SLUG } from "@/graphql/graphql";
-import One from "./one";
-import Two from "./two";
-import Three from "./three";
-import { siteMetadata } from "@/utils/seo/siteMetadata";
+import type { Metadata } from "next";
 import Head from "next/head";
 import Script from "next/script";
-import { productSchema } from "@/utils/seo/schema";
-import NotFound from "@/app/not-found";
-import { SinglePagePropsType } from "@/types/types";
-import { Metadata } from "next";
 import { cache } from "react";
+import NotFound from "@/app/not-found";
+import { GET_PRODUCT_BY_SLUG } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import type { SinglePagePropsType } from "@/types/types";
+import { productSchema } from "@/utils/seo/schema";
+import { siteMetadata } from "@/utils/seo/siteMetadata";
+import One from "./one";
+import Three from "./three";
+import Two from "./two";
 
 const stripHtml = (value?: string) => value?.replace(/<[^>]*>/g, "").trim();
 

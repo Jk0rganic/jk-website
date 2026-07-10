@@ -1,8 +1,6 @@
-
-import { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
+import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
 
 interface CartItem {
   id: string;
@@ -33,7 +31,7 @@ interface PendingOrderStore {
 }
 
 interface CheckoutStore {
-  savedUserInfo: Partial<CheckOutSchemaType> | null;  // fixed: was unknown
+  savedUserInfo: Partial<CheckOutSchemaType> | null; // fixed: was unknown
   setSavedUserInfo: (data: Partial<CheckOutSchemaType> | null) => void;
   clearSavedUserInfo: () => void;
 }

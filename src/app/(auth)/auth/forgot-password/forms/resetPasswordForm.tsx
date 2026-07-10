@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
-
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 
 import { toast } from "sonner";
-
-import k from "./styles.module.scss";
+import { z } from "zod";
 
 import { FormInput } from "@/comp/form/formInput/formInput";
 
 import { sendPasswordResetEmail } from "../action";
-
-import { z } from "zod";
+import k from "./styles.module.scss";
 
 export const forgotPasswordSchema = z.object({
   email: z

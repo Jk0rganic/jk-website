@@ -1,5 +1,6 @@
 "use client";
-import { ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect } from "react";
+
 interface ClassChildProps {
   children: ReactNode;
 }

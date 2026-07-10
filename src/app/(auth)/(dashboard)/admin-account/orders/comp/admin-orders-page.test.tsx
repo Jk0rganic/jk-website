@@ -122,22 +122,28 @@ vi.mock("../../../(resources)/dashboard-utils/account-context", () => ({
 }));
 
 describe("AdminOrdersPage", () => {
-  it("renders the stat tiles computed from live orders", () => {
+  it("renders the fulfillment KPI tiles computed from live orders", () => {
     render(<AdminOrdersPage />);
 
-    const statGrid = screen.getByText("Total orders").closest("article");
-    expect(statGrid).not.toBeNull();
-    expect(within(statGrid as HTMLElement).getByText("3")).toBeInTheDocument();
+    const findMetricCard = (label: string) =>
+      screen
+        .getAllByText(label)
+        .map((el) => el.closest("article"))
+        .find((el): el is HTMLElement => el !== null);
 
-    const awaiting = screen.getByText("Awaiting fulfilment").closest("article");
-    expect(within(awaiting as HTMLElement).getByText("2")).toBeInTheDocument();
-
-    const completed = screen
-      .getAllByText("Completed")
-      .map((el) => el.closest("article"))
-      .find((el): el is HTMLElement => el !== null);
-    expect(completed).not.toBeUndefined();
-    expect(within(completed as HTMLElement).getByText("1")).toBeInTheDocument();
+    // #1202 is pending, #1201 is processing, #1203 is completed, #1202 is unpaid
+    expect(
+      within(findMetricCard("Pending") as HTMLElement).getByText("1"),
+    ).toBeInTheDocument();
+    expect(
+      within(findMetricCard("Processing") as HTMLElement).getByText("1"),
+    ).toBeInTheDocument();
+    expect(
+      within(findMetricCard("Completed") as HTMLElement).getByText("1"),
+    ).toBeInTheDocument();
+    expect(
+      within(findMetricCard("Unpaid") as HTMLElement).getByText("1"),
+    ).toBeInTheDocument();
   });
 
   it("renders top delivery locations and top customers, and toggles insights", () => {
@@ -180,7 +186,7 @@ describe("AdminOrdersPage", () => {
     expect(screen.getByText("#1203")).toBeInTheDocument();
 
     fireEvent.change(
-      screen.getByPlaceholderText("Search order #, name, email, phone…"),
+      screen.getByPlaceholderText("Search order #, name, email, phone"),
       { target: { value: "mary" } },
     );
 

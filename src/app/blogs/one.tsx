@@ -1,8 +1,8 @@
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
-import Section from "@/comp/section/section";
 import BlogCard from "@/comp/card/blog-card/blog-card";
-import k from "./styles.module.scss";
+import Section from "@/comp/section/section";
 import { GET_POSTS } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import k from "./styles.module.scss";
 
 export default async function One() {
   const data = await fetchGraphQL<{ posts: { nodes: Blog[] } }>(GET_POSTS, {

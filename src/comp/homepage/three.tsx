@@ -1,7 +1,7 @@
-import Section from "../section/section";
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
 import { GET_PRODUCTS } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
 import ProductCard from "../card/product/product-card/productCard";
+import Section from "../section/section";
 
 import k from "./styles.module.scss";
 

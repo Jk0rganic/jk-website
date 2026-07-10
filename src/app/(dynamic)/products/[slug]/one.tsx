@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useCallback, useTransition, useRef } from "react";
-
-import k from "./styles.module.scss";
-import Section from "@/comp/section/section";
+import { useCallback, useRef, useState, useTransition } from "react";
 import ProductCard from "@/comp/card/product/product-card/productCard";
 import PostSkeleton from "@/comp/card/skeleton/product-skeleton/productSkeleton";
-import ShopCategory from "../comp/shop-category/shop-category";
+import Section from "@/comp/section/section";
 import { GET_PRODUCTS } from "@/graphql/graphql";
 import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import ShopCategory from "../comp/shop-category/shop-category";
+import k from "./styles.module.scss";
 
 const POSTS_PER_PAGE = 8;
 
@@ -45,7 +44,12 @@ export default function One({
   const [activeCategory, setActiveCategory] = useState(initialActiveCategory);
   const [isPending, startTransition] = useTransition();
 
-  const cacheRef = useRef<Record<string, { nodes: Product[]; endCursor: string | null; hasNextPage: boolean }>>({
+  const cacheRef = useRef<
+    Record<
+      string,
+      { nodes: Product[]; endCursor: string | null; hasNextPage: boolean }
+    >
+  >({
     [initialActiveCategory]: {
       nodes: initialProducts,
       endCursor: initialPageInfo.endCursor,
@@ -58,43 +62,49 @@ export default function One({
       ? "All Products"
       : categories.find((c) => c.slug === activeCategory)?.name || "Unknown";
 
-  const handleCategorySelect = useCallback((slug: string) => {
-    if (slug === activeCategory) return;
+  const handleCategorySelect = useCallback(
+    (slug: string) => {
+      if (slug === activeCategory) return;
 
-    setActiveCategory(slug);
+      setActiveCategory(slug);
 
-    const cached = cacheRef.current[slug];
-    if (cached) {
-      setProducts(cached.nodes);
-      setAfterCursor(cached.endCursor);
-      setHasNextPage(cached.hasNextPage);
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        const variables =
-          slug === "all"
-            ? { first: POSTS_PER_PAGE }
-            : { first: POSTS_PER_PAGE, categorySlug: slug };
-
-        const res = await fetchGraphQL<ProductsResponse>(GET_PRODUCTS, variables);
-
-        const nodes = res.products.nodes ?? [];
-        const endCursor = res.products.pageInfo?.endCursor ?? null;
-        const hasNext = res.products.pageInfo?.hasNextPage ?? false;
-
-        cacheRef.current[slug] = { nodes, endCursor, hasNextPage: hasNext };
-
-        setProducts(nodes);
-        setAfterCursor(endCursor);
-        setHasNextPage(hasNext);
-      } catch (error) {
-        console.error(error);
-        setProducts([]);
+      const cached = cacheRef.current[slug];
+      if (cached) {
+        setProducts(cached.nodes);
+        setAfterCursor(cached.endCursor);
+        setHasNextPage(cached.hasNextPage);
+        return;
       }
-    });
-  }, [activeCategory]);
+
+      startTransition(async () => {
+        try {
+          const variables =
+            slug === "all"
+              ? { first: POSTS_PER_PAGE }
+              : { first: POSTS_PER_PAGE, categorySlug: slug };
+
+          const res = await fetchGraphQL<ProductsResponse>(
+            GET_PRODUCTS,
+            variables,
+          );
+
+          const nodes = res.products.nodes ?? [];
+          const endCursor = res.products.pageInfo?.endCursor ?? null;
+          const hasNext = res.products.pageInfo?.hasNextPage ?? false;
+
+          cacheRef.current[slug] = { nodes, endCursor, hasNextPage: hasNext };
+
+          setProducts(nodes);
+          setAfterCursor(endCursor);
+          setHasNextPage(hasNext);
+        } catch (error) {
+          console.error(error);
+          setProducts([]);
+        }
+      });
+    },
+    [activeCategory],
+  );
 
   const loadMoreProducts = async () => {
     if (!hasNextPage || !afterCursor) return;
@@ -105,7 +115,11 @@ export default function One({
       const variables =
         activeCategory === "all"
           ? { first: POSTS_PER_PAGE, after: afterCursor }
-          : { first: POSTS_PER_PAGE, after: afterCursor, categorySlug: activeCategory };
+          : {
+              first: POSTS_PER_PAGE,
+              after: afterCursor,
+              categorySlug: activeCategory,
+            };
 
       const res = await fetchGraphQL<ProductsResponse>(GET_PRODUCTS, variables);
 
@@ -142,9 +156,10 @@ export default function One({
               <p className={k.no_products}>No products found.</p>
             )}
 
-            {!isPending && products.map((prod, i) => (
-              <ProductCard key={prod.slug} product={prod} index={i} />
-            ))}
+            {!isPending &&
+              products.map((prod, i) => (
+                <ProductCard key={prod.slug} product={prod} index={i} />
+              ))}
 
             {loadingMore && <PostSkeleton count={POSTS_PER_PAGE} />}
           </div>

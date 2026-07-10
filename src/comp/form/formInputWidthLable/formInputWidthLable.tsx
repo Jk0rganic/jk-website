@@ -1,12 +1,12 @@
+import type { ComponentPropsWithoutRef } from "react";
 import type {
-  UseFormRegister,
   FieldErrors,
   FieldValues,
   Path,
+  UseFormRegister,
 } from "react-hook-form";
-import k from "./input.module.scss";
 import { ErrorMessage } from "../formInput/formInput";
-import { ComponentPropsWithoutRef } from "react";
+import k from "./input.module.scss";
 
 interface Props<T extends FieldValues>
   extends ComponentPropsWithoutRef<"input"> {

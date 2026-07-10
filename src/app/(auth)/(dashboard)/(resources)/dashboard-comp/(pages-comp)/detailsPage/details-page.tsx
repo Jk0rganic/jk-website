@@ -1,8 +1,8 @@
 "use client";
 
+import { maskEmail } from "@/utils/mask";
 import { useAccount } from "../../../dashboard-utils/account-context";
 import styles from "./styles.module.scss";
-import { maskEmail } from "@/utils/mask";
 
 export default function DetailsPage() {
   const { session } = useAccount();

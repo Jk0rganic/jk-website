@@ -1,6 +1,6 @@
-import k from "./styles.module.scss";
-import Section from "../section/section";
 import Button from "../button/button";
+import Section from "../section/section";
+import k from "./styles.module.scss";
 
 export default function Five() {
   return (

@@ -1,5 +1,5 @@
-import k from "./styles.module.scss";
 import Link from "next/link";
+import k from "./styles.module.scss";
 
 type ButtonProps = {
   name?: string;

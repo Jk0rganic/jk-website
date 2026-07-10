@@ -1,6 +1,6 @@
-import k from "./styles.module.scss";
-import { doSocialLogin } from "./action";
 import ImgBox from "@/comp/imgbox/ImgBox";
+import { doSocialLogin } from "./action";
+import k from "./styles.module.scss";
 
 export function SocialMediaLogin({
   callbackUrl = "/account",

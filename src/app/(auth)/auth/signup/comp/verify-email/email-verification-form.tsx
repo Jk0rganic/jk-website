@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
-
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-import k from "./styles.module.scss";
-
 import { sendCodeAction, verifyCodeAction } from "./action/action";
+import k from "./styles.module.scss";
 
 interface Props {
   initialEmail?: string;

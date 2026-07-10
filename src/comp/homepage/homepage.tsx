@@ -1,13 +1,12 @@
+import { GET_CATEGORIES, GET_PRODUCTS } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import Five from "./five";
+import Four from "./four";
 import HeroHome from "./hero";
 import One from "./one";
-import Two from "./two";
-import Three from "./three";
-import Four from "./four";
-import Five from "./five";
 import Six from "./six";
-
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
-import { GET_CATEGORIES, GET_PRODUCTS } from "@/graphql/graphql";
+import Three from "./three";
+import Two from "./two";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -22,7 +21,6 @@ type ProductsResponse = {
     nodes: Product[];
   };
 };
-
 
 async function getHomepageData(): Promise<{
   categories: ProductCategory[];

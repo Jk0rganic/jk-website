@@ -1,6 +1,6 @@
 import React from "react";
-import k from "./styles.module.scss";
 import useIsMobile from "@/hooks/useIsMobile";
+import k from "./styles.module.scss";
 
 export default function ShopCategorySkeleton() {
   const isMobile = useIsMobile(768);

@@ -1,9 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { signIn, signOut } from "@/lib/auth/action/auth/auth";
 import { getSafeCallbackUrl } from "@/lib/auth/get-safe-callback-url";
-
-import { revalidatePath } from "next/cache";
 
 export async function doSocialLogin(formData: FormData) {
   const action = formData.get("action");

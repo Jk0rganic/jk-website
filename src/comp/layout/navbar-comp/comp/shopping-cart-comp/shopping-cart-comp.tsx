@@ -1,7 +1,7 @@
-import k from "./styles.module.scss";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore"; // make sure this path is correct
+import k from "./styles.module.scss";
 
 export default function ShoppingCartComp() {
   const { cartCount } = useCartStore();

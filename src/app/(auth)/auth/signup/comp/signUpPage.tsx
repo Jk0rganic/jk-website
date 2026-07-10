@@ -1,14 +1,14 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 
 import ImgBox from "@/comp/imgbox/ImgBox";
-import k from "./styles.module.scss";
+import ReUseLogo from "../../signin/comp/re-use-logo/re-use-logo";
 
 import SignUpForm from "./form/form";
+import k from "./styles.module.scss";
 import { EmailVerificationForm } from "./verify-email/email-verification-form";
-import ReUseLogo from "../../signin/comp/re-use-logo/re-use-logo";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();

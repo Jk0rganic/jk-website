@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import k from "./styles.module.scss";
 import useIsMobile from "@/hooks/useIsMobile";
+import k from "./styles.module.scss";
 
 interface Category {
   slug: string;
@@ -15,7 +15,10 @@ interface Props {
   onSelectCategory?: (slug: string) => void;
 }
 
-export default function ShopCategory({ categories = [], onSelectCategory }: Props) {
+export default function ShopCategory({
+  categories = [],
+  onSelectCategory,
+}: Props) {
   const [activeCategory, setActiveCategory] = useState("all");
   const isMobile = useIsMobile(768);
 

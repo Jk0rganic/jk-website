@@ -1,15 +1,15 @@
 "use server";
 
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { sendEmail } from "@/lib/nodemailer/send-mail";
 import prisma from "@/lib/prisma";
 import {
-  emailVerificationSchema,
   type EmailVerificationSchema,
-  registerUserSchema,
+  emailVerificationSchema,
   type RegisterUserSchema,
+  registerUserSchema,
 } from "@/utils/zod/zod";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
 
 const htmlTemplate = (token: string, tokenLink: string, email: string) => `
 <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #fafafa; text-align: center;">
@@ -35,7 +35,10 @@ export async function sendCodeAction(data: EmailVerificationSchema) {
   const parsed = emailVerificationSchema.safeParse(data);
 
   if (!parsed.success) {
-    return { success: false, message: parsed.error.issues.map((i) => i.message).join(", ") };
+    return {
+      success: false,
+      message: parsed.error.issues.map((i) => i.message).join(", "),
+    };
   }
 
   const { email } = parsed.data;
@@ -74,13 +77,18 @@ export async function verifyCodeAction(data: { email: string; token: string }) {
 
   try {
     const record = await prisma.verificationToken.findFirst({
-      where: { identifier: email, OR: [{ token: hashedInput }, { tokenLink: token }] },
+      where: {
+        identifier: email,
+        OR: [{ token: hashedInput }, { tokenLink: token }],
+      },
     });
 
     if (!record) return { success: false, message: "Invalid code" };
 
     if (record.expires < new Date()) {
-      await prisma.verificationToken.deleteMany({ where: { identifier: email } });
+      await prisma.verificationToken.deleteMany({
+        where: { identifier: email },
+      });
       return { success: false, message: "Code expired" };
     }
 
@@ -97,7 +105,10 @@ export async function registerUserAction(data: RegisterUserSchema) {
   const parsed = registerUserSchema.safeParse(data);
 
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues.map((i) => i.message).join(", ") };
+    return {
+      success: false,
+      error: parsed.error.issues.map((i) => i.message).join(", "),
+    };
   }
 
   const { full_name, email, password } = parsed.data;
@@ -110,7 +121,13 @@ export async function registerUserAction(data: RegisterUserSchema) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
-      data: { name: full_name, email, password: hashedPassword, role: "user", emailVerified: null },
+      data: {
+        name: full_name,
+        email,
+        password: hashedPassword,
+        role: "user",
+        emailVerified: null,
+      },
     });
 
     return { success: true, message: "Account created successfully" };
@@ -124,16 +141,22 @@ export async function validateSignupToken(tokenLink: string) {
   if (!tokenLink) return { isValid: false, email: null };
 
   try {
-    const record = await prisma.verificationToken.findFirst({ where: { tokenLink } });
+    const record = await prisma.verificationToken.findFirst({
+      where: { tokenLink },
+    });
 
     if (!record) return { isValid: false, email: null };
 
     if (record.expires < new Date()) {
-      await prisma.verificationToken.deleteMany({ where: { identifier: record.identifier } });
+      await prisma.verificationToken.deleteMany({
+        where: { identifier: record.identifier },
+      });
       return { isValid: false, email: null };
     }
 
-    await prisma.verificationToken.deleteMany({ where: { identifier: record.identifier } });
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: record.identifier },
+    });
 
     return { isValid: true, email: record.identifier };
   } catch (error) {

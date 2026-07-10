@@ -1,16 +1,14 @@
 "use client";
 
-import type { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-import StarRating from "./starRating/starRating";
+import type { z } from "zod";
 import { FormInput, FormTextarea } from "@/comp/form/formInput/formInput";
-
-import { reviewSchema, commentsSchema } from "@/utils/zod/zod";
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
 import { ADD_REVIEW } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import { commentsSchema, reviewSchema } from "@/utils/zod/zod";
+import StarRating from "./starRating/starRating";
 
 import k from "./styles.module.scss";
 

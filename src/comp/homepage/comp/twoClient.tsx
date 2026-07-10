@@ -1,13 +1,11 @@
 "use client";
 
 import { useCallback, useState, useTransition } from "react";
-
-import ProductCategory from "@/comp/card/product/product-categories/productCategory";
 import ProductCard from "@/comp/card/product/product-card/productCard";
+import ProductCategory from "@/comp/card/product/product-categories/productCategory";
 import PostSkeleton from "@/comp/card/skeleton/product-skeleton/productSkeleton";
-
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
 import { GET_PRODUCTS } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
 
 import k from "./styles.module.scss";
 
@@ -47,7 +45,9 @@ export default function TwoClient({
           setProducts(data?.products?.nodes ?? []);
         } catch (err) {
           console.error(err);
-          setError(err instanceof Error ? err.message : "Failed to load products");
+          setError(
+            err instanceof Error ? err.message : "Failed to load products",
+          );
         }
       });
     },

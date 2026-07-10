@@ -1,7 +1,7 @@
+import { FormInput } from "@/comp/form/formInput/formInput";
 import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
 import k from "./styles.module.scss";
-import { FormInput } from "@/comp/form/formInput/formInput";
 
 type BillingAddressProps = Pick<CheckoutFormProps, "register" | "errors"> & {
   deliveryMethod: CheckOutSchemaType["delivery_method"];

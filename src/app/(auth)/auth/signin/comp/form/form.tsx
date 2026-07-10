@@ -1,19 +1,16 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-
-import k from "./styles.module.scss";
-
 import { FormInput } from "@/comp/form/formInput/formInput";
-import SigninPassword from "./signin_password/signin-password";
-
-import { loginSchema } from "@/utils/zod/zod";
 import { doCredentialLogin } from "@/lib/auth/action/doCredentialLogin";
+import { loginSchema } from "@/utils/zod/zod";
+import SigninPassword from "./signin_password/signin-password";
+import k from "./styles.module.scss";
 
 interface FormData {
   email: string;

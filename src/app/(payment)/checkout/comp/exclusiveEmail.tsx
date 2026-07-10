@@ -1,5 +1,5 @@
-import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import { FormInput } from "@/comp/form/formInput/formInput";
+import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 
 import k from "./styles.module.scss";
 

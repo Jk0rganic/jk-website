@@ -1,7 +1,6 @@
 const customerMap = new Map();
 let lastCustomerNumber = 0;
 
-
 export function generateCustomerId(userId: string) {
   if (!userId) return null;
 

@@ -1,6 +1,6 @@
+import { Suspense } from "react";
 import { seoMeta } from "@/utils/seo/seoMeta";
 import SignUpPage from "./comp/signUpPage";
-import { Suspense } from "react";
 
 export const metadata = seoMeta.signup;
 

@@ -1,5 +1,5 @@
-import { BRAND_LOGO_URL } from "@/lib/brand";
 import ImgBox from "@/comp/imgbox/ImgBox";
+import { BRAND_LOGO_URL } from "@/lib/brand";
 
 export default function ReUseLogo({ className = "" }) {
   return (

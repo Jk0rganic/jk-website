@@ -1,4 +1,3 @@
-
 export function maskEmail(email?: string | null): string {
   if (!email) return "Anonymous";
 
@@ -19,7 +18,6 @@ export function maskEmail(email?: string | null): string {
 
   return `${start}****${end}@${domain}`;
 }
-
 
 export function maskPhone(phone?: string | null): string {
   if (!phone) return "";
@@ -42,7 +40,6 @@ export function maskString(value?: string | null): string {
 
   return "*".repeat(value.length);
 }
-
 
 export function maskPartial(
   value?: string | null,

@@ -1,10 +1,10 @@
-import k from "./styles.module.scss";
+import { redirect } from "next/navigation";
 import Section from "@/comp/section/section";
 import { getSession } from "@/lib/auth/getSession";
 import { fetchWoo } from "@/lib/fetch/fetchRest";
-import { redirect } from "next/navigation";
-import AccountProvider from "../(resources)/dashboard-utils/account-context";
 import AccountSidebar from "../(resources)/dashboard-comp/account-sidebar/account-sidebar";
+import AccountProvider from "../(resources)/dashboard-utils/account-context";
+import k from "./styles.module.scss";
 
 export default async function AccountLayout({
   children,
@@ -15,7 +15,10 @@ export default async function AccountLayout({
 
   if (!session) {
     redirect("/auth/signin");
-  } else if (session.user.role === "min_admin" || session.user.role === "super_admin") {
+  } else if (
+    session.user.role === "min_admin" ||
+    session.user.role === "super_admin"
+  ) {
     redirect("/admin-account");
   } else if (session.user.role !== "user") {
     redirect("/");
@@ -23,14 +26,12 @@ export default async function AccountLayout({
 
   const customerId = session?.user?.email;
 
-  let orders:   DashboardOrder[]= [];
+  let orders: DashboardOrder[] = [];
   if (customerId) {
     orders = await fetchWoo(
       `orders?search=${customerId}&orderby=date&order=desc`,
     );
   }
-
-
 
   return (
     <Section className={k.account_container}>

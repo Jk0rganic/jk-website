@@ -1,20 +1,16 @@
 "use client";
 
-import { useTransition } from "react";
-import k from "./styles.module.scss";
-
-import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { FormInput } from "@/comp/form/formInput/formInput";
-import PasswordSignup from "../password-signup/password-signup";
-
-import { registerUserSchema, type RegisterUserSchema } from "@/utils/zod/zod";
+import { type RegisterUserSchema, registerUserSchema } from "@/utils/zod/zod";
 import { registerUserAction } from "../../action";
+import PasswordSignup from "../password-signup/password-signup";
+import k from "./styles.module.scss";
 
 interface Props {
   verifiedEmail: string;

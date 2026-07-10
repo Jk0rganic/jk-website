@@ -1,12 +1,12 @@
-import ImgBox from "@/comp/imgbox/ImgBox";
-import SignInForm from "./comp/form/form";
-import k from "./styles.module.scss";
-import { SocialMediaLogin } from "../signup/comp/social_login/socialLogin";
-import { seoMeta } from "@/utils/seo/seoMeta";
-import ReUseLogo from "./comp/re-use-logo/re-use-logo";
-import { getSafeCallbackUrl } from "@/lib/auth/get-safe-callback-url";
-import { getAdminSignInUrl } from "@/lib/auth/admin-login";
 import { redirect } from "next/navigation";
+import ImgBox from "@/comp/imgbox/ImgBox";
+import { getAdminSignInUrl } from "@/lib/auth/admin-login";
+import { getSafeCallbackUrl } from "@/lib/auth/get-safe-callback-url";
+import { seoMeta } from "@/utils/seo/seoMeta";
+import { SocialMediaLogin } from "../signup/comp/social_login/socialLogin";
+import SignInForm from "./comp/form/form";
+import ReUseLogo from "./comp/re-use-logo/re-use-logo";
+import k from "./styles.module.scss";
 
 export const metadata = seoMeta.signin;
 

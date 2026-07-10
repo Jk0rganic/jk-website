@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import Link from "next/link";
-
-import styles from "./styles.module.scss";
-import displayStyles from "../order-display/styles.module.scss";
-import { formatDate } from "@/utils/formatDate";
+import { useMemo, useState } from "react";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import { formatDate } from "@/utils/formatDate";
 import {
   OrderPaymentBadge,
   OrderStatusBadge,
 } from "../order-display/order-display";
+import displayStyles from "../order-display/styles.module.scss";
 import { PendingPaymentLink } from "../pending-payment/pending-payment";
+import styles from "./styles.module.scss";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -114,7 +113,8 @@ export default function PaginationOrders({
             return (
               <tr key={order.id}>
                 <td>
-                  <strong>#{order.id}</strong> · {formatDate(order.date_created)}
+                  <strong>#{order.id}</strong> ·{" "}
+                  {formatDate(order.date_created)}
                   <div className={displayStyles.mobile_meta}>
                     <OrderStatusBadge
                       label={display.orderLabel}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TeamPage from "./page";
@@ -25,6 +25,7 @@ const users = [
     canBlock: true,
     canUnblock: false,
     canDelete: true,
+    canDemote: true,
   },
   {
     id: "admin-2",
@@ -62,8 +63,12 @@ describe("TeamPage", () => {
     render(<TeamPage />);
 
     expect(await screen.findByText("Jane Admin")).toBeInTheDocument();
-    expect(screen.getByText("Active")).toBeInTheDocument();
-    expect(screen.getByText("Blocked")).toBeInTheDocument();
+    expect(
+      screen.getByText("Active", { selector: "span" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Blocked", { selector: "span" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Block" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Unblock" })).toBeInTheDocument();
   });
@@ -87,11 +92,11 @@ describe("TeamPage", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: "Block" }));
     expect(
-      await screen.findByRole("dialog", { name: "Block member?" }),
+      await screen.findByRole("dialog", { name: "Block admin" }),
     ).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledTimes(1);
 
-    await userEvent.click(screen.getByRole("button", { name: "Block member" }));
+    await userEvent.click(screen.getByRole("button", { name: "Block admin" }));
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith("/api/admin/users/admin-1/status", {
@@ -110,18 +115,18 @@ describe("TeamPage", () => {
     });
     await userEvent.click(deleteButtons[0]);
     expect(
-      await screen.findByRole("dialog", { name: "Delete member?" }),
+      await screen.findByRole("dialog", { name: "Delete admin" }),
     ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(
-      screen.queryByRole("dialog", { name: "Delete member?" }),
+      screen.queryByRole("dialog", { name: "Delete admin" }),
     ).not.toBeInTheDocument();
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("uses the role modal to demote a regular admin through the existing endpoint", async () => {
+  it("uses the remove-role modal to demote a regular admin through the existing endpoint", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce({
         ok: true,
@@ -138,14 +143,17 @@ describe("TeamPage", () => {
 
     render(<TeamPage />);
 
-    const roleButtons = await screen.findAllByRole("button", { name: "Role" });
+    const roleButtons = await screen.findAllByRole("button", {
+      name: "Remove role",
+    });
     await userEvent.click(roleButtons[0]);
-    expect(
-      await screen.findByRole("dialog", { name: "Change role?" }),
-    ).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog", {
+      name: "Remove admin role",
+    });
 
-    await userEvent.click(screen.getByRole("radio", { name: "Customer" }));
-    await userEvent.click(screen.getByRole("button", { name: "Update role" }));
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Remove role" }),
+    );
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith("/api/admin/users/admin-1", {

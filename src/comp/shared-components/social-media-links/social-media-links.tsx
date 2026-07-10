@@ -1,6 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
 import k from "./styles.module.scss";
-import Image from "next/image";
 
 export default function SocialMediaLinks() {
   const WhatsappNumber = "+254795782207";

@@ -1,10 +1,10 @@
-import k from "./styles.module.scss";
-import Section from "@/comp/section/section";
 import { redirect } from "next/navigation";
-import { fetchWoo } from "@/lib/fetch/fetchRest";
-import { getSession } from "@/lib/auth/getSession";
-import { seoMeta } from "@/utils/seo/seoMeta";
 import SingleOrderAccount from "@/app/(auth)/(dashboard)/(resources)/dashboard-comp/(pages-comp)/orders/comp/single-order-acc/page";
+import Section from "@/comp/section/section";
+import { getSession } from "@/lib/auth/getSession";
+import { fetchWoo } from "@/lib/fetch/fetchRest";
+import { seoMeta } from "@/utils/seo/seoMeta";
+import k from "./styles.module.scss";
 
 export async function generateMetadata({ params }: { params: { id: number } }) {
   const { id } = await params;

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import k from "./styles.module.scss"; // your CSS module
 import Section from "@/comp/section/section";
 import Reviews from "../comp/two-comp/reviews/reviews";
 import AdditionalInformation from "../comp/two-comp/single-pro-two/additional-information";
 import TabButton from "../comp/two-comp/tab-button/tab-button";
+import k from "./styles.module.scss"; // your CSS module
 
 interface TwoProps {
   product: Product | null;

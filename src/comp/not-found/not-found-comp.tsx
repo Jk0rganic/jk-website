@@ -1,6 +1,6 @@
-import styles from "./styles.module.scss";
-import Section from "@/comp/section/section";
 import Button from "@/comp/button/button";
+import Section from "@/comp/section/section";
+import styles from "./styles.module.scss";
 
 export default function NotFoundComponent() {
   return (

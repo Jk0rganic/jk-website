@@ -36,8 +36,12 @@ interface SitemapNode {
 
 export default async function sitemap() {
   const [productData, blogData] = await Promise.all([
-    fetchGraphQL<{ products: { nodes: SitemapNode[] } }>(GET_PRODUCTS_SITEMAP, { first: 100 }),
-    fetchGraphQL<{ posts: { nodes: SitemapNode[] } }>(GET_BLOG_POSTS_SITEMAP, { first: 100 }),
+    fetchGraphQL<{ products: { nodes: SitemapNode[] } }>(GET_PRODUCTS_SITEMAP, {
+      first: 100,
+    }),
+    fetchGraphQL<{ posts: { nodes: SitemapNode[] } }>(GET_BLOG_POSTS_SITEMAP, {
+      first: 100,
+    }),
   ]);
 
   const products = productData?.products?.nodes ?? [];

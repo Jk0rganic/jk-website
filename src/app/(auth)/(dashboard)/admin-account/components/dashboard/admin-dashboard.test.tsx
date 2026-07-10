@@ -171,36 +171,47 @@ vi.mock("../../comp/accountPage/two", () => ({
 }));
 
 describe("AdminDashboard", () => {
-  it("renders the redesigned analytics dashboard sections from account data", () => {
+  it("renders the analytics dashboard sections from account data", () => {
     render(<AdminDashboard />);
 
     expect(
       screen.getByRole("heading", { name: /welcome back, joan/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/monthly revenue goal/i)).toBeInTheDocument();
 
-    const totalRevenue = screen.getByText("Total revenue").closest("article");
-    const totalOrders = screen.getByText("Total orders").closest("article");
-    const totalSales = screen.getByText("Total sales").closest("article");
-    if (!totalRevenue || !totalOrders || !totalSales) {
-      throw new Error("Total metric cards missing");
-    }
-    expect(within(totalRevenue).getByText("KSh 4,300")).toBeInTheDocument();
-    expect(within(totalOrders).getByText("3")).toBeInTheDocument();
-    expect(within(totalSales).getByText("6 units")).toBeInTheDocument();
+    // Weekly KPI cards (labels only — values depend on a "this week" window
+    // relative to the real clock, so don't assert exact numbers here).
+    expect(screen.getByText("Revenue")).toBeInTheDocument();
+    expect(screen.getByText("Orders")).toBeInTheDocument();
+    expect(screen.getByText("Units sold")).toBeInTheDocument();
     expect(screen.getByText("Avg. order")).toBeInTheDocument();
 
     expect(
       screen.getByRole("heading", { name: /sales overview/i }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("orders-chart")).toBeInTheDocument();
+
     expect(
-      screen.queryByRole("heading", { name: /order status/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /payment mix/i }),
+      screen.getByRole("heading", { name: /weekly stats/i }),
     ).toBeInTheDocument();
 
+    // Top products draws from all orders regardless of date, so this is
+    // deterministic.
+    const topProducts = screen
+      .getByRole("heading", { name: /top products/i })
+      .closest("section");
+    if (!topProducts) throw new Error("Top products section missing");
+    expect(within(topProducts).getByText("Moringa Oil")).toBeInTheDocument();
+    expect(within(topProducts).getByText("Shea Cream")).toBeInTheDocument();
+    expect(within(topProducts).getByText("Baobab Powder")).toBeInTheDocument();
+
+    const topLocations = screen
+      .getByRole("heading", { name: /top locations/i })
+      .closest("section");
+    if (!topLocations) throw new Error("Top locations section missing");
+    expect(within(topLocations).getByText("Nairobi")).toBeInTheDocument();
+    expect(within(topLocations).getByText("Kisumu")).toBeInTheDocument();
+
+    // Recent orders shows all loaded orders regardless of date.
     const recentOrders = screen
       .getByRole("heading", { name: /recent orders/i })
       .closest("section");
@@ -212,48 +223,30 @@ describe("AdminDashboard", () => {
     expect(
       within(firstRecentOrder).getByText("Amina Yusuf"),
     ).toBeInTheDocument();
-    expect(
-      within(firstRecentOrder).getByText(/paid . m-pesa/i),
-    ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("heading", { name: /activity/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/order #1201 is being prepared/i),
-    ).toBeInTheDocument();
-
-    const topProducts = screen
-      .getByRole("heading", { name: /top products/i })
-      .closest("section");
-    if (!topProducts) throw new Error("Top products section missing");
-    expect(within(topProducts).getByText("Moringa Oil")).toBeInTheDocument();
-    expect(
-      within(topProducts).getByRole("img", { name: "Moringa oil bottle" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /low stock alerts/i }),
+      screen.getByRole("heading", { name: /pending and unpaid/i }),
     ).toBeInTheDocument();
   });
 
-  it("prioritizes low stock alerts before metrics and analytics on login", () => {
+  it("renders the welcome section before the weekly KPI cards and analytics", () => {
     const { container } = render(<AdminDashboard />);
     const canvas = within(container);
 
-    const lowStockHeading = canvas.getByRole("heading", {
-      name: /low stock alerts/i,
+    const welcomeHeading = canvas.getByRole("heading", {
+      name: /welcome back, joan/i,
     });
-    const revenueMetric = canvas.getByText("Total revenue");
+    const revenueMetric = canvas.getByText("Revenue");
     const salesOverviewHeading = canvas.getByRole("heading", {
       name: /sales overview/i,
     });
 
     expect(
-      lowStockHeading.compareDocumentPosition(revenueMetric) &
+      welcomeHeading.compareDocumentPosition(revenueMetric) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
-      lowStockHeading.compareDocumentPosition(salesOverviewHeading) &
+      welcomeHeading.compareDocumentPosition(salesOverviewHeading) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });

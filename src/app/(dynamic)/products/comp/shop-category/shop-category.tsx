@@ -1,8 +1,8 @@
 "use client";
 
-import k from "./styles.module.scss";
-import useIsMobile from "@/hooks/useIsMobile";
 import { useRouter } from "next/navigation";
+import useIsMobile from "@/hooks/useIsMobile";
+import k from "./styles.module.scss";
 
 export interface ShopCategoryItem {
   slug: string;

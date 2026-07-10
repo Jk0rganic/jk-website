@@ -1,7 +1,7 @@
 "use client";
 
-import k from "./styles.module.scss";
 import { decodeHTML } from "@/utils/decode-html";
+import k from "./styles.module.scss";
 
 type Props = {
   variation?: {

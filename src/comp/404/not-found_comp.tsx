@@ -1,5 +1,5 @@
-import Section from "../section/section";
 import Link from "next/link";
+import Section from "../section/section";
 import k from "./styles.module.scss";
 
 export default function NotFoundComp() {

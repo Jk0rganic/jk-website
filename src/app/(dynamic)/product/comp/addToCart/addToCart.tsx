@@ -1,8 +1,8 @@
 "use client";
-import { useMemo } from "react";
-import k from "./styles.module.scss";
-import { useCartStore } from "@/store/cartStore";
 import Link from "next/link";
+import { useMemo } from "react";
+import { useCartStore } from "@/store/cartStore";
+import k from "./styles.module.scss";
 
 const getNumericPrice = (price?: string) =>
   parseFloat(price?.replace(/[^\d.]/g, "") ?? "") || 0;

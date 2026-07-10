@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   getPaymentStatus,
   getPaymentStatusByCheckoutId,
 } from "@/lib/intasend/client";
-import { syncPaymentFromInvoice } from "@/lib/intasend/sync-payment";
 import { getPaymentFailureDetails } from "@/lib/intasend/get-payment-failure-message";
+import { syncPaymentFromInvoice } from "@/lib/intasend/sync-payment";
 import prisma from "@/lib/prisma";
 
 function getTransactionRef(invoice: {
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     const checkoutId = req.nextUrl.searchParams.get("checkoutId");
     const orderIdParam = req.nextUrl.searchParams.get("orderId");
 
-    let payment = checkoutId
+    const payment = checkoutId
       ? await prisma.payment.findUnique({ where: { checkoutId } })
       : orderIdParam
         ? await prisma.payment.findFirst({

@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 
 import { toast } from "sonner";
-
-import k from "./styles.module.scss";
+import { resetPasswordSchema } from "@/utils/zod/zod";
 
 import PasswordSignup from "../../signup/comp/password-signup/password-signup";
 
 import { resetPassword } from "../action";
-import { resetPasswordSchema } from "@/utils/zod/zod";
+import k from "./styles.module.scss";
 
 interface Props {
   token: string | null;

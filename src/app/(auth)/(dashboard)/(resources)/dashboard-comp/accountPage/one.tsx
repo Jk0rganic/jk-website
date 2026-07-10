@@ -1,6 +1,6 @@
-import { Trophy, ShoppingCart, Package } from "lucide-react";
-import k from "./styles.module.scss";
+import { Package, ShoppingCart, Trophy } from "lucide-react";
 import { formatPrice } from "@/utils/format-price";
+import k from "./styles.module.scss";
 
 export default function One({ orders }: { orders: DashboardOrder[] }) {
   const ordersWithTotal = orders.map((order) => ({

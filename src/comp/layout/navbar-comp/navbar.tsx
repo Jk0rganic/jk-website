@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { BRAND_LOGO_URL } from "@/lib/brand";
-import k from "./styles.module.scss";
 import Image from "next/image";
 import Link from "next/link";
-import ShoppingCartComp from "./comp/shopping-cart-comp/shopping-cart-comp";
+import { useState } from "react";
+import { BRAND_LOGO_URL } from "@/lib/brand";
 import AccountUser from "./comp/account-user/account-user";
 import NavItems from "./comp/navitems/navitems";
+import ShoppingCartComp from "./comp/shopping-cart-comp/shopping-cart-comp";
+import k from "./styles.module.scss";
 
 export default function Navbar() {
   const [clicked, setClicked] = useState(false);

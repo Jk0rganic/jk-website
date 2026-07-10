@@ -6,7 +6,6 @@ import styles from "./styles.module.scss";
 
 interface Props {
   backgroundImage?: string;
-  
 }
 
 const formatSegment = (seg: string) =>

@@ -1,6 +1,6 @@
-import k from "./styles.module.scss"; // Or wherever your CSS module is
-import CatCatProduct from "./cat-cat-product";
 import ProductRating from "../product-rating/product-rating";
+import CatCatProduct from "./cat-cat-product";
+import k from "./styles.module.scss"; // Or wherever your CSS module is
 
 export default function CatStarComp({ product }: { product: Product }) {
   const ratings = product.rating;

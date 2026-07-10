@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import k from "./styles.module.scss";
 
 interface TabButtonProps {

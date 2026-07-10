@@ -1,8 +1,8 @@
 "use client";
 
-import k from "./styles.module.scss";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import k from "./styles.module.scss";
 
 interface Props {
   handleClicked: () => void;
@@ -11,8 +11,6 @@ interface Props {
     URL: string;
   };
 }
-
-
 
 export const NavLink = ({ item, handleClicked }: Props) => {
   const pathname = usePathname();

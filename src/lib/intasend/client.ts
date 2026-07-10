@@ -1,8 +1,5 @@
 import { getIntaSendConfig } from "./config";
-import type {
-  IntaSendStkPushResponse,
-  IntaSendStatusResponse,
-} from "./types";
+import type { IntaSendStatusResponse, IntaSendStkPushResponse } from "./types";
 
 export interface InitiateMpesaPaymentParams {
   orderId: number;

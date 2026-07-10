@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import k from "./styles.module.scss";
-import { formatPrice } from "@/utils/format-price";
 import { useRouter } from "next/navigation";
+import React, { useCallback, useMemo } from "react";
+import { formatPrice } from "@/utils/format-price";
+import k from "./styles.module.scss";
 
 interface CartTotalProps {
   cartCount: number;

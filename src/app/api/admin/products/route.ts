@@ -1,11 +1,11 @@
-import { requireAdminSession } from "@/lib/admin/require-admin";
-import { fetchWoo } from "@/lib/fetch/fetchRest";
 import {
   createProductPayload,
   mapWooProduct,
   type ProductInventoryItem,
 } from "@/lib/admin/product-inventory";
 import { productFormSchema } from "@/lib/admin/product-schema";
+import { requireAdminSession } from "@/lib/admin/require-admin";
+import { fetchWoo } from "@/lib/fetch/fetchRest";
 
 const MAX_PAGES = 5;
 const PER_PAGE = 100;
@@ -21,11 +21,12 @@ export async function GET() {
     const products: ProductInventoryItem[] = [];
 
     for (let page = 1; page <= MAX_PAGES; page++) {
-      const batch = await fetchWoo<
-        Array<Parameters<typeof mapWooProduct>[0]>
-      >(`products?per_page=${PER_PAGE}&page=${page}&status=any`, {
-        noCache: true,
-      });
+      const batch = await fetchWoo<Array<Parameters<typeof mapWooProduct>[0]>>(
+        `products?per_page=${PER_PAGE}&page=${page}&status=any`,
+        {
+          noCache: true,
+        },
+      );
 
       if (!batch.length) break;
 

@@ -1,5 +1,5 @@
-import k from "./styles.module.scss";
 import { formatDate } from "@/utils/formatDate";
+import k from "./styles.module.scss";
 
 interface BlogComment {
   id: string;

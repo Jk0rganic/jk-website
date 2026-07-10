@@ -1,7 +1,7 @@
 "use client";
-import k from "./styles.module.scss";
 import { useEffect, useMemo } from "react";
 import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
+import k from "./styles.module.scss";
 
 type PickUpPointProps = Pick<
   CheckoutFormProps,

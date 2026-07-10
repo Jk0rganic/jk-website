@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { FieldErrors, UseFormRegister } from "react-hook-form";
-
-import k from "./styles.module.scss";
+import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { FormInput } from "@/comp/form/formInput/formInput";
+import k from "./styles.module.scss";
 
 interface Props {
   register: UseFormRegister<any>;

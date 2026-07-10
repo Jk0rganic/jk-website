@@ -1,11 +1,11 @@
-import { get } from "react-hook-form";
 import type { ComponentPropsWithoutRef } from "react";
 import type {
-  UseFormRegister,
   FieldErrors,
   FieldValues,
   Path,
+  UseFormRegister,
 } from "react-hook-form";
+import { get } from "react-hook-form";
 import k from "./input.module.scss";
 
 interface BaseProps<T extends FieldValues> {
@@ -15,14 +15,16 @@ interface BaseProps<T extends FieldValues> {
 }
 
 interface InputProps<T extends FieldValues>
-  extends BaseProps<T>, Omit<ComponentPropsWithoutRef<"input">, "name"> {}
+  extends BaseProps<T>,
+    Omit<ComponentPropsWithoutRef<"input">, "name"> {}
 
 interface CheckboxProps<T extends FieldValues> extends BaseProps<T> {
   label: string;
 }
 
 interface TextareaProps<T extends FieldValues>
-  extends BaseProps<T>, Omit<ComponentPropsWithoutRef<"textarea">, "name"> {}
+  extends BaseProps<T>,
+    Omit<ComponentPropsWithoutRef<"textarea">, "name"> {}
 
 export const ErrorMessage = ({
   name,

@@ -88,6 +88,7 @@ export type WooProductPayload = {
   manage_stock: boolean;
   stock_quantity: number | null;
   stock_status: "instock" | "outofstock";
+  featured: boolean;
   categories: Array<{ id: number }>;
   related_ids: number[];
   cross_sell_ids: number[];

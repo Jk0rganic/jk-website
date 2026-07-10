@@ -1,8 +1,8 @@
-import One from "./one";
-import { seoMeta } from "@/utils/seo/seoMeta";
-import Hero from "./hero";
 import { GET_CATEGORIES, GET_PRODUCTS } from "@/graphql/graphql";
 import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import { seoMeta } from "@/utils/seo/seoMeta";
+import Hero from "./hero";
+import One from "./one";
 
 export const metadata = seoMeta.products;
 

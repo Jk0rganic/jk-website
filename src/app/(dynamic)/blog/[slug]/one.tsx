@@ -1,7 +1,7 @@
 import Section from "@/comp/section/section";
-import k from "./styles.module.scss";
 import { formatDate } from "@/utils/formatDate";
 import RelatedPosts from "../comp/relatedPosts/related-posts";
+import k from "./styles.module.scss";
 
 export default function One({ post }: { post: Blog }) {
   const postDate = post?.date || "";

@@ -1,8 +1,8 @@
-import { seoMeta } from "@/utils/seo/seoMeta";
+import { redirect } from "next/navigation";
+import { isAdminRole } from "@/lib/admin/roles";
 import { getAdminCallbackUrl } from "@/lib/auth/admin-login";
 import { getSession } from "@/lib/auth/getSession";
-import { isAdminRole } from "@/lib/admin/roles";
-import { redirect } from "next/navigation";
+import { seoMeta } from "@/utils/seo/seoMeta";
 import AdminSignInForm from "./comp/admin-signin-form";
 
 export const metadata = seoMeta.adminSignin;

@@ -1,7 +1,7 @@
 "use client";
 
-import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import { CheckboxInputTerms } from "@/comp/form/formInput/formInput";
+import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import AdditionInformation from "./AdditionInformation";
 import PaymentOption from "./paymentOption/paymentOption";
 

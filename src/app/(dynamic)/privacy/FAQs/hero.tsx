@@ -1,5 +1,5 @@
-import SharedHero from "@/comp/hero-comp/hero-comp";
 import React from "react";
+import SharedHero from "@/comp/hero-comp/hero-comp";
 
 export default function Hero() {
   const backgroundImage =

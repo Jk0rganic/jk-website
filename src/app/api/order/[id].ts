@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   const { id } = req.query;
 
   if (!id) return res.status(400).json({ message: "Order ID is required" });
@@ -27,7 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json(JSON.parse(text));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to fetch order";
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch order";
     console.error("Error fetching order:", error);
     return res.status(500).json({ message });
   }

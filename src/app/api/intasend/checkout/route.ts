@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { initiateMpesaStkPush } from "@/lib/intasend/client";
-import { formatPhoneInternational } from "@/utils/format-phone";
 import prisma from "@/lib/prisma";
+import { formatPhoneInternational } from "@/utils/format-phone";
 
 const checkoutSchema = z.object({
   orderId: z.number().int().positive(),
@@ -41,7 +41,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "M-Pesa payment initiation failed";
+      error instanceof Error
+        ? error.message
+        : "M-Pesa payment initiation failed";
     return NextResponse.json({ message }, { status: 400 });
   }
 }

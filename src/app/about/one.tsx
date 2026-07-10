@@ -1,9 +1,9 @@
+import Section from "@/comp/section/section";
 import {
   SharedEmail,
   SharedPhone,
 } from "@/comp/shared-components/shared-components";
 import k from "./styles.module.scss";
-import Section from "@/comp/section/section";
 export default function One() {
   return (
     <Section className={k.one}>

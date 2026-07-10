@@ -1,12 +1,12 @@
 "use client";
 
-import Section from "@/comp/section/section";
-import { useCartStore } from "@/store/cartStore";
-import k from "./styles.module.scss";
 import { ShoppingCartIcon } from "lucide-react";
 import Link from "next/link";
+import Section from "@/comp/section/section";
+import { useCartStore } from "@/store/cartStore";
 import CartProductTable from "../cartProductTable/cartProductTable";
 import CartTotal from "../cartTotal/cartTotal";
+import k from "./styles.module.scss";
 
 export default function CartComp() {
   const { cartDetails, cartCount, totalPrice, removeItem, setItemQuantity } =

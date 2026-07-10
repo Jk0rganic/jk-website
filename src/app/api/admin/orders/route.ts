@@ -1,5 +1,5 @@
-import { requireAdminSession } from "@/lib/admin/require-admin";
 import { fetchAdminOrders } from "@/lib/admin/fetch-admin-orders";
+import { requireAdminSession } from "@/lib/admin/require-admin";
 
 export async function GET(request: Request) {
   const { error, status } = await requireAdminSession();

@@ -51,7 +51,7 @@ export type CheckoutFormType = {
   totalPrice?: number;
   shippingCost?: number;
   shippingMethodTitle?: string;
-  
+
   // nested shapes for OrderBuilder usage
   billing: BillingAddress;
   shipping: ShippingAddress;
@@ -61,7 +61,6 @@ export type CheckoutFormType = {
   line_items: LineItem[];
   cartDetails?: CartItem[];
 };
-
 
 export interface CartItem {
   id: string;
@@ -121,7 +120,6 @@ export interface ShippingLine {
   method_title: string;
   total: string;
   meta_data?: OrderMeta[];
-  
 }
 
 export interface ShippingZone {

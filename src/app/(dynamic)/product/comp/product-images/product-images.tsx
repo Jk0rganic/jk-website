@@ -1,7 +1,7 @@
-import { useState } from "react";
-import styles from "./styles.module.scss";
-import ImgBox from "@/comp/imgbox/ImgBox";
 import Image from "next/image";
+import { useState } from "react";
+import ImgBox from "@/comp/imgbox/ImgBox";
+import styles from "./styles.module.scss";
 
 interface ProductImage {
   id: string;
@@ -37,7 +37,6 @@ export default function ProductImages({ image, galleryImages = [] }: Props) {
       <div className={styles.gallery_images}>
         {galleryImages.map((img) => (
           <div
-          
             key={img.id}
             className={`${styles.thumb_wrapper} ${img.mediaItemUrl === mediaItemUrl ? styles.selected : ""}`}
             onClick={() => setMainImage(img)}

@@ -1,6 +1,6 @@
+import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 import { getOrder } from "@/lib/fetch/getOrder";
 import prisma from "@/lib/prisma";
-import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 import { formatPhoneInternational } from "@/utils/format-phone";
 import { initiateMpesaStkPush } from "./client";
 

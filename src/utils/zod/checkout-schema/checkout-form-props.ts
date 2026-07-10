@@ -1,7 +1,7 @@
 import type {
   Control,
-  UseFormRegister,
   FieldErrors,
+  UseFormRegister,
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";

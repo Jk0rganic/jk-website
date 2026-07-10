@@ -1,7 +1,7 @@
+import { seoMeta } from "@/utils/seo/seoMeta";
 import Heros from "./hero";
 import One from "./one";
 import Two from "./two";
-import { seoMeta } from "@/utils/seo/seoMeta";
 
 export const metadata = seoMeta.contact;
 

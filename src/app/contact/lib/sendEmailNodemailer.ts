@@ -1,7 +1,7 @@
 "use server";
 
-import { contactFormSchema } from "@/utils/zod/zod";
 import { sendEmail } from "@/lib/nodemailer/send-mail";
+import { contactFormSchema } from "@/utils/zod/zod";
 
 interface ContactEmailInput {
   name: string;
@@ -18,11 +18,7 @@ function escapeHtml(str: string) {
     .replace(/'/g, "&#039;");
 }
 
-function contactEmailTemplate({
-  name,
-  email,
-  message,
-}: ContactEmailInput) {
+function contactEmailTemplate({ name, email, message }: ContactEmailInput) {
   return `
     <h2>New Contact Message</h2>
 

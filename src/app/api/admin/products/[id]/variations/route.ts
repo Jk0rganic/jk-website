@@ -1,8 +1,8 @@
-import { requireAdminSession } from "@/lib/admin/require-admin";
-import { variationToWooPayload } from "@/lib/admin/product-service";
-import { variationFormSchema } from "@/lib/admin/product-schema";
-import { fetchWoo } from "@/lib/fetch/fetchRest";
 import { z } from "zod";
+import { variationFormSchema } from "@/lib/admin/product-schema";
+import { variationToWooPayload } from "@/lib/admin/product-service";
+import { requireAdminSession } from "@/lib/admin/require-admin";
+import { fetchWoo } from "@/lib/fetch/fetchRest";
 
 const batchSchema = z.object({
   variations: z.array(variationFormSchema),

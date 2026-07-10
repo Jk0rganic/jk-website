@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { seoMeta } from "@/utils/seo/seoMeta";
 import { getSession } from "@/lib/auth/getSession";
+import { seoMeta } from "@/utils/seo/seoMeta";
 import IntaSendPayment from "./comp/intasend-payment";
 
 export const metadata = seoMeta.checkout;
@@ -24,9 +24,7 @@ export default async function PaymentPage({
       ? `/payment?${query.toString()}`
       : "/payment";
 
-    redirect(
-      `/auth/signin?callbackUrl=${encodeURIComponent(paymentPath)}`,
-    );
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(paymentPath)}`);
   }
 
   return <IntaSendPayment searchParams={searchParams} />;

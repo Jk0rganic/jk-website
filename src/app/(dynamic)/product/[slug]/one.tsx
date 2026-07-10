@@ -1,23 +1,19 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
-
-import k from "./styles.module.scss";
+import { useCallback, useMemo, useState } from "react";
+import Article from "@/comp/article/Article";
 
 import Section from "@/comp/section/section";
 
 import { decodeHTML } from "@/utils/decode-html";
-
-import ProductImages from "../comp/product-images/product-images";
 import AddToCart from "../comp/addToCart/addToCart";
+import ProductImages from "../comp/product-images/product-images";
+import ProductTags from "../comp/product-tags/product-tags";
 import RatingReviews from "../comp/rating-reviews/rating-reviews";
 import SingleProSocial from "../comp/single-pro-social/single-pro-social";
-import SingleSelectedPrice from "../comp/single-selected-price/single-selected-price";
 import SingleProductSizeVariations from "../comp/single-product-size-variations/single-product-size-variations";
-import ProductTags from "../comp/product-tags/product-tags";
-
-
-import Article from "@/comp/article/Article";
+import SingleSelectedPrice from "../comp/single-selected-price/single-selected-price";
+import k from "./styles.module.scss";
 
 type Props = {
   product: Product;

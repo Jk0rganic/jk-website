@@ -1,7 +1,7 @@
-import k from "./styles.module.scss";
-import Section from "../section/section";
-import ImgBox from "../imgbox/ImgBox";
 import Button from "../button/button";
+import ImgBox from "../imgbox/ImgBox";
+import Section from "../section/section";
+import k from "./styles.module.scss";
 
 export default function Four() {
   return (

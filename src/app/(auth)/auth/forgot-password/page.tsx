@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-
-import ResetPage from "./resetPage";
-
 import { seoMeta } from "@/utils/seo/seoMeta";
+import ResetPage from "./resetPage";
 
 export const metadata = seoMeta.forgotPassword;
 

@@ -1,4 +1,4 @@
-import { requireAdminSession } from "@/lib/admin/require-admin";
+import { productFormSchema } from "@/lib/admin/product-schema";
 import {
   formValuesToWooPayload,
   mapWooProductDetail,
@@ -6,7 +6,7 @@ import {
   type WooProductDetail,
   type WooVariation,
 } from "@/lib/admin/product-service";
-import { productFormSchema } from "@/lib/admin/product-schema";
+import { requireAdminSession } from "@/lib/admin/require-admin";
 import { fetchWoo } from "@/lib/fetch/fetchRest";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -26,9 +26,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 
   try {
-    const wooProduct = await fetchWoo<WooProductDetail>(`products/${productId}`, {
-      noCache: true,
-    });
+    const wooProduct = await fetchWoo<WooProductDetail>(
+      `products/${productId}`,
+      {
+        noCache: true,
+      },
+    );
 
     const product = mapWooProductDetail(wooProduct);
 

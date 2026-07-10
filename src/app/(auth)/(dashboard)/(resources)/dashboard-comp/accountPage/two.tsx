@@ -1,17 +1,17 @@
 "use client";
 
-import k from "./styles.module.scss";
 import React, { useMemo, useState } from "react";
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
+import k from "./styles.module.scss";
 
 interface TwoProps {
   orders: DashboardOrder[];

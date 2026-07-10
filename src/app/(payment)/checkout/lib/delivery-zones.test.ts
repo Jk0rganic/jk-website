@@ -4,10 +4,7 @@ import {
   getZoneNameForSubtype,
   resolveDeliveryZone,
 } from "@/app/(payment)/checkout/lib/delivery-zones";
-import {
-  getDeliverySubtype,
-  isDoorToDoorCounty,
-} from "@/data/kenya-delivery";
+import { getDeliverySubtype, isDoorToDoorCounty } from "@/data/kenya-delivery";
 
 describe("kenya delivery helpers", () => {
   it("treats only Nairobi as door-to-door", () => {

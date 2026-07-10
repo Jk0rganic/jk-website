@@ -1,6 +1,6 @@
-import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
-import { GET_RELATED_POSTS } from "@/graphql/graphql";
 import Link from "next/link";
+import { GET_RELATED_POSTS } from "@/graphql/graphql";
+import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
 import k from "./styles.module.scss";
 
 type RelatedPostsResponse = {

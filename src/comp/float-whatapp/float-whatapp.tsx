@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
-import k from "./styles.module.scss";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import k from "./styles.module.scss";
 
 export default function FloatWhatsapp() {
   const [visible, setVisible] = useState(false);
