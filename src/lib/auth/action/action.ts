@@ -6,6 +6,11 @@ import prisma from "@/lib/prisma";
 const MAX_LOGIN_ATTEMPTS = 4;
 const LOCKOUT_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours
 
+function isMissingAdminStatusColumnError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /auth_version|disabled_at|deleted_at/.test(message);
+}
+
 interface OAuthUser {
   email: string;
   name?: string | null;
@@ -30,9 +35,51 @@ interface LoginResult {
  * Find user by email
  */
 export async function findUserByEmail(email: string) {
-  return prisma.user.findUnique({
-    where: { email },
-  });
+  try {
+    return await prisma.user.findUnique({
+      where: { email },
+    });
+  } catch (error) {
+    if (!isMissingAdminStatusColumnError(error)) {
+      throw error;
+    }
+
+    const [legacyUser] = await prisma.$queryRaw<
+      Array<{
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+        role: string | null;
+        password: string | null;
+        image: string | null;
+        emailVerified: Date | null;
+        createdAt: Date;
+        authVersion: number;
+        disabledAt: Date | null;
+        deletedAt: Date | null;
+      }>
+    >`
+      select
+        id,
+        name,
+        email,
+        phone,
+        role,
+        password,
+        image,
+        email_verified as "emailVerified",
+        created_at as "createdAt",
+        0 as "authVersion",
+        null::timestamp as "disabledAt",
+        null::timestamp as "deletedAt"
+      from users
+      where email = ${email}
+      limit 1
+    `;
+
+    return legacyUser ?? null;
+  }
 }
 
 /**
