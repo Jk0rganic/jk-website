@@ -1,15 +1,16 @@
 "use client";
 
-import { useTransition } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { loginSchema } from "@/utils/zod/zod";
 import { doAdminCredentialLogin } from "@/lib/auth/action/doAdminCredentialLogin";
 import { BRAND_LOGO_URL } from "@/lib/brand";
+import { loginSchema } from "@/utils/zod/zod";
 import k from "../admin-signin.module.scss";
 
 interface FormData {
@@ -24,6 +25,7 @@ export default function AdminSignInForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -88,12 +90,26 @@ export default function AdminSignInForm({
 
           <label className={k.field}>
             <span>Password</span>
-            <input
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              {...register("password")}
-            />
+            <div className={k.passwordInput}>
+              <input
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} aria-hidden />
+                ) : (
+                  <Eye size={18} aria-hidden />
+                )}
+              </button>
+            </div>
             {errors.password && <em>{errors.password.message}</em>}
           </label>
 

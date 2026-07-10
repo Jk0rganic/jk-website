@@ -1,8 +1,7 @@
 "use client";
 
-import { Bell, Menu, Moon, Search, Store, Sun } from "lucide-react";
+import { Menu, Plus, Search, Store } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { getAdminPageTitle } from "./admin-nav";
 import k from "./admin-topbar.module.scss";
 
@@ -12,15 +11,16 @@ type AdminTopbarProps = {
 };
 
 const pageDescriptions: Record<string, string> = {
-  "/admin-account": "Your store performance at a glance",
-  "/admin-account/orders": "Track and fulfill customer orders",
-  "/admin-account/products": "Manage catalog and inventory",
-  "/admin-account/coupons": "Create and manage discount codes",
-  "/admin-account/payments": "M-Pesa payment activity",
-  "/admin-account/customers": "Everyone who has shopped at JK Organics",
-  "/admin-account/reviews": "What customers are saying about your products",
-  "/admin-account/team": "Invite and manage store admins",
-  "/admin-account/details": "Your account settings",
+  "/admin-account": "Daily performance, urgent work, and growth signals",
+  "/admin-account/orders": "Fulfill orders and track payment state",
+  "/admin-account/payments": "Reconcile cash, M-Pesa, and pending payments",
+  "/admin-account/products": "Manage catalog, pricing, and stock",
+  "/admin-account/coupons": "Control discounts and promotional codes",
+  "/admin-account/reviews": "Monitor customer feedback and product sentiment",
+  "/admin-account/analytics":
+    "Revenue, products, locations, payments, and discounts",
+  "/admin-account/team": "Manage admin access and security",
+  "/admin-account/details": "Admin account settings",
 };
 
 function getDescription(pathname: string) {
@@ -34,17 +34,6 @@ export default function AdminTopbar({
   pathname,
   onMenuClick,
 }: AdminTopbarProps) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    document.documentElement.dataset.adminTheme = theme;
-    return () => {
-      delete document.documentElement.dataset.adminTheme;
-    };
-  }, [theme]);
-
-  const isDark = theme === "dark";
-
   return (
     <header className={k.topbar}>
       <div className={k.left}>
@@ -63,37 +52,17 @@ export default function AdminTopbar({
       </div>
 
       <div className={k.right}>
-        <label className={k.searchBox}>
-          <Search size={17} />
-          <input
-            type="search"
-            placeholder="Search orders, products, customers..."
-          />
-          <kbd>⌘K</kbd>
+        <label className={k.search}>
+          <Search size={16} aria-hidden="true" />
+          <span className={k.searchLabel}>Search admin</span>
+          <input type="search" placeholder="Search" aria-label="Search admin" />
         </label>
-
-        <button
-          type="button"
-          className={k.iconBtn}
-          aria-label="Toggle theme"
-          title="Toggle theme"
-          onClick={() => setTheme(isDark ? "light" : "dark")}
-        >
-          {isDark ? <Sun size={19} /> : <Moon size={19} />}
-        </button>
-
-        <button
-          type="button"
-          className={k.iconBtn}
-          aria-label="Notifications"
-          title="Notifications"
-        >
-          <Bell size={18} />
-          <span className={k.notificationDot} />
-        </button>
-
-        <Link href="/" className={k.storeLink} target="_blank">
-          <Store size={16} />
+        <Link href="/admin-account/products/new" className={k.actionLink}>
+          <Plus size={16} aria-hidden="true" />
+          <span>New product</span>
+        </Link>
+        <Link href="/" className={k.storeLink} target="_blank" rel="noreferrer">
+          <Store size={16} aria-hidden="true" />
           <span>View store</span>
         </Link>
       </div>

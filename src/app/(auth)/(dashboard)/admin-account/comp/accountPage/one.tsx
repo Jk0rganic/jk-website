@@ -1,11 +1,11 @@
 "use client";
 
-import { Trophy, ShoppingCart, Package } from "lucide-react";
-import k from "./styles.module.scss";
-import { formatPrice } from "@/utils/format-price";
-import PercentageChange from "../percentage-change/percentage-change";
+import { Package, ShoppingCart, Trophy } from "lucide-react";
 import { useMemo } from "react";
 import { computeWeeklyComparison } from "@/lib/admin/admin-stats";
+import { formatPrice } from "@/utils/format-price";
+import PercentageChange from "../percentage-change/percentage-change";
+import k from "./styles.module.scss";
 
 interface Props {
   orders: DashboardOrder[];
@@ -45,8 +45,8 @@ export default function One({ orders }: Props) {
 
   return (
     <div className={k.one}>
-      {cardData.map((item, index) => (
-        <div key={index} className={k.card}>
+      {cardData.map((item) => (
+        <div key={item.title} className={k.card}>
           <h2>
             {item.icon} {item.title}
           </h2>

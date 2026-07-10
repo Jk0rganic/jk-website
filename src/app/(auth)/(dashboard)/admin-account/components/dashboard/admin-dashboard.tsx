@@ -1,72 +1,91 @@
 "use client";
 
 import {
-  AlertTriangle,
-  Boxes,
+  ArrowDown,
+  ArrowUp,
+  Banknote,
+  BarChart3,
+  CircleDollarSign,
+  CreditCard,
+  MapPin,
   Package,
+  ReceiptText,
   ShoppingBag,
   TrendingUp,
+  Truck,
   Wallet,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { useMemo } from "react";
 import {
+  computeOrderStatusSummary,
   computePaymentMethodSummary,
   computeTopProducts,
+  computeWeeklyComparison,
 } from "@/lib/admin/admin-stats";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
 import { formatPrice } from "@/utils/format-price";
 import { formatDate } from "@/utils/formatDate";
 import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
 import OrdersChart from "../../comp/accountPage/two";
-import ui from "../ui/admin-ui.module.scss";
+import styles from "../../styles.module.scss";
+import { AdminBadge } from "../ui/admin-badge";
+import { AdminEmptyState } from "../ui/admin-empty-state";
+import { AdminMetricCard } from "../ui/admin-metric-card";
+import { AdminPanel } from "../ui/admin-panel";
 
-const toneClass = {
-  green: "iconGreen",
-  blue: "iconBlue",
-  amber: "iconAmber",
-  violet: "iconViolet",
-} as const;
+function TrendBadge({
+  current,
+  previous,
+  comparisonLabel = "last week",
+}: {
+  current: number;
+  previous: number;
+  comparisonLabel?: string;
+}) {
+  let percentage = 0;
 
-const lowStockFallback = [
-  { name: "Raw Shea Butter", sku: "SHEA-RAW-250", quantity: 4 },
-  { name: "Moringa Oil", sku: "MOR-100", quantity: 6 },
-  { name: "Aloe Vera Gel", sku: "ALOE-250", quantity: 8 },
-];
+  if (previous === 0 && current > 0) {
+    percentage = 100;
+  } else if (previous > 0) {
+    percentage = ((current - previous) / previous) * 100;
+  }
 
-const productImageColors = ["#e8f5ec", "#eef6ff", "#fff7ed", "#f5f3ff"];
+  const isUp = percentage >= 0;
 
-function getCustomerName(order: DashboardOrder) {
-  const name = [order.billing?.first_name, order.billing?.last_name]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-
-  return name || order.billing?.email || "Guest customer";
+  return (
+    <span className={isUp ? styles.trendUp : styles.trendDown}>
+      {isUp ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+      {Math.abs(percentage).toFixed(1)}% vs {comparisonLabel}
+    </span>
+  );
 }
 
-function getBadgeClass(
-  tone: ReturnType<typeof getOrderDisplayInfo>["orderTone"],
-) {
-  if (tone === "success") return ui.badgeGreen;
-  if (tone === "danger" || tone === "action") return ui.badgeRed;
-  if (tone === "progress") return ui.badgeYellow;
-  return ui.badgeGray;
+function parseMoney(value: string | number | undefined): number {
+  const numeric = Number(String(value ?? 0).replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(numeric) ? numeric : 0;
 }
 
-function getPaymentBadgeClass(
-  tone: ReturnType<typeof getOrderDisplayInfo>["paymentTone"],
-) {
-  if (tone === "paid") return ui.badgeGreen;
-  if (tone === "due") return ui.badgeRed;
-  if (tone === "on-delivery") return ui.badgeYellow;
-  return ui.badgeGray;
+function badgeTone(status: string): "success" | "info" | "warning" | "danger" {
+  if (status === "completed") return "success";
+  if (status === "processing") return "info";
+  if (status === "pending" || status === "on-hold") return "warning";
+  return "danger";
 }
 
 export default function AdminDashboard() {
   const { orders, session } = useAccount();
 
+  const { thisWeek, lastWeek } = useMemo(
+    () => computeWeeklyComparison(orders),
+    [orders],
+  );
+
+  const orderHealth = useMemo(
+    () => computeOrderStatusSummary(orders),
+    [orders],
+  );
   const paymentMix = useMemo(
     () => computePaymentMethodSummary(orders),
     [orders],
@@ -74,362 +93,542 @@ export default function AdminDashboard() {
   const topProducts = useMemo(() => computeTopProducts(orders, 5), [orders]);
   const recentOrders = useMemo(() => [...orders].slice(0, 6), [orders]);
 
-  const totalOrders = orders.length;
-  const totalRevenue = useMemo(
-    () => orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
-    [orders],
-  );
-  const totalSales = useMemo(
-    () =>
-      orders.reduce(
-        (sum, order) =>
-          sum +
-          (order.line_items ?? []).reduce(
-            (quantity, item) => quantity + (item.quantity || 0),
-            0,
-          ),
-        0,
-      ),
-    [orders],
-  );
-  const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  const monthlyGoal = 120000;
-  const currentMonthSales = useMemo(() => {
+  const operationalSummary = useMemo(() => {
     const now = new Date();
-    return orders
-      .filter((order) => {
-        const date = new Date(order.date_created);
-        return (
-          date.getFullYear() === now.getFullYear() &&
-          date.getMonth() === now.getMonth()
-        );
-      })
-      .reduce((sum, order) => sum + Number(order.total || 0), 0);
-  }, [orders]);
-  const goalPct = Math.min(
-    Math.round((currentMonthSales / monthlyGoal) * 100),
-    100,
-  );
+    const todayKey = now.toDateString();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    const previousMonthDate = new Date(year, month - 1, 1);
+    const locations = new Map<
+      string,
+      { location: string; orders: number; sales: number }
+    >();
 
-  const paymentRows = [
-    {
-      label: "M-Pesa (IntaSend)",
-      value: paymentMix.intasend,
-      color: "#249346",
-    },
-    { label: "Cash on delivery", value: paymentMix.cod, color: "#d97706" },
-    { label: "Other", value: paymentMix.other, color: "#64748b" },
-  ];
+    let todaySales = 0;
+    let monthSales = 0;
+    let previousMonthSales = 0;
+    let yearSales = 0;
+    let totalRevenue = 0;
+    let deliveryFees = 0;
+    let discounts = 0;
+    let pendingUnpaid = 0;
 
-  const activity = recentOrders.slice(0, 5).map((order) => {
-    const display = getOrderDisplayInfo(order);
+    for (const order of orders) {
+      const orderDate = new Date(order.date_created);
+      const total = parseMoney(order.total);
+      const delivery = (order.shipping_lines ?? []).reduce(
+        (sum, line) => sum + parseMoney(line.total),
+        0,
+      );
+      const discount = parseMoney(order.discount_total || order.total_discount);
+      const location =
+        order.billing?.city?.trim() ||
+        order.shipping?.city?.trim() ||
+        order.billing?.state?.trim() ||
+        order.shipping?.state?.trim() ||
+        "Unknown";
+      const currentLocation = locations.get(location) ?? {
+        location,
+        orders: 0,
+        sales: 0,
+      };
+
+      currentLocation.orders += 1;
+      currentLocation.sales += total;
+      locations.set(location, currentLocation);
+
+      totalRevenue += total;
+      deliveryFees += delivery;
+      discounts += discount;
+
+      if (orderDate.toDateString() === todayKey) {
+        todaySales += total;
+      }
+
+      if (orderDate.getMonth() === month && orderDate.getFullYear() === year) {
+        monthSales += total;
+      }
+
+      if (orderDate.getFullYear() === year) {
+        yearSales += total;
+      }
+
+      if (
+        orderDate.getMonth() === previousMonthDate.getMonth() &&
+        orderDate.getFullYear() === previousMonthDate.getFullYear()
+      ) {
+        previousMonthSales += total;
+      }
+
+      if (order.needs_payment || order.status === "pending") {
+        pendingUnpaid += 1;
+      }
+    }
+
     return {
-      id: order.id,
-      text: `Order #${order.id} is ${display.orderLabel.toLowerCase()}`,
-      detail: `${getCustomerName(order)} · ${display.paymentLabel}`,
-      date: order.date_created,
-      tone: display.orderTone,
+      todaySales,
+      monthSales,
+      previousMonthSales,
+      yearSales,
+      totalRevenue,
+      deliveryFees,
+      discounts,
+      netRevenue: Math.max(0, totalRevenue - deliveryFees),
+      pendingUnpaid,
+      topLocations: Array.from(locations.values())
+        .sort((a, b) => b.sales - a.sales || b.orders - a.orders)
+        .slice(0, 5),
     };
-  });
+  }, [orders]);
 
-  const stats = [
+  const avgOrder = thisWeek.orders > 0 ? thisWeek.sales / thisWeek.orders : 0;
+  const totalPaymentOrders =
+    paymentMix.cod + paymentMix.intasend + paymentMix.other;
+  const codPercentage = totalPaymentOrders
+    ? (paymentMix.cod / totalPaymentOrders) * 100
+    : 0;
+  const intasendPercentage = totalPaymentOrders
+    ? (paymentMix.intasend / totalPaymentOrders) * 100
+    : 0;
+  const pendingWork =
+    orderHealth.pending + orderHealth.onHold + orderHealth.processing;
+  const completedRate = orders.length
+    ? Math.round((orderHealth.completed / orders.length) * 100)
+    : 0;
+  const monthTrend =
+    operationalSummary.previousMonthSales > 0
+      ? ((operationalSummary.monthSales -
+          operationalSummary.previousMonthSales) /
+          operationalSummary.previousMonthSales) *
+        100
+      : operationalSummary.monthSales > 0
+        ? 100
+        : 0;
+  const yearShare = operationalSummary.yearSales
+    ? Math.round(
+        (operationalSummary.monthSales / operationalSummary.yearSales) * 100,
+      )
+    : 0;
+  const firstName = session.user.name?.split(" ")[0] || "there";
+  const initials = String(session.user.name || session.user.email || "JK")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const metrics = [
     {
-      label: "Total revenue",
-      value: formatPrice(totalRevenue),
-      note: "Across all orders",
+      label: "Revenue",
+      value: formatPrice(thisWeek.sales),
+      current: thisWeek.sales,
+      previous: lastWeek.sales,
       icon: Wallet,
-      tone: "green" as const,
+      tone: "success" as const,
     },
     {
-      label: "Total orders",
-      value: String(totalOrders),
-      note: "All submitted orders",
+      label: "Orders",
+      value: String(thisWeek.orders),
+      current: thisWeek.orders,
+      previous: lastWeek.orders,
       icon: ShoppingBag,
-      tone: "blue" as const,
+      tone: "info" as const,
     },
     {
-      label: "Total sales",
-      value: `${totalSales} units`,
-      note: "Items sold",
+      label: "Units sold",
+      value: String(thisWeek.products),
+      current: thisWeek.products,
+      previous: lastWeek.products,
       icon: Package,
-      tone: "amber" as const,
+      tone: "warning" as const,
     },
     {
       label: "Avg. order",
       value: formatPrice(avgOrder),
-      note: "Revenue per order",
+      current: avgOrder,
+      previous: lastWeek.orders > 0 ? lastWeek.sales / lastWeek.orders : 0,
       icon: TrendingUp,
-      tone: "violet" as const,
+      tone: "neutral" as const,
     },
   ];
 
-  const firstName = session.user.name?.split(" ")[0] || "there";
+  const insightCards = [
+    {
+      label: "Delivery fees",
+      value: formatPrice(operationalSummary.deliveryFees),
+      detail: "Delivery and pickup charges",
+      icon: Truck,
+    },
+    {
+      label: "Sales revenue",
+      value: formatPrice(operationalSummary.totalRevenue),
+      detail: `${orders.length} lifetime orders`,
+      icon: ReceiptText,
+    },
+    {
+      label: "Net revenue",
+      value: formatPrice(operationalSummary.netRevenue),
+      detail: "Order revenue after delivery fees",
+      icon: CircleDollarSign,
+    },
+    {
+      label: "Growth",
+      value: <TrendBadge current={thisWeek.sales} previous={lastWeek.sales} />,
+      detail: "Weekly sales comparison",
+      icon: TrendingUp,
+    },
+    {
+      label: "Monthly earnings",
+      value: formatPrice(operationalSummary.monthSales),
+      detail: "Current calendar month",
+      icon: Banknote,
+    },
+    {
+      label: "Payment gateways",
+      value: `${paymentMix.intasend} online`,
+      detail: `${paymentMix.cod} cash, ${paymentMix.other} other`,
+      icon: CreditCard,
+    },
+  ];
+
+  const paymentDonutStyle = {
+    "--cod": `${codPercentage}%`,
+    "--intasend": `${codPercentage + intasendPercentage}%`,
+  } as CSSProperties;
 
   return (
-    <>
-      <div className={ui.priorityGrid}>
-        <section className={ui.heroPanel}>
-          <div className={ui.heroCopy}>
-            <h2>Welcome back, {firstName}</h2>
+    <main className={styles.dashboardCanvas}>
+      <section className={styles.welcomeStrip}>
+        <div className={styles.welcomeIdentity}>
+          <span className={styles.adminAvatar}>{initials}</span>
+          <div>
+            <p className={styles.eyebrow}>Overview dashboard</p>
+            <h1>Welcome back, {firstName}</h1>
             <p>
-              Here is how JK Organics is performing this week. Revenue is
-              tracked against a monthly operating goal and live order activity.
+              Track JK Organics orders, payment movement, delivery load, and
+              product momentum from one workspace.
             </p>
-            <div className={ui.heroActions}>
-              <Link href="/admin-account/products/new" className={ui.btnAccent}>
-                + Add product
-              </Link>
-              <Link href="/admin-account/orders" className={ui.btnOutline}>
-                View orders
-              </Link>
-              <Link href="/admin-account/coupons" className={ui.btnOutline}>
-                New coupon
-              </Link>
-            </div>
           </div>
-          <div className={ui.goalCard}>
-            <div className={ui.goalTop}>
-              <span>Monthly revenue goal</span>
-              <strong>{goalPct}%</strong>
-            </div>
-            <div className={ui.goalValue}>{formatPrice(currentMonthSales)}</div>
-            <p>of {formatPrice(monthlyGoal)} target</p>
-            <div className={ui.progressTrack}>
-              <span style={{ width: `${goalPct}%` }} />
-            </div>
-          </div>
-        </section>
+        </div>
 
-        <section className={ui.alertCard} aria-live="polite">
-          <div className={ui.alertHeader}>
-            <div>
-              <span>
-                <AlertTriangle size={18} />
-              </span>
-              <h2>Low stock alerts</h2>
-              <strong>{lowStockFallback.length}</strong>
-            </div>
-            <Link href="/admin-account/products">Restock now</Link>
+        <div className={styles.performanceBoard}>
+          <div>
+            <span>Today sales</span>
+            <strong>{formatPrice(operationalSummary.todaySales)}</strong>
           </div>
-          <div className={ui.alertList}>
-            {lowStockFallback.map((item) => (
-              <div key={item.sku} className={ui.alertRow}>
-                <div>
-                  <strong>{item.name}</strong>
-                  <span>{item.sku}</span>
+          <div>
+            <span>This week</span>
+            <strong>{formatPrice(thisWeek.sales)}</strong>
+          </div>
+          <div>
+            <span>Performance</span>
+            <strong>{completedRate}% complete</strong>
+          </div>
+        </div>
+
+        <section
+          className={styles.gardenSummary}
+          aria-label="JK Organics summary"
+        >
+          <div className={styles.summaryRows}>
+            <span style={{ inlineSize: `${Math.max(completedRate, 8)}%` }} />
+            <span
+              style={{
+                inlineSize: `${Math.max(
+                  orders.length ? (pendingWork / orders.length) * 100 : 0,
+                  8,
+                )}%`,
+              }}
+            />
+            <span
+              style={{
+                inlineSize: `${Math.max(
+                  totalPaymentOrders
+                    ? (paymentMix.intasend / totalPaymentOrders) * 100
+                    : 0,
+                  8,
+                )}%`,
+              }}
+            />
+          </div>
+          <p>
+            {pendingWork} active orders, {paymentMix.intasend} online payments,
+            and {topProducts[0]?.name || "new product activity"} leading the
+            board.
+          </p>
+        </section>
+      </section>
+
+      <section className={styles.metricGrid} aria-label="Weekly KPI cards">
+        {metrics.map((metric) => (
+          <AdminMetricCard
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+            icon={metric.icon}
+            tone={metric.tone}
+            detail={
+              <TrendBadge current={metric.current} previous={metric.previous} />
+            }
+          />
+        ))}
+      </section>
+
+      <div className={styles.primaryGrid}>
+        <div className={styles.mainColumn}>
+          <div className={styles.chartGrid}>
+            <AdminPanel
+              title="Revenue updates"
+              description="Order totals over time from the existing sales feed."
+              action={
+                <Link
+                  href="/admin-account/analytics"
+                  className={styles.panelLink}
+                >
+                  <BarChart3 size={16} aria-hidden />
+                  Analytics
+                </Link>
+              }
+            >
+              <div className={styles.chartFrame}>
+                <OrdersChart orders={orders} />
+              </div>
+            </AdminPanel>
+
+            <AdminPanel
+              title="Sales overview"
+              description="Payment method split across current dashboard orders."
+            >
+              <div className={styles.paymentSummary}>
+                <div className={styles.paymentDonut} style={paymentDonutStyle}>
+                  <span>{totalPaymentOrders}</span>
+                  <small>orders</small>
                 </div>
-                <span>{item.quantity} left</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <div className={ui.statGrid}>
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <article key={stat.label} className={ui.statCard}>
-              <div className={ui.statTop}>
-                <span className={ui.statLabel}>{stat.label}</span>
-                <div className={`${ui.statIcon} ${ui[toneClass[stat.tone]]}`}>
-                  <Icon size={20} />
-                </div>
-              </div>
-              <div className={ui.statValue}>{stat.value}</div>
-              <div className={ui.statFooter}>
-                <span className={ui.statNote}>{stat.note}</span>
-                <span className={ui.sparkLine} aria-hidden="true" />
-              </div>
-            </article>
-          );
-        })}
-      </div>
-
-      <div className={ui.analyticsGrid}>
-        <section className={ui.card}>
-          <div className={ui.cardHeader}>
-            <div>
-              <h2>Sales overview</h2>
-              <p>Revenue and orders by month</p>
-            </div>
-          </div>
-          <div className={ui.chartBody}>
-            <OrdersChart orders={orders} />
-          </div>
-        </section>
-
-        <section className={ui.card}>
-          <div className={ui.cardHeader}>
-            <h2>Top products</h2>
-          </div>
-          <div className={ui.cardBody}>
-            {!topProducts.length ? (
-              <p className={ui.empty}>No product sales yet.</p>
-            ) : (
-              <div className={ui.productList}>
-                {topProducts.map((product, index) => (
-                  <div key={product.name} className={ui.productRow}>
-                    {product.image?.src ? (
-                      <Image
-                        alt={product.image.alt || product.name}
-                        className={ui.productImage}
-                        height={44}
-                        src={product.image.src}
-                        width={48}
-                      />
-                    ) : (
-                      <div
-                        aria-label={`Product image for ${product.name}`}
-                        className={ui.productImage}
-                        role="img"
-                        style={{
-                          background:
-                            productImageColors[
-                              index % productImageColors.length
-                            ],
-                        }}
-                      >
-                        <Boxes size={18} />
-                      </div>
-                    )}
-                    <div>
-                      <strong>{product.name}</strong>
-                      <span>{product.quantity} units sold</span>
-                    </div>
-                    <strong>{formatPrice(product.revenue)}</strong>
+                <div className={styles.legendList}>
+                  <div>
+                    <span className={styles.legendCash} />
+                    Cash on delivery
+                    <strong>{paymentMix.cod}</strong>
                   </div>
-                ))}
+                  <div>
+                    <span className={styles.legendOnline} />
+                    M-Pesa / IntaSend
+                    <strong>{paymentMix.intasend}</strong>
+                  </div>
+                  <div>
+                    <span className={styles.legendOther} />
+                    Other payments
+                    <strong>{paymentMix.other}</strong>
+                  </div>
+                </div>
               </div>
-            )}
+            </AdminPanel>
           </div>
-        </section>
-      </div>
 
-      <div className={ui.dashboardColumns}>
-        <div className={ui.dashboardStack}>
-          <section className={ui.card}>
-            <div className={ui.cardHeader}>
-              <h2>Payment mix</h2>
-            </div>
-            <div className={ui.cardBody}>
-              <div className={ui.mixList}>
-                {paymentRows.map((row) => {
-                  const pct =
-                    totalOrders > 0
-                      ? Math.round((row.value / totalOrders) * 100)
-                      : 0;
-                  return (
-                    <div key={row.label} className={ui.mixRow}>
-                      <div>
-                        <span>{row.label}</span>
-                        <strong>
-                          {row.value} orders · {pct}%
-                        </strong>
-                      </div>
-                      <div className={ui.progressTrack}>
-                        <span
-                          style={{ width: `${pct}%`, background: row.color }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+          <AdminPanel
+            title="Monthly and yearly sales"
+            description="Current month contribution against this year's order revenue."
+          >
+            <div className={styles.salesPeriodGrid}>
+              <div className={styles.salesPeriodPrimary}>
+                <span>This month</span>
+                <strong>{formatPrice(operationalSummary.monthSales)}</strong>
+                <TrendBadge
+                  current={operationalSummary.monthSales}
+                  previous={operationalSummary.previousMonthSales}
+                  comparisonLabel="previous month"
+                />
+              </div>
+              <div>
+                <span>This year</span>
+                <strong>{formatPrice(operationalSummary.yearSales)}</strong>
+                <small>{yearShare}% from the current month</small>
+              </div>
+              <div>
+                <span>Month comparison</span>
+                <strong>{Math.abs(monthTrend).toFixed(1)}%</strong>
+                <small>
+                  {monthTrend >= 0 ? "ahead of" : "behind"} previous month
+                </small>
               </div>
             </div>
-          </section>
+          </AdminPanel>
 
-          <section className={ui.card}>
-            <div className={ui.cardHeader}>
-              <h2>Activity</h2>
-            </div>
-            <div className={ui.cardBody}>
-              {!activity.length ? (
-                <p className={ui.empty}>No recent activity yet.</p>
+          <div className={styles.operationsGrid}>
+            <AdminPanel
+              title="Weekly stats"
+              description="Open workload, shipped orders, and payment follow-up."
+            >
+              <div className={styles.statRows}>
+                <div>
+                  <span>Pending</span>
+                  <strong>{orderHealth.pending}</strong>
+                </div>
+                <div>
+                  <span>Processing</span>
+                  <strong>{orderHealth.processing}</strong>
+                </div>
+                <div>
+                  <span>Completed</span>
+                  <strong>{orderHealth.completed}</strong>
+                </div>
+                <div>
+                  <span>Unpaid</span>
+                  <strong>{operationalSummary.pendingUnpaid}</strong>
+                </div>
+              </div>
+            </AdminPanel>
+
+            <AdminPanel
+              title="Top products"
+              description="Best movers by units sold."
+            >
+              {!topProducts.length ? (
+                <AdminEmptyState
+                  title="No product sales yet"
+                  description="Product movement will appear once orders include line items."
+                />
               ) : (
-                <div className={ui.activityList}>
-                  {activity.map((item) => (
-                    <div key={item.id} className={ui.activityItem}>
-                      <span
-                        className={`${ui.activityDot} ${
-                          item.tone === "danger" ? ui.activityDanger : ""
-                        }`}
-                      />
+                <div className={styles.compactList}>
+                  {topProducts.map((product) => (
+                    <div key={product.name} className={styles.compactListItem}>
                       <div>
-                        <p>{item.text}</p>
-                        <span>
-                          {item.detail} · {formatDate(item.date)}
-                        </span>
+                        <strong>{product.name}</strong>
+                        <span>{formatPrice(product.revenue)}</span>
                       </div>
+                      <AdminBadge tone="success">
+                        {product.quantity} units
+                      </AdminBadge>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
-          </section>
-        </div>
+            </AdminPanel>
 
-        <div className={ui.dashboardStack}>
-          <section className={ui.card}>
-            <div className={ui.cardHeader}>
-              <h2>Recent orders</h2>
-              <Link href="/admin-account/orders">View all</Link>
-            </div>
-            <div className={ui.cardBody}>
-              {!recentOrders.length ? (
-                <p className={ui.empty}>No orders yet.</p>
+            <AdminPanel
+              title="Top locations"
+              description="Order concentration by customer city or region."
+            >
+              {!operationalSummary.topLocations.length ? (
+                <AdminEmptyState
+                  title="No locations yet"
+                  description="Customer locations will appear when orders arrive."
+                  icon={MapPin}
+                />
               ) : (
-                <div className={ui.tableWrap}>
-                  <table className={ui.table}>
-                    <thead>
-                      <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Status</th>
-                        <th>Payment</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentOrders.map((order) => {
-                        const display = getOrderDisplayInfo(order);
-                        return (
-                          <tr key={order.id}>
-                            <td>
-                              <Link href={`/admin-account/orders/${order.id}`}>
-                                #{order.id}
-                              </Link>
-                              <div className={ui.muted}>
-                                {formatDate(order.date_created)}
-                              </div>
-                            </td>
-                            <td>{getCustomerName(order)}</td>
-                            <td>
-                              <span
-                                className={`${ui.badge} ${getBadgeClass(display.orderTone)}`}
-                              >
-                                {display.orderLabel}
-                              </span>
-                            </td>
-                            <td>
-                              <span
-                                className={`${ui.badge} ${getPaymentBadgeClass(display.paymentTone)}`}
-                              >
-                                {display.paymentLabel}
-                              </span>
-                            </td>
-                            <td>{formatPrice(Number(order.total || 0))}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className={styles.compactList}>
+                  {operationalSummary.topLocations.map((location) => (
+                    <div
+                      key={location.location}
+                      className={styles.compactListItem}
+                    >
+                      <div>
+                        <strong>{location.location}</strong>
+                        <span>{location.orders} orders</span>
+                      </div>
+                      <span>{formatPrice(location.sales)}</span>
+                    </div>
+                  ))}
                 </div>
               )}
-            </div>
-          </section>
+            </AdminPanel>
+
+            <AdminPanel
+              title="Pending and unpaid"
+              description="Orders that may need payment or fulfilment attention."
+            >
+              <div className={styles.followUpPanel}>
+                <strong>{operationalSummary.pendingUnpaid}</strong>
+                <span>orders need payment attention</span>
+                <Link href="/admin-account/orders">Review queue</Link>
+              </div>
+            </AdminPanel>
+          </div>
+
+          <AdminPanel
+            title="Recent orders"
+            description="Customer, payment, status, and total at a glance."
+            action={<Link href="/admin-account/orders">View all</Link>}
+          >
+            {!recentOrders.length ? (
+              <AdminEmptyState
+                title="No orders yet"
+                description="Recent customer orders will appear here."
+              />
+            ) : (
+              <div className={styles.ordersTableWrap}>
+                <table className={styles.ordersTable}>
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Status</th>
+                      <th>Payment</th>
+                      <th>Total</th>
+                      <th>Order</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map((order) => {
+                      const display = getOrderDisplayInfo(order);
+                      const customerName = [
+                        order.billing?.first_name,
+                        order.billing?.last_name,
+                      ]
+                        .filter(Boolean)
+                        .join(" ");
+
+                      return (
+                        <tr key={order.id}>
+                          <td data-label="Customer">
+                            <strong>{customerName || "Guest customer"}</strong>
+                            <span>{formatDate(order.date_created)}</span>
+                          </td>
+                          <td data-label="Status">
+                            <AdminBadge tone={badgeTone(order.status)}>
+                              {display.orderLabel}
+                            </AdminBadge>
+                          </td>
+                          <td data-label="Payment">
+                            {display.paymentLabel || order.payment_method_title}
+                          </td>
+                          <td data-label="Total">
+                            <strong>
+                              {order.total} {order.currency}
+                            </strong>
+                          </td>
+                          <td data-label="Order">
+                            <Link href={`/admin-account/orders/${order.id}`}>
+                              #{order.id}
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </AdminPanel>
         </div>
+
+        <aside className={styles.insightRail} aria-label="Dashboard insights">
+          {insightCards.map((item) => {
+            const Icon = item.icon;
+            return (
+              <section key={item.label} className={styles.insightCard}>
+                <span className={styles.insightIcon} aria-hidden="true">
+                  <Icon size={18} />
+                </span>
+                <div>
+                  <p>{item.label}</p>
+                  <strong>{item.value}</strong>
+                  <span>{item.detail}</span>
+                </div>
+              </section>
+            );
+          })}
+        </aside>
       </div>
-    </>
+    </main>
   );
 }

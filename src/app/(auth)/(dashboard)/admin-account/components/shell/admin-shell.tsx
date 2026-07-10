@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import k from "./admin-shell.module.scss";
 import AdminSidebar from "./admin-sidebar";
 import AdminTopbar from "./admin-topbar";
-import k from "./admin-shell.module.scss";
 
 type AdminShellProps = {
   user: {
@@ -19,6 +19,11 @@ type AdminShellProps = {
 export default function AdminShell({ user, children }: AdminShellProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!pathname) return;
+    setSidebarOpen(false);
+  }, [pathname]);
 
   return (
     <div className={k.shell}>

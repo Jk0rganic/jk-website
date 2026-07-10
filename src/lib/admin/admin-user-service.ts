@@ -1,10 +1,4 @@
-import {
-  ADMIN_ROLE,
-  getRoleLabel,
-  isAdminRole,
-  SUPER_ADMIN_ROLE,
-  USER_ROLE,
-} from "./roles";
+import { ADMIN_ROLE, getRoleLabel, SUPER_ADMIN_ROLE, USER_ROLE } from "./roles";
 
 export type AdminUserRecord = {
   id: string;
@@ -16,8 +10,6 @@ export type AdminUserRecord = {
   deletedAt?: Date | null;
 };
 
-export type AdminUserStatus = "active" | "blocked";
-
 export type AdminUserListItem = {
   id: string;
   name: string;
@@ -25,13 +17,17 @@ export type AdminUserListItem = {
   role: string;
   roleLabel: string;
   createdAt: string;
-  status: AdminUserStatus;
-  statusLabel: string;
-  canRemove: boolean;
+  disabledAt: string | null;
+  deletedAt: string | null;
+  isDisabled: boolean;
+  isDeleted: boolean;
+  statusLabel: "Active" | "Disabled" | "Deleted";
   canResetPassword: boolean;
   canBlock: boolean;
   canUnblock: boolean;
   canDelete: boolean;
+  canDemote: boolean;
+  canRemove: boolean;
 };
 
 type UserRow = {
@@ -44,91 +40,103 @@ type UserRow = {
   deletedAt?: Date | null;
 };
 
-type AdminTargetAction =
+export type AdminTargetAction =
   | "reset_password"
   | "block"
   | "unblock"
   | "delete"
   | "demote";
 
+export type AdminManagementDecision = {
+  allowed: boolean;
+  reason?: string;
+};
+
 export function isActiveAdminUser(user: {
   role: string | null;
-  deletedAt?: Date | null;
-}) {
-  const role = user.role || USER_ROLE;
-  return isAdminRole(role) && !user.deletedAt;
-}
-
-export function canManageAdminTarget(args: {
-  action: AdminTargetAction;
-  actingUserId: string;
-  targetUserId: string;
-  targetRole: string;
-  activeSuperAdminCount: number;
-}): { allowed: boolean; reason?: string } {
-  if (args.targetUserId === args.actingUserId) {
-    return {
-      allowed: false,
-      reason: "You cannot manage your own admin account here",
-    };
-  }
-
-  if (
-    args.targetRole === SUPER_ADMIN_ROLE &&
-    ["block", "delete", "demote"].includes(args.action) &&
-    args.activeSuperAdminCount <= 1
-  ) {
-    return {
-      allowed: false,
-      reason: "At least one active super admin must remain on the account",
-    };
-  }
-
-  return { allowed: true };
+  disabledAt?: Date | string | null;
+  deletedAt?: Date | string | null;
+}): boolean {
+  return (
+    (user.role === ADMIN_ROLE || user.role === SUPER_ADMIN_ROLE) &&
+    !user.disabledAt &&
+    !user.deletedAt
+  );
 }
 
 export function mapAdminUser(
   user: UserRow,
-  _actingUserId: string,
-  _superAdminCount: number,
+  actingUserId: string,
+  activeSuperAdminCount: number,
+  actingUserRole: string = SUPER_ADMIN_ROLE,
 ): AdminUserListItem {
   const role = user.role || USER_ROLE;
-  const status: AdminUserStatus = user.disabledAt ? "blocked" : "active";
-  const resetCheck = canManageAdminTarget({
-    action: "reset_password",
-    actingUserId: _actingUserId,
-    targetUserId: user.id,
-    targetRole: role,
-    activeSuperAdminCount: _superAdminCount,
-  });
-  const blockCheck = canManageAdminTarget({
-    action: "block",
-    actingUserId: _actingUserId,
-    targetUserId: user.id,
-    targetRole: role,
-    activeSuperAdminCount: _superAdminCount,
-  });
-  const unblockCheck = canManageAdminTarget({
-    action: "unblock",
-    actingUserId: _actingUserId,
-    targetUserId: user.id,
-    targetRole: role,
-    activeSuperAdminCount: _superAdminCount,
-  });
-  const deleteCheck = canManageAdminTarget({
-    action: "delete",
-    actingUserId: _actingUserId,
-    targetUserId: user.id,
-    targetRole: role,
-    activeSuperAdminCount: _superAdminCount,
-  });
-  const demoteCheck = canManageAdminTarget({
-    action: "demote",
-    actingUserId: _actingUserId,
-    targetUserId: user.id,
-    targetRole: role,
-    activeSuperAdminCount: _superAdminCount,
-  });
+  const disabledAt = user.disabledAt ?? null;
+  const deletedAt = user.deletedAt ?? null;
+  const isDisabled = Boolean(disabledAt);
+  const isDeleted = Boolean(deletedAt);
+  const canResetPassword =
+    !isDeleted &&
+    canManageAdminTarget({
+      action: "reset_password",
+      actingUserId,
+      actingUserRole,
+      targetUserId: user.id,
+      targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
+      activeSuperAdminCount,
+    }).allowed;
+  const canBlock =
+    !isDisabled &&
+    !isDeleted &&
+    canManageAdminTarget({
+      action: "block",
+      actingUserId,
+      actingUserRole,
+      targetUserId: user.id,
+      targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
+      activeSuperAdminCount,
+    }).allowed;
+  const canUnblock =
+    isDisabled &&
+    !isDeleted &&
+    canManageAdminTarget({
+      action: "unblock",
+      actingUserId,
+      actingUserRole,
+      targetUserId: user.id,
+      targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
+      activeSuperAdminCount,
+    }).allowed;
+  const canDelete =
+    !isDeleted &&
+    canManageAdminTarget({
+      action: "delete",
+      actingUserId,
+      actingUserRole,
+      targetUserId: user.id,
+      targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
+      activeSuperAdminCount,
+    }).allowed;
+  const canDemote =
+    !isDeleted &&
+    canManageAdminTarget({
+      action: "demote",
+      actingUserId,
+      actingUserRole,
+      targetUserId: user.id,
+      targetRole: role,
+      targetDisabledAt: disabledAt,
+      targetDeletedAt: deletedAt,
+      activeSuperAdminCount,
+    }).allowed;
 
   return {
     id: user.id,
@@ -137,13 +145,17 @@ export function mapAdminUser(
     role,
     roleLabel: getRoleLabel(role),
     createdAt: user.createdAt.toISOString(),
-    status,
-    statusLabel: status === "blocked" ? "Blocked" : "Active",
-    canRemove: role === ADMIN_ROLE && demoteCheck.allowed,
-    canResetPassword: resetCheck.allowed,
-    canBlock: status === "active" && blockCheck.allowed,
-    canUnblock: status === "blocked" && unblockCheck.allowed,
-    canDelete: deleteCheck.allowed,
+    disabledAt: disabledAt?.toISOString() ?? null,
+    deletedAt: deletedAt?.toISOString() ?? null,
+    isDisabled,
+    isDeleted,
+    statusLabel: isDeleted ? "Deleted" : isDisabled ? "Disabled" : "Active",
+    canResetPassword,
+    canBlock,
+    canUnblock,
+    canDelete,
+    canDemote,
+    canRemove: canDemote && role === ADMIN_ROLE,
   };
 }
 
@@ -151,26 +163,85 @@ export function canCreateAdminRole(role: string): role is typeof ADMIN_ROLE {
   return role === ADMIN_ROLE;
 }
 
+export function canManageAdminEndpointTarget(role: string | null): {
+  allowed: boolean;
+  reason?: string;
+} {
+  if (role !== ADMIN_ROLE && role !== SUPER_ADMIN_ROLE) {
+    return { allowed: false, reason: "This user is not an admin" };
+  }
+
+  return { allowed: true };
+}
+
+export function canManageAdminTarget(args: {
+  action: AdminTargetAction;
+  actingUserId: string;
+  actingUserRole: string;
+  targetUserId: string;
+  targetRole: string;
+  targetDisabledAt?: Date | string | null;
+  targetDeletedAt?: Date | string | null;
+  activeSuperAdminCount: number;
+}): AdminManagementDecision {
+  if (args.actingUserId === args.targetUserId) {
+    return {
+      allowed: false,
+      reason: "You cannot manage your own admin account",
+    };
+  }
+
+  if (args.actingUserRole !== SUPER_ADMIN_ROLE) {
+    return {
+      allowed: false,
+      reason: "Only super admins can manage admin accounts",
+    };
+  }
+
+  if (
+    args.targetRole === SUPER_ADMIN_ROLE &&
+    !args.targetDisabledAt &&
+    !args.targetDeletedAt &&
+    args.activeSuperAdminCount <= 1 &&
+    (args.action === "block" ||
+      args.action === "delete" ||
+      args.action === "demote")
+  ) {
+    return {
+      allowed: false,
+      reason: "At least one super admin must remain on the account",
+    };
+  }
+
+  return { allowed: true };
+}
+
 export function canRevokeAdminRole(
   targetRole: string,
   actingUserId: string,
   targetUserId: string,
-  superAdminCount: number,
+  activeSuperAdminCount: number,
+  actingUserRole: string = SUPER_ADMIN_ROLE,
+  targetDisabledAt?: Date | string | null,
+  targetDeletedAt?: Date | string | null,
 ): { allowed: boolean; reason?: string } {
   if (targetRole === USER_ROLE) {
-    return { allowed: false, reason: "This user is already a customer" };
+    return { allowed: false, reason: "This user is not an admin" };
   }
 
-  const manageCheck = canManageAdminTarget({
+  const decision = canManageAdminTarget({
     action: "demote",
     actingUserId,
+    actingUserRole,
     targetUserId,
     targetRole,
-    activeSuperAdminCount: superAdminCount,
+    targetDisabledAt,
+    targetDeletedAt,
+    activeSuperAdminCount,
   });
 
-  if (!manageCheck.allowed) {
-    return manageCheck;
+  if (!decision.allowed) {
+    return decision;
   }
 
   return { allowed: true };

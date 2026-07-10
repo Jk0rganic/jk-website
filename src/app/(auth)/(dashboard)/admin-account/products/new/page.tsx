@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import ProductForm from "../comp/product-form";
-import { BackLink } from "../../components/ui/page-header";
 import ui from "../../components/ui/admin-ui.module.scss";
+import { BackLink } from "../../components/ui/page-header";
+import ProductForm from "../comp/product-form";
 
 export default function NewProductPage() {
   const router = useRouter();

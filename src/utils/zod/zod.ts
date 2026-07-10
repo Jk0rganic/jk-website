@@ -59,8 +59,6 @@ export const commentsSchema = z.object({
   review: reviewSchema.shape.review,
 });
 
-
-
 export const registerUserSchema = z
   .object({
     full_name: z
@@ -90,11 +88,11 @@ export type RegisterUserSchema = z.infer<typeof registerUserSchema>;
 
 export const loginSchema = z.object({
   email: registerUserSchema.shape.email,
-  password: registerUserSchema.shape.password,
+  password: z.string().min(1, "Enter your password"),
 });
 
 export const verificationSchema = z.object({
-  email: registerUserSchema.shape.email, 
+  email: registerUserSchema.shape.email,
   code: z
     .string()
     .min(1, "Verification code is required")
@@ -115,19 +113,15 @@ export const resetPasswordSchema = z
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "Passwords do not match",
-    path: ["confirm_password"], 
+    path: ["confirm_password"],
   });
 
 export const newPasswordSchema = z.object({
-  email: registerUserSchema.shape.email, 
-
+  email: registerUserSchema.shape.email,
 });
 
 export type EmailVerificationSchema = z.infer<typeof emailVerificationSchema>;
 
 export const emailVerificationSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Invalid email address"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
 });

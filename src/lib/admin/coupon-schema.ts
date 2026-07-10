@@ -5,8 +5,7 @@ const optionalAmount = z
   .trim()
   .optional()
   .refine(
-    (value) =>
-      !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
+    (value) => !value || (!Number.isNaN(Number(value)) && Number(value) >= 0),
     { message: "Enter a valid amount" },
   );
 

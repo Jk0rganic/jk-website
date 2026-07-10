@@ -1,10 +1,16 @@
 "use server";
 
-import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { AuthError } from "next-auth";
 import { isAdminRole } from "@/lib/admin/roles";
 import { getAdminCallbackUrl } from "@/lib/auth/admin-login";
+import prisma from "@/lib/prisma";
 import { auth, signIn, signOut } from "./auth/auth";
+
+function isMissingAdminStatusColumnError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /auth_version|disabled_at|deleted_at/.test(message);
+}
 
 interface LoginInput {
   email: string;
@@ -35,6 +41,43 @@ export async function doAdminCredentialLogin(
       await signOut({ redirect: false });
       return {
         error: "This account does not have admin access.",
+      };
+    }
+
+    let adminStatus: {
+      disabledAt: Date | null;
+      deletedAt: Date | null;
+      authVersion: number;
+    } | null = null;
+
+    try {
+      adminStatus = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { disabledAt: true, deletedAt: true, authVersion: true },
+      });
+    } catch (error) {
+      if (!isMissingAdminStatusColumnError(error)) {
+        throw error;
+      }
+
+      adminStatus = {
+        disabledAt: null,
+        deletedAt: null,
+        authVersion: 0,
+      };
+    }
+
+    if (adminStatus?.deletedAt) {
+      await signOut({ redirect: false });
+      return {
+        error: "This admin account is no longer active.",
+      };
+    }
+
+    if (adminStatus?.disabledAt) {
+      await signOut({ redirect: false });
+      return {
+        error: "This admin account is blocked. Contact the store owner.",
       };
     }
 

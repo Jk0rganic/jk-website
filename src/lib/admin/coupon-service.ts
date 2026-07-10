@@ -95,9 +95,7 @@ export function formValuesToWooCouponPayload(values: CouponFormValues) {
     usage_limit_per_user: usageLimitPerUser,
     minimum_amount: values.minimumAmount || "",
     maximum_amount: values.maximumAmount || "",
-    date_expires: values.expiresAt
-      ? `${values.expiresAt}T23:59:59`
-      : null,
+    date_expires: values.expiresAt ? `${values.expiresAt}T23:59:59` : null,
   };
 }
 

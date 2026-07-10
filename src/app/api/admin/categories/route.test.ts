@@ -9,17 +9,29 @@ vi.mock("@/lib/fetch/fetchRest", () => ({
 }));
 
 import { requireAdminSession } from "@/lib/admin/require-admin";
+import type { Session } from "@/lib/auth/getSession";
 import { fetchWoo } from "@/lib/fetch/fetchRest";
 import { POST } from "./route";
 
 const mockedRequireAdminSession = vi.mocked(requireAdminSession);
 const mockedFetchWoo = vi.mocked(fetchWoo);
+const adminSession: Session = {
+  user: {
+    id: "admin-1",
+    email: "admin@jkorganics.com",
+    role: "min_admin",
+  },
+};
 
 describe("POST /api/admin/categories", () => {
   beforeEach(() => {
     mockedRequireAdminSession.mockReset();
     mockedFetchWoo.mockReset();
-    mockedRequireAdminSession.mockResolvedValue({ error: null, status: 200 });
+    mockedRequireAdminSession.mockResolvedValue({
+      error: null,
+      status: 200,
+      session: adminSession,
+    });
   });
 
   it("creates a WooCommerce product category", async () => {

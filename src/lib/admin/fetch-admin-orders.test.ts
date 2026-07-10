@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildOrdersQuery } from "./fetch-admin-orders";
 
 vi.mock("@/lib/fetch/fetchRest", () => ({
@@ -29,6 +29,21 @@ describe("buildOrdersQuery", () => {
     expect(query).toContain("status=processing");
     expect(query).toContain("search=jane%40example.com");
     expect(query).toContain("page=2");
+  });
+
+  it("includes supported date filters without sending an unsupported date type parameter", () => {
+    const query = buildOrdersQuery({
+      status: "completed",
+      after: "2026-07-01T00:00:00.000Z",
+      before: "2026-07-03T12:00:00.000Z",
+      dateType: "paid",
+    });
+
+    expect(query).toContain("status=completed");
+    expect(query).toContain("after=2026-07-01T00%3A00%3A00.000Z");
+    expect(query).toContain("before=2026-07-03T12%3A00%3A00.000Z");
+    expect(query).not.toContain("dates_are");
+    expect(query).not.toContain("dateType");
   });
 });
 

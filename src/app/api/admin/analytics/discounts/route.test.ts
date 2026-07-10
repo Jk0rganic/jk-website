@@ -8,38 +8,89 @@ vi.mock("@/lib/admin/fetch-admin-orders", () => ({
   fetchAdminOrders: vi.fn(),
 }));
 
+vi.mock("@/lib/admin/analytics-service", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/admin/analytics-service")
+  >("@/lib/admin/analytics-service");
+
+  return {
+    ...actual,
+    summarizeDiscounts: vi.fn(actual.summarizeDiscounts),
+  };
+});
+
+import { summarizeDiscounts } from "@/lib/admin/analytics-service";
 import { fetchAdminOrders } from "@/lib/admin/fetch-admin-orders";
 import { requireAdminSession } from "@/lib/admin/require-admin";
-import type { Session } from "@/lib/auth/getSession";
 import { GET } from "./route";
 
 const mockedRequireAdminSession = vi.mocked(requireAdminSession);
 const mockedFetchAdminOrders = vi.mocked(fetchAdminOrders);
+const mockedSummarizeDiscounts = vi.mocked(summarizeDiscounts);
+const adminSession = {
+  user: { id: "admin-1", email: "admin@jk.test", role: "min_admin" },
+} as never;
 
-const adminSession: Session = {
-  user: {
-    id: "admin-1",
-    email: "admin@jkorganics.com",
-    role: "min_admin",
+const orders = [
+  {
+    id: 1,
+    status: "processing",
+    total: "1300",
+    line_items: [
+      {
+        product_id: 10,
+        name: "Aloe Balm",
+        quantity: 2,
+        subtotal: "1200",
+        total: "1000",
+      },
+    ],
+    shipping_lines: [],
+    payment_method: "cod",
+    payment_method_title: "Cash on Delivery",
+    needs_payment: false,
+    discount_total: "200",
+    coupon_lines: [{ code: "welcome", discount: "200" }],
   },
-};
+  {
+    id: 2,
+    status: "processing",
+    total: "900",
+    line_items: [],
+    shipping_lines: [],
+    payment_method: "cod",
+    payment_method_title: "Cash on Delivery",
+    needs_payment: false,
+  },
+] as unknown as DashboardOrder[];
 
 describe("GET /api/admin/analytics/discounts", () => {
   beforeEach(() => {
     mockedRequireAdminSession.mockReset();
     mockedFetchAdminOrders.mockReset();
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    mockedSummarizeDiscounts.mockReset();
+    vi.restoreAllMocks();
+    mockedSummarizeDiscounts.mockReturnValue({
+      totalDiscounts: 200,
+      discountedOrders: 1,
+      couponCount: 1,
+      coupons: [{ code: "WELCOME", orders: 1, discount: 200 }],
+    });
     mockedRequireAdminSession.mockResolvedValue({
       error: null,
       status: 200,
       session: adminSession,
     });
+    mockedFetchAdminOrders.mockResolvedValue(orders);
   });
 
-  it("rejects unauthenticated or forbidden users via the admin guard", async () => {
+  it.each([
+    ["Unauthorized", 401],
+    ["Forbidden", 403],
+  ] as const)("rejects %s users", async (error, status) => {
     mockedRequireAdminSession.mockResolvedValue({
-      error: "Forbidden",
-      status: 403,
+      error,
+      status,
       session: null,
     });
 
@@ -47,14 +98,12 @@ describe("GET /api/admin/analytics/discounts", () => {
       new Request("http://test.local/api/admin/analytics/discounts"),
     );
 
-    expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: "Forbidden" });
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual({ error });
     expect(mockedFetchAdminOrders).not.toHaveBeenCalled();
   });
 
   it("passes date filters to fetchAdminOrders", async () => {
-    mockedFetchAdminOrders.mockResolvedValue([]);
-
     await GET(
       new Request(
         "http://test.local/api/admin/analytics/discounts?preset=custom&after=2026-06-01T00:00:00.000Z&before=2026-06-30T23:59:59.999Z",
@@ -68,44 +117,40 @@ describe("GET /api/admin/analytics/discounts", () => {
   });
 
   it("returns mapped discount report JSON", async () => {
-    mockedFetchAdminOrders.mockResolvedValue([
-      orderFixture({
-        coupon_lines: [{ code: " save10 ", discount: "25" }],
-        discount_total: "25",
-      }),
-      orderFixture({
-        coupon_lines: [{ code: "SAVE10", discount: "15" }],
-        discount_total: "15",
-      }),
-      orderFixture({
-        coupon_lines: [{ code: "WELCOME", discount: "5" }],
-        discount_total: "5",
-      }),
-    ]);
-
     const response = await GET(
-      new Request("http://test.local/api/admin/analytics/discounts"),
+      new Request(
+        "http://test.local/api/admin/analytics/discounts?preset=custom&after=2026-06-01T00:00:00.000Z&before=2026-06-30T23:59:59.999Z",
+      ),
     );
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      dateRange: expect.objectContaining({
-        preset: "last_7_days",
-      }),
-      discounts: {
-        totalDiscounts: 45,
-        discountedOrders: 3,
-        couponCount: 3,
-        coupons: [
-          { code: "SAVE10", orders: 2, discount: 40 },
-          { code: "WELCOME", orders: 1, discount: 5 },
-        ],
+      dateRange: {
+        preset: "custom",
+        after: "2026-06-01T00:00:00.000Z",
+        before: "2026-06-30T23:59:59.999Z",
       },
+      summary: {
+        totalDiscounts: 200,
+        discountedOrders: 1,
+        couponCount: 1,
+      },
+      rows: [
+        {
+          code: "WELCOME",
+          orders: 1,
+          discount: 200,
+          grossRevenue: 1500,
+          revenueAfterDiscount: 1300,
+          averageDiscountPerOrder: 200,
+        },
+      ],
     });
   });
 
-  it("returns a stable 500 response when order fetching fails", async () => {
-    mockedFetchAdminOrders.mockRejectedValue(new Error("Woo private detail"));
+  it("returns stable 500 JSON on upstream failures", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockedFetchAdminOrders.mockRejectedValue(new Error("Woo secret failure"));
 
     const response = await GET(
       new Request("http://test.local/api/admin/analytics/discounts"),
@@ -113,28 +158,28 @@ describe("GET /api/admin/analytics/discounts", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
-      error: "Failed to fetch discount analytics",
+      error: "Failed to load analytics",
     });
-    expect(console.error).toHaveBeenCalledWith(
-      "[ADMIN_ANALYTICS_DISCOUNTS_ERROR]",
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
+  it("returns stable 500 JSON on report mapping failures", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockedSummarizeDiscounts.mockImplementation(() => {
+      throw new Error("private discount aggregation detail");
+    });
+
+    const response = await GET(
+      new Request("http://test.local/api/admin/analytics/discounts"),
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Failed to load analytics",
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Failed to load admin analytics",
       expect.any(Error),
     );
   });
 });
-
-function orderFixture(overrides: Partial<DashboardOrder> = {}): DashboardOrder {
-  return {
-    id: 1,
-    status: "processing",
-    total: "0",
-    needs_payment: false,
-    payment_method: "intasend",
-    payment_method_title: "IntaSend M-Pesa",
-    line_items: [],
-    shipping_lines: [],
-    meta_data: [],
-    billing: {},
-    shipping: {},
-    ...overrides,
-  } as DashboardOrder;
-}

@@ -1,4 +1,6 @@
+import { Prisma } from "@/generated/prisma/client";
 import {
+  canManageAdminEndpointTarget,
   canManageAdminTarget,
   canRevokeAdminRole,
 } from "@/lib/admin/admin-user-service";
@@ -7,6 +9,32 @@ import { SUPER_ADMIN_ROLE, USER_ROLE } from "@/lib/admin/roles";
 import prisma from "@/lib/prisma";
 
 type RouteParams = { params: Promise<{ id: string }> };
+type AdminUserTransaction = Pick<typeof prisma, "session" | "user">;
+
+const adminUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  createdAt: true,
+  disabledAt: true,
+  deletedAt: true,
+} as const;
+
+const adminTargetSelect = {
+  id: true,
+  role: true,
+  email: true,
+  name: true,
+  disabledAt: true,
+  deletedAt: true,
+} as const;
+
+const activeSuperAdminWhere = {
+  role: SUPER_ADMIN_ROLE,
+  disabledAt: null,
+  deletedAt: null,
+} as const;
 
 export async function PATCH(_request: Request, { params }: RouteParams) {
   const { error, status, session } = await requireSuperAdminSession();
@@ -25,55 +53,62 @@ export async function PATCH(_request: Request, { params }: RouteParams) {
   }
 
   try {
-    const [targetUser, superAdminCount] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id },
-        select: { id: true, role: true, email: true, name: true },
-      }),
-      prisma.user.count({
-        where: {
-          role: SUPER_ADMIN_ROLE,
-          disabledAt: null,
-          deletedAt: null,
-        },
-      }),
-    ]);
+    const result = await prisma.$transaction(
+      async (tx: AdminUserTransaction) => {
+        const [targetUser, superAdminCount] = await Promise.all([
+          tx.user.findUnique({
+            where: { id },
+            select: adminTargetSelect,
+          }),
+          tx.user.count({ where: activeSuperAdminWhere }),
+        ]);
 
-    if (!targetUser) {
-      return Response.json({ error: "User not found" }, { status: 404 });
-    }
+        if (!targetUser || targetUser.deletedAt) {
+          return { error: "User not found", status: 404 as const };
+        }
 
-    const targetRole = targetUser.role || USER_ROLE;
-    const revokeCheck = canRevokeAdminRole(
-      targetRole,
-      session.user.id,
-      targetUser.id,
-      superAdminCount,
+        const targetRole = targetUser.role || USER_ROLE;
+        const targetCheck = canManageAdminEndpointTarget(targetRole);
+        if (!targetCheck.allowed) {
+          return { error: targetCheck.reason, status: 400 as const };
+        }
+
+        const revokeCheck = canRevokeAdminRole(
+          targetRole,
+          session.user.id,
+          targetUser.id,
+          superAdminCount,
+          session.user.role,
+          targetUser.disabledAt,
+          targetUser.deletedAt,
+        );
+
+        if (!revokeCheck.allowed) {
+          return { error: revokeCheck.reason, status: 400 as const };
+        }
+
+        const user = await tx.user.update({
+          where: { id },
+          data: {
+            role: USER_ROLE,
+            authVersion: { increment: 1 },
+          },
+          select: adminUserSelect,
+        });
+
+        return { user };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
 
-    if (!revokeCheck.allowed) {
-      return Response.json({ error: revokeCheck.reason }, { status: 400 });
+    if ("error" in result) {
+      return Response.json({ error: result.error }, { status: result.status });
     }
 
-    const user = await prisma.user.update({
-      where: { id },
-      data: { role: USER_ROLE },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        disabledAt: true,
-        deletedAt: true,
-      },
-    });
-
-    return Response.json({ user });
+    return Response.json({ user: result.user });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to update user";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_USER_PATCH_ERROR]", err);
+    return Response.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
 
@@ -86,60 +121,72 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
   const { id } = await params;
 
+  if (id === session.user.id) {
+    return Response.json(
+      { error: "You cannot manage your own admin account" },
+      { status: 400 },
+    );
+  }
+
   try {
-    const [targetUser, activeSuperAdminCount] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id },
-        select: { id: true, role: true, email: true, name: true },
-      }),
-      prisma.user.count({
-        where: {
-          role: SUPER_ADMIN_ROLE,
-          disabledAt: null,
-          deletedAt: null,
-        },
-      }),
-    ]);
+    const result = await prisma.$transaction(
+      async (tx: AdminUserTransaction) => {
+        const [targetUser, superAdminCount] = await Promise.all([
+          tx.user.findUnique({
+            where: { id },
+            select: adminTargetSelect,
+          }),
+          tx.user.count({ where: activeSuperAdminWhere }),
+        ]);
 
-    if (!targetUser) {
-      return Response.json({ error: "User not found" }, { status: 404 });
+        if (!targetUser || targetUser.deletedAt) {
+          return { error: "User not found", status: 404 as const };
+        }
+
+        const targetRole = targetUser.role || USER_ROLE;
+        const targetCheck = canManageAdminEndpointTarget(targetRole);
+        if (!targetCheck.allowed) {
+          return { error: targetCheck.reason, status: 400 as const };
+        }
+
+        const decision = canManageAdminTarget({
+          action: "delete",
+          actingUserId: session.user.id,
+          actingUserRole: session.user.role,
+          targetUserId: targetUser.id,
+          targetRole,
+          targetDisabledAt: targetUser.disabledAt,
+          targetDeletedAt: targetUser.deletedAt,
+          activeSuperAdminCount: superAdminCount,
+        });
+
+        if (!decision.allowed) {
+          return { error: decision.reason, status: 400 as const };
+        }
+
+        const user = await tx.user.update({
+          where: { id },
+          data: {
+            deletedAt: new Date(),
+            authVersion: { increment: 1 },
+          },
+          select: adminUserSelect,
+        });
+
+        await tx.session.deleteMany({ where: { userId: id } });
+
+        return { user };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+
+    if ("error" in result) {
+      return Response.json({ error: result.error }, { status: result.status });
     }
 
-    const targetRole = targetUser.role || USER_ROLE;
-    const manageCheck = canManageAdminTarget({
-      action: "delete",
-      actingUserId: session.user.id,
-      targetUserId: targetUser.id,
-      targetRole,
-      activeSuperAdminCount,
-    });
-
-    if (!manageCheck.allowed) {
-      return Response.json({ error: manageCheck.reason }, { status: 400 });
-    }
-
-    const deletedAt = new Date();
-    const user = await prisma.user.update({
-      where: { id },
-      data: {
-        deletedAt,
-        disabledAt: deletedAt,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        disabledAt: true,
-        deletedAt: true,
-      },
-    });
-
-    return Response.json({ user });
+    return Response.json({ user: result.user });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to delete admin user";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_USER_DELETE_ERROR]", err);
+    return Response.json({ error: "Failed to delete admin" }, { status: 500 });
   }
 }

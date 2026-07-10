@@ -1,3 +1,4 @@
+import type { NextAuthConfig } from "next-auth";
 import {
   createUserAndLinkAccount,
   findUserByEmail,
@@ -16,25 +17,31 @@ export const authConfig = {
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.authVersion = user.authVersion;
+        token.disabledAt = user.disabledAt;
+        token.deletedAt = user.deletedAt;
       }
 
       return token;
     },
 
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
+        session.user.id = token.id as string;
         session.user.role = token.role;
+        session.user.authVersion = token.authVersion;
+        session.user.disabledAt = token.disabledAt;
+        session.user.deletedAt = token.deletedAt;
       }
 
       return session;
     },
 
-    async signIn({ user, account }: { user?: any; account?: any }) {
+    async signIn({ user, account }) {
       try {
         if (!user?.email) {
           return false;
@@ -49,6 +56,9 @@ export const authConfig = {
 
           user.id = existingUser.id;
           user.role = existingUser.role;
+          user.authVersion = existingUser.authVersion;
+          user.disabledAt = existingUser.disabledAt;
+          user.deletedAt = existingUser.deletedAt;
 
           return true;
         }
@@ -57,10 +67,16 @@ export const authConfig = {
           return false;
         }
 
-        const newUser = await createUserAndLinkAccount(user, account);
+        const newUser = await createUserAndLinkAccount(
+          { ...user, email: user.email },
+          account,
+        );
 
         user.id = newUser.id;
         user.role = newUser.role;
+        user.authVersion = newUser.authVersion;
+        user.disabledAt = newUser.disabledAt;
+        user.deletedAt = newUser.deletedAt;
 
         return true;
       } catch (error) {
@@ -72,4 +88,6 @@ export const authConfig = {
   },
 
   providers: [],
+} satisfies Omit<NextAuthConfig, "pages"> & {
+  pages: NextAuthConfig["pages"] & { resetPassword: string };
 };

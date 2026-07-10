@@ -21,15 +21,11 @@ import k from "./styles.module.scss";
 
 interface Props {
   orders: DashboardOrder[];
-  height?: number;
 }
 
 type HoverKey = "revenue" | "orders" | null;
-type LegendEntry = {
-  dataKey?: string | number;
-};
 
-export default function OrdersChart({ orders = [], height = 320 }: Props) {
+export default function OrdersChart({ orders = [] }: Props) {
   const [hoveringKey, setHoveringKey] = useState<HoverKey>(null);
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
@@ -49,6 +45,18 @@ export default function OrdersChart({ orders = [], height = 320 }: Props) {
     () => computeYearOverYearGrowth(orders, selectedYear),
     [orders, selectedYear],
   );
+
+  function handleLegendMouseEnter(entry: unknown) {
+    if (!entry || typeof entry !== "object" || !("dataKey" in entry)) {
+      return;
+    }
+
+    const { dataKey } = entry as { dataKey?: unknown };
+
+    if (dataKey === "revenue" || dataKey === "orders") {
+      setHoveringKey(dataKey);
+    }
+  }
 
   return (
     <div className={k.two}>
@@ -78,8 +86,8 @@ export default function OrdersChart({ orders = [], height = 320 }: Props) {
       </div>
 
       {/* CHART */}
-      <div style={{ width: "100%", minWidth: 0, height }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div style={{ width: "100%", height: 400 }}>
+        <ResponsiveContainer>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
 
@@ -89,13 +97,7 @@ export default function OrdersChart({ orders = [], height = 320 }: Props) {
             <Tooltip labelFormatter={(month) => month} />
 
             <Legend
-              onMouseEnter={(entry: LegendEntry) => {
-                setHoveringKey(
-                  entry.dataKey === "revenue" || entry.dataKey === "orders"
-                    ? entry.dataKey
-                    : null,
-                );
-              }}
+              onMouseEnter={handleLegendMouseEnter}
               onMouseLeave={() => setHoveringKey(null)}
             />
 

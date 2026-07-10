@@ -1,14 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { formatDate } from "@/utils/formatDate";
 import {
-  summarizeCoupons,
-  type AdminCoupon,
-} from "@/lib/admin/coupon-service";
-import { PageHeader } from "../components/ui/page-header";
+  BadgePercent,
+  CheckCircle2,
+  Clock3,
+  Plus,
+  TicketPercent,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { type AdminCoupon, summarizeCoupons } from "@/lib/admin/coupon-service";
+import { formatPrice } from "@/utils/format-price";
+import { formatDate } from "@/utils/formatDate";
+import { AdminBadge } from "../components/ui/admin-badge";
+import { AdminEmptyState } from "../components/ui/admin-empty-state";
+import { AdminMetricCard } from "../components/ui/admin-metric-card";
+import { AdminPanel } from "../components/ui/admin-panel";
+import { AdminToolbar } from "../components/ui/admin-toolbar";
 import ui from "../components/ui/admin-ui.module.scss";
+import { PageHeader } from "../components/ui/page-header";
+
+const EXPIRING_SOON_DAYS = 7;
+type BadgeTone = "success" | "info" | "warning" | "danger" | "neutral";
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<AdminCoupon[]>([]);
@@ -54,134 +67,170 @@ export default function AdminCouponsPage() {
     );
   }, [coupons, search]);
 
-  const toneClass = {
-    active: ui.badgeGreen,
-    draft: ui.badgeGray,
-    expired: ui.badgeYellow,
-    exhausted: ui.badgeRed,
-  } as const;
-
-  function getCouponStatus(coupon: AdminCoupon) {
-    if (
-      coupon.usageLimit !== null &&
-      coupon.usageCount >= coupon.usageLimit
-    ) {
-      return { label: "Exhausted", tone: toneClass.exhausted };
+  function getCouponStatus(coupon: AdminCoupon): {
+    label: string;
+    tone: BadgeTone;
+  } {
+    if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
+      return { label: "Exhausted", tone: "danger" as const };
     }
 
     if (coupon.expiresAt) {
       const expiresAt = new Date(coupon.expiresAt);
       if (!Number.isNaN(expiresAt.getTime()) && expiresAt < new Date()) {
-        return { label: "Expired", tone: toneClass.expired };
+        return { label: "Expired", tone: "warning" as const };
+      }
+
+      const expiringSoonMs = EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000;
+      if (
+        !Number.isNaN(expiresAt.getTime()) &&
+        expiresAt.getTime() - Date.now() <= expiringSoonMs
+      ) {
+        return { label: "Expiring soon", tone: "warning" as const };
       }
     }
 
     if (coupon.active) {
-      return { label: "Active", tone: toneClass.active };
+      return { label: "Active", tone: "success" as const };
     }
 
-    return { label: "Draft", tone: toneClass.draft };
+    return { label: "Draft", tone: "neutral" as const };
+  }
+
+  function formatCouponAmount(coupon: AdminCoupon) {
+    return coupon.discountType === "percent"
+      ? `${coupon.amount}%`
+      : formatPrice(coupon.amount);
+  }
+
+  function formatDiscountType(coupon: AdminCoupon) {
+    return coupon.discountType === "fixed_cart" ? "Fixed cart" : "Percentage";
   }
 
   return (
     <>
       <PageHeader
         title="Coupons"
-        subtitle="Create discount codes customers can apply at checkout."
+        subtitle={`${filteredCoupons.length} visible of ${coupons.length} loaded coupons. Track activity, expiry, and usage limits.`}
         action={
           <Link href="/admin-account/coupons/new" className={ui.btnPrimary}>
+            <Plus size={16} aria-hidden />
             New coupon
           </Link>
         }
       />
 
-      <div className={ui.statGrid}>
-        {[
-          { label: "Total", value: summary.total },
-          { label: "Active", value: summary.active },
-          { label: "Expired", value: summary.expired },
-          { label: "Exhausted", value: summary.exhausted },
-        ].map((item) => (
-          <article key={item.label} className={ui.statCard}>
-            <span className={ui.statLabel}>{item.label}</span>
-            <div className={ui.statValue}>{item.value}</div>
-          </article>
-        ))}
-      </div>
-
-      <section className={ui.card}>
-        <div className={ui.cardBody}>
-          <div className={ui.toolbar}>
-            <input
-              type="search"
-              placeholder="Search by code or description…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={ui.searchInput}
-            />
-          </div>
-
-          {loading && <p className={ui.muted}>Loading coupons…</p>}
-          {error && <p className={ui.error}>{error}</p>}
-
-          {!loading && !error && !filteredCoupons.length && (
-            <p className={ui.empty}>No coupons found.</p>
-          )}
-
-          {!loading && !error && filteredCoupons.length > 0 && (
-            <div className={ui.tableWrap}>
-              <table className={ui.table}>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Discount</th>
-                    <th>Usage</th>
-                    <th>Expires</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCoupons.map((coupon) => {
-                    const status = getCouponStatus(coupon);
-
-                    return (
-                      <tr key={coupon.id}>
-                        <td>
-                          <strong>{coupon.code}</strong>
-                          {coupon.description && (
-                            <div className={ui.muted}>{coupon.description}</div>
-                          )}
-                        </td>
-                        <td>{coupon.discountLabel}</td>
-                        <td>
-                          {coupon.usageCount}
-                          {coupon.usageLimit !== null
-                            ? ` / ${coupon.usageLimit}`
-                            : ""}
-                        </td>
-                        <td>
-                          {coupon.expiresAt
-                            ? formatDate(coupon.expiresAt)
-                            : "—"}
-                        </td>
-                        <td>
-                          <span className={status.tone}>{status.label}</span>
-                        </td>
-                        <td>
-                          <Link href={`/admin-account/coupons/${coupon.id}`}>
-                            Edit
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+      <section className={ui.statGrid} aria-label="Coupon KPIs">
+        <AdminMetricCard
+          label="Total coupons"
+          value={summary.total}
+          icon={TicketPercent}
+          tone="neutral"
+          detail="Loaded discount codes"
+        />
+        <AdminMetricCard
+          label="Active"
+          value={summary.active}
+          icon={CheckCircle2}
+          tone="success"
+          detail="Published at checkout"
+        />
+        <AdminMetricCard
+          label="Expired"
+          value={summary.expired}
+          icon={Clock3}
+          tone="warning"
+          detail="Past expiry date"
+        />
+        <AdminMetricCard
+          label="Exhausted"
+          value={summary.exhausted}
+          icon={BadgePercent}
+          tone="danger"
+          detail="Usage limit reached"
+        />
       </section>
+
+      <AdminPanel
+        title="Coupon table"
+        description="Code, discount, usage, expiry, and status for checkout operations."
+      >
+        <AdminToolbar
+          searchLabel="Search coupons"
+          searchPlaceholder="Search code, description, or discount"
+          searchValue={search}
+          onSearchChange={(e) => setSearch(e.target.value)}
+        />
+
+        {loading && <p className={ui.muted}>Loading coupons…</p>}
+        {error && <p className={ui.error}>{error}</p>}
+
+        {!loading && !error && !filteredCoupons.length && (
+          <AdminEmptyState
+            title="No coupons match this search"
+            description="Clear or adjust the search to see more checkout discounts."
+            icon={TicketPercent}
+          />
+        )}
+
+        {!loading && !error && filteredCoupons.length > 0 && (
+          <div className={ui.tableWrap}>
+            <table className={ui.table}>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Type / discount</th>
+                  <th>Amount</th>
+                  <th>Usage</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCoupons.map((coupon) => {
+                  const status = getCouponStatus(coupon);
+
+                  return (
+                    <tr key={coupon.id}>
+                      <td data-label="Code">
+                        <strong>{coupon.code}</strong>
+                        {coupon.description && (
+                          <div className={ui.muted}>{coupon.description}</div>
+                        )}
+                      </td>
+                      <td data-label="Type / discount">
+                        <strong>{formatDiscountType(coupon)}</strong>
+                        <div className={ui.muted}>{coupon.discountLabel}</div>
+                      </td>
+                      <td data-label="Amount">{formatCouponAmount(coupon)}</td>
+                      <td data-label="Usage">
+                        {coupon.usageCount}
+                        {coupon.usageLimit !== null
+                          ? ` / ${coupon.usageLimit}`
+                          : ""}
+                      </td>
+                      <td data-label="Expiry">
+                        {coupon.expiresAt ? formatDate(coupon.expiresAt) : "—"}
+                      </td>
+                      <td data-label="Status">
+                        <AdminBadge tone={status.tone}>
+                          {status.label}
+                        </AdminBadge>
+                      </td>
+                      <td data-label="Actions">
+                        <Link href={`/admin-account/coupons/${coupon.id}`}>
+                          Edit
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminPanel>
     </>
   );
 }

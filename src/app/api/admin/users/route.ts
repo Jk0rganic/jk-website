@@ -2,12 +2,24 @@ import bcrypt from "bcryptjs";
 import { createAdminSchema } from "@/lib/admin/admin-user-schema";
 import { mapAdminUser } from "@/lib/admin/admin-user-service";
 import { requireSuperAdminSession } from "@/lib/admin/require-admin";
-import {
-  ADMIN_ROLE,
-  STORE_MANAGER_ROLE,
-  SUPER_ADMIN_ROLE,
-} from "@/lib/admin/roles";
+import { ADMIN_ROLE, SUPER_ADMIN_ROLE } from "@/lib/admin/roles";
 import prisma from "@/lib/prisma";
+
+const adminUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  createdAt: true,
+  disabledAt: true,
+  deletedAt: true,
+} as const;
+
+const activeSuperAdminWhere = {
+  role: SUPER_ADMIN_ROLE,
+  disabledAt: null,
+  deletedAt: null,
+} as const;
 
 export async function GET() {
   const { error, status, session } = await requireSuperAdminSession();
@@ -20,38 +32,26 @@ export async function GET() {
     const [users, superAdminCount] = await Promise.all([
       prisma.user.findMany({
         where: {
-          role: { in: [ADMIN_ROLE, SUPER_ADMIN_ROLE, STORE_MANAGER_ROLE] },
+          role: { in: [ADMIN_ROLE, SUPER_ADMIN_ROLE] },
           deletedAt: null,
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          createdAt: true,
-          disabledAt: true,
-          deletedAt: true,
-        },
+        select: adminUserSelect,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.user.count({
-        where: {
-          role: SUPER_ADMIN_ROLE,
-          disabledAt: null,
-          deletedAt: null,
-        },
-      }),
+      prisma.user.count({ where: activeSuperAdminWhere }),
     ]);
 
     return Response.json({
       users: users.map((user: (typeof users)[number]) =>
-        mapAdminUser(user, session.user.id, superAdminCount),
+        mapAdminUser(user, session.user.id, superAdminCount, session.user.role),
       ),
     });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to fetch admin users";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_USERS_GET_ERROR]", err);
+    return Response.json(
+      { error: "Failed to fetch admin users" },
+      { status: 500 },
+    );
   }
 }
 
@@ -85,6 +85,13 @@ export async function POST(request: Request) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
+      if (existingUser.deletedAt) {
+        return Response.json(
+          { error: "This email belongs to an inactive account" },
+          { status: 409 },
+        );
+      }
+
       if (
         existingUser.role === ADMIN_ROLE ||
         existingUser.role === SUPER_ADMIN_ROLE
@@ -102,18 +109,11 @@ export async function POST(request: Request) {
           role: ADMIN_ROLE,
           password: await bcrypt.hash(password, 10),
           emailVerified: new Date(),
+          authVersion: { increment: 1 },
           disabledAt: null,
           deletedAt: null,
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          createdAt: true,
-          disabledAt: true,
-          deletedAt: true,
-        },
+        select: adminUserSelect,
       });
 
       return Response.json({ user: updated, promoted: true }, { status: 200 });
@@ -128,22 +128,15 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: ADMIN_ROLE,
         emailVerified: new Date(),
+        disabledAt: null,
+        deletedAt: null,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        disabledAt: true,
-        deletedAt: true,
-      },
+      select: adminUserSelect,
     });
 
     return Response.json({ user }, { status: 201 });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to create admin";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[ADMIN_USERS_POST_ERROR]", err);
+    return Response.json({ error: "Failed to create admin" }, { status: 500 });
   }
 }

@@ -9,18 +9,30 @@ vi.mock("@/lib/fetch/baseUrl", () => ({
 }));
 
 import { requireAdminSession } from "@/lib/admin/require-admin";
+import type { Session } from "@/lib/auth/getSession";
 import { getWordpressConfig } from "@/lib/fetch/baseUrl";
 import { POST } from "./route";
 
 const mockedRequireAdminSession = vi.mocked(requireAdminSession);
 const mockedGetWordpressConfig = vi.mocked(getWordpressConfig);
+const adminSession: Session = {
+  user: {
+    id: "admin-1",
+    email: "admin@jkorganics.com",
+    role: "min_admin",
+  },
+};
 
 describe("POST /api/admin/media", () => {
   beforeEach(() => {
     mockedRequireAdminSession.mockReset();
     mockedGetWordpressConfig.mockReset();
     vi.restoreAllMocks();
-    mockedRequireAdminSession.mockResolvedValue({ error: null, status: 200 });
+    mockedRequireAdminSession.mockResolvedValue({
+      error: null,
+      status: 200,
+      session: adminSession,
+    });
     mockedGetWordpressConfig.mockReturnValue({
       BASE_URL: "https://wp.example",
       CONSUMER_KEY: "ck_test",
@@ -63,9 +75,9 @@ describe("POST /api/admin/media", () => {
         method: "POST",
         body: expect.any(ArrayBuffer),
         headers: expect.objectContaining({
-          Authorization: `Basic ${Buffer.from(
-            "wp-admin:app password",
-          ).toString("base64")}`,
+          Authorization: `Basic ${Buffer.from("wp-admin:app password").toString(
+            "base64",
+          )}`,
           "Content-Disposition": 'attachment; filename="body-oil.jpg"',
           "Content-Type": "image/jpeg",
         }),
@@ -96,9 +108,9 @@ describe("POST /api/admin/media", () => {
       "https://wp.example/wp-json/wp/v2/media",
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: `Basic ${Buffer.from(
-            "wp-admin:app password",
-          ).toString("base64")}`,
+          Authorization: `Basic ${Buffer.from("wp-admin:app password").toString(
+            "base64",
+          )}`,
         }),
       }),
     );

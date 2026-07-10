@@ -1,7 +1,6 @@
-import { getSession } from "@/lib/auth/getSession";
 import { redirect } from "next/navigation";
 import { fetchAdminOrders } from "@/lib/admin/fetch-admin-orders";
-import { isAdminRole } from "@/lib/admin/roles";
+import { requireAdminSession } from "@/lib/admin/require-admin";
 import { getAdminSignInUrl } from "@/lib/auth/admin-login";
 import AccountProvider from "../(resources)/dashboard-utils/account-context";
 import AdminShell from "./components/shell/admin-shell";
@@ -11,13 +10,13 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
+  const { status, session } = await requireAdminSession();
 
-  if (!session) {
+  if (status === 401) {
     redirect(getAdminSignInUrl());
   }
 
-  if (!isAdminRole(session.user.role)) {
+  if (status === 403 || !session) {
     redirect("/account");
   }
 

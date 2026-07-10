@@ -1,14 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BarChart3,
   CreditCard,
   LayoutDashboard,
-  MapPinned,
+  MessageSquareText,
   Package,
   Settings,
   ShoppingBag,
-  Star,
   Ticket,
-  UserRound,
   Users,
 } from "lucide-react";
 
@@ -32,33 +31,46 @@ export const adminNavGroups: AdminNavGroup[] = [
     ],
   },
   {
-    title: "Store",
+    title: "Fulfillment",
     items: [
       { label: "Orders", href: "/admin-account/orders", icon: ShoppingBag },
+      { label: "Payments", href: "/admin-account/payments", icon: CreditCard },
+    ],
+  },
+  {
+    title: "Catalog",
+    items: [
       { label: "Products", href: "/admin-account/products", icon: Package },
       { label: "Coupons", href: "/admin-account/coupons", icon: Ticket },
-      { label: "Delivery", href: "/admin-account/delivery", icon: MapPinned },
-      { label: "Payments", href: "/admin-account/payments", icon: CreditCard },
       {
-        label: "Customers",
-        href: "/admin-account/customers",
-        icon: UserRound,
+        label: "Reviews",
+        href: "/admin-account/reviews",
+        icon: MessageSquareText,
+      },
+    ],
+  },
+  {
+    title: "Growth",
+    items: [
+      { label: "Analytics", href: "/admin-account/analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "Team",
+    items: [
+      {
+        label: "Admins",
+        href: "/admin-account/team",
+        icon: Users,
         superAdminOnly: true,
       },
-      { label: "Reviews", href: "/admin-account/reviews", icon: Star },
     ],
   },
   {
     title: "Settings",
     items: [
       {
-        label: "Team",
-        href: "/admin-account/team",
-        icon: Users,
-        superAdminOnly: true,
-      },
-      {
-        label: "Profile",
+        label: "Account",
         href: "/admin-account/details",
         icon: Settings,
       },
@@ -68,17 +80,16 @@ export const adminNavGroups: AdminNavGroup[] = [
 
 export const adminPageTitles: Record<string, string> = {
   "/admin-account": "Dashboard",
+  "/admin-account/analytics": "Analytics",
   "/admin-account/orders": "Orders",
   "/admin-account/products": "Products",
   "/admin-account/products/new": "Add product",
   "/admin-account/coupons": "Coupons",
   "/admin-account/coupons/new": "Create coupon",
-  "/admin-account/delivery": "Delivery rates",
   "/admin-account/payments": "Payments",
-  "/admin-account/customers": "Customers",
   "/admin-account/reviews": "Reviews",
-  "/admin-account/team": "Team",
-  "/admin-account/details": "Profile",
+  "/admin-account/team": "Admins",
+  "/admin-account/details": "Account",
 };
 
 export function getAdminPageTitle(pathname: string): string {

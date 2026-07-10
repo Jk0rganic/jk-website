@@ -1,10 +1,9 @@
 import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-
-import { authConfig } from "./auth.config";
-import { getCredentialUser } from "../getUserWithAccounts";
+import Google from "next-auth/providers/google";
 import { handleLoginAttempt } from "../action";
+import { getCredentialUser } from "../getUserWithAccounts";
+import { authConfig } from "./auth.config";
 import { CustomPrismaAdapter } from "./custom-adapter";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -26,6 +25,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.authVersion = user.authVersion;
+        token.disabledAt = user.disabledAt;
+        token.deletedAt = user.deletedAt;
       }
       return token;
     },
@@ -34,6 +36,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role;
+        session.user.authVersion = token.authVersion;
+        session.user.disabledAt = token.disabledAt;
+        session.user.deletedAt = token.deletedAt;
       }
       return session;
     },
@@ -78,6 +83,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           role: user.role,
+          authVersion: user.authVersion,
+          disabledAt: user.disabledAt,
+          deletedAt: user.deletedAt,
         };
       },
     }),
