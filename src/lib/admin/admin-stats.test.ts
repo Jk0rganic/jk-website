@@ -3,6 +3,8 @@ import {
   computeMonthlyChartData,
   computeOrderStatusSummary,
   computePaymentMethodSummary,
+  computeTopCustomers,
+  computeTopLocations,
   computeTopProducts,
   computeWeeklyComparison,
   computeYearOverYearGrowth,
@@ -238,6 +240,56 @@ describe("computeTopProducts", () => {
           src: "https://myshop.jkorganics.co.ke/wp-content/uploads/moringa.jpg",
           alt: "Moringa oil bottle",
         },
+      },
+    ]);
+  });
+});
+
+describe("computeTopLocations", () => {
+  it("groups orders by county/city and sorts by order count", () => {
+    const result = computeTopLocations(
+      [sampleOrders[0], { ...sampleOrders[0], id: 3 }, sampleOrders[1]],
+      2,
+    );
+
+    expect(result).toEqual([
+      { location: "Nairobi", orders: 2, revenue: 3000 },
+      { location: "Mombasa", orders: 1, revenue: 800 },
+    ]);
+  });
+
+  it("falls back to Unknown when no state or city is present", () => {
+    const result = computeTopLocations([{ total: "500", billing: {} }], 5);
+
+    expect(result).toEqual([{ location: "Unknown", orders: 1, revenue: 500 }]);
+  });
+});
+
+describe("computeTopCustomers", () => {
+  it("groups orders by customer email and sorts by revenue", () => {
+    const result = computeTopCustomers(
+      [
+        sampleOrders[0],
+        { ...sampleOrders[0], id: 3, total: "500" },
+        sampleOrders[1],
+      ],
+      2,
+    );
+
+    expect(result).toEqual([
+      {
+        key: "jane@example.com",
+        name: "Jane Doe",
+        location: "Nairobi",
+        orders: 2,
+        revenue: 2000,
+      },
+      {
+        key: "john@example.com",
+        name: "John Smith",
+        location: "Mombasa",
+        orders: 1,
+        revenue: 800,
       },
     ]);
   });

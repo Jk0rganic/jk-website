@@ -190,6 +190,96 @@ export function computeTopProducts<
     .slice(0, limit);
 }
 
+export type TopLocationSummary = {
+  location: string;
+  orders: number;
+  revenue: number;
+};
+
+export type TopCustomerSummary = {
+  key: string;
+  name: string;
+  location: string;
+  orders: number;
+  revenue: number;
+};
+
+type OrderBillingLike = {
+  state?: string | null;
+  city?: string | null;
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+};
+
+type OrderWithBilling = {
+  total: string | number;
+  billing?: OrderBillingLike;
+};
+
+function getOrderLocationLabel(billing?: OrderBillingLike): string {
+  const parts = [billing?.state, billing?.city]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
+
+  return parts.length ? parts.join(" — ") : "Unknown";
+}
+
+export function computeTopLocations<T extends OrderWithBilling>(
+  orders: T[],
+  limit: number,
+): TopLocationSummary[] {
+  const locations = new Map<string, TopLocationSummary>();
+
+  for (const order of orders) {
+    const location = getOrderLocationLabel(order.billing);
+    const current = locations.get(location) ?? {
+      location,
+      orders: 0,
+      revenue: 0,
+    };
+    current.orders += 1;
+    current.revenue += parseOrderTotal(order.total);
+    locations.set(location, current);
+  }
+
+  return Array.from(locations.values())
+    .sort((a, b) => b.orders - a.orders || b.revenue - a.revenue)
+    .slice(0, limit);
+}
+
+export function computeTopCustomers<T extends OrderWithBilling>(
+  orders: T[],
+  limit: number,
+): TopCustomerSummary[] {
+  const customers = new Map<string, TopCustomerSummary>();
+
+  for (const order of orders) {
+    const email = order.billing?.email?.trim().toLowerCase();
+    const name = [order.billing?.first_name, order.billing?.last_name]
+      .map((part) => part?.trim())
+      .filter(Boolean)
+      .join(" ");
+    const key = email || name || "guest";
+
+    const current = customers.get(key) ?? {
+      key,
+      name: name || email || "Guest customer",
+      location: getOrderLocationLabel(order.billing),
+      orders: 0,
+      revenue: 0,
+    };
+
+    current.orders += 1;
+    current.revenue += parseOrderTotal(order.total);
+    customers.set(key, current);
+  }
+
+  return Array.from(customers.values())
+    .sort((a, b) => b.revenue - a.revenue || b.orders - a.orders)
+    .slice(0, limit);
+}
+
 export function computeWeeklyComparison(
   orders: OrderLike[],
   now = new Date(),

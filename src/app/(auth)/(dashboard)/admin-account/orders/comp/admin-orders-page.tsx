@@ -1,23 +1,47 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
+import { useMemo, useState } from "react";
 import {
+  computeOrderStatusSummary,
+  computeTopCustomers,
+  computeTopLocations,
+  computeWeeklyComparison,
   filterOrders,
   ORDER_STATUS_OPTIONS,
   PAYMENT_METHOD_OPTIONS,
 } from "@/lib/admin/admin-stats";
-import { formatDate } from "@/utils/formatDate";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import { formatPrice } from "@/utils/format-price";
+import { formatDate } from "@/utils/formatDate";
 import {
   OrderPaymentBadge,
   OrderStatusBadge,
 } from "../../../(resources)/dashboard-comp/(pages-comp)/orders/comp/order-display/order-display";
-import { PageHeader } from "../../components/ui/page-header";
+import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
 import ui from "../../components/ui/admin-ui.module.scss";
+import { PageHeader } from "../../components/ui/page-header";
 
 const ITEMS_PER_PAGE = 15;
+const TOP_LOCATIONS_LIMIT = 3;
+const TOP_CUSTOMERS_LIMIT = 3;
+const rankClasses = [
+  "rankGreen",
+  "rankBlue",
+  "rankAmber",
+] as const satisfies Array<keyof typeof ui>;
+
+function getInitials(name: string) {
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return initials || "?";
+}
 
 export default function AdminOrdersPage() {
   const { orders } = useAccount();
@@ -25,6 +49,38 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [showInsights, setShowInsights] = useState(true);
+
+  const statusSummary = useMemo(
+    () => computeOrderStatusSummary(orders),
+    [orders],
+  );
+  const weeklyRevenue = useMemo(
+    () => computeWeeklyComparison(orders).thisWeek.sales,
+    [orders],
+  );
+  const topLocations = useMemo(
+    () => computeTopLocations(orders, TOP_LOCATIONS_LIMIT),
+    [orders],
+  );
+  const topCustomers = useMemo(
+    () => computeTopCustomers(orders, TOP_CUSTOMERS_LIMIT),
+    [orders],
+  );
+
+  const stats = [
+    { label: "Total orders", value: String(orders.length) },
+    {
+      label: "Awaiting fulfilment",
+      value: String(
+        statusSummary.pending + statusSummary.processing + statusSummary.onHold,
+      ),
+    },
+    { label: "Completed", value: String(statusSummary.completed) },
+    { label: "Revenue (wk)", value: formatPrice(weeklyRevenue) },
+  ];
+
+  const maxLocationOrders = topLocations[0]?.orders ?? 0;
 
   const filteredOrders = useMemo(
     () =>
@@ -50,10 +106,107 @@ export default function AdminOrdersPage() {
 
   return (
     <>
-      <PageHeader
-        title={`${filteredOrders.length} orders`}
-        subtitle="Search, filter, and manage customer orders from one place."
-      />
+      <PageHeader title="Orders" subtitle="Track and fulfill customer orders" />
+
+      <div className={ui.statGrid}>
+        {stats.map((stat) => (
+          <article key={stat.label} className={ui.statCard}>
+            <span className={ui.statLabel}>{stat.label}</span>
+            <div className={ui.statValue}>{stat.value}</div>
+          </article>
+        ))}
+      </div>
+
+      <section className={`${ui.card} ${ui.insightsCard}`}>
+        <div className={ui.insightsHeader}>
+          <h2>
+            <TrendingUp size={16} />
+            Store insights
+            <span>· top locations &amp; customers</span>
+          </h2>
+          <button
+            type="button"
+            className={ui.insightsToggle}
+            onClick={() => setShowInsights((value) => !value)}
+          >
+            {showInsights ? "Hide" : "Show"}
+            {showInsights ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+      </section>
+
+      {showInsights ? (
+        <div className={ui.insightsGrid}>
+          <section className={ui.card}>
+            <div className={ui.cardHeader}>
+              <h2>Top delivery locations</h2>
+              <span className={ui.statNote}>by orders</span>
+            </div>
+            <div className={ui.cardBody}>
+              {!topLocations.length ? (
+                <p className={ui.empty}>No orders yet.</p>
+              ) : (
+                <div className={ui.mixList}>
+                  {topLocations.map((location) => {
+                    const pct = maxLocationOrders
+                      ? Math.round((location.orders / maxLocationOrders) * 100)
+                      : 0;
+
+                    return (
+                      <div key={location.location} className={ui.mixRow}>
+                        <div>
+                          <span>{location.location}</span>
+                          <strong>
+                            {location.orders} · {formatPrice(location.revenue)}
+                          </strong>
+                        </div>
+                        <div className={ui.progressTrack}>
+                          <span style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className={ui.card}>
+            <div className={ui.cardHeader}>
+              <h2>Top customers</h2>
+              <span className={ui.statNote}>by spend</span>
+            </div>
+            <div className={ui.cardBody}>
+              {!topCustomers.length ? (
+                <p className={ui.empty}>No orders yet.</p>
+              ) : (
+                <div className={ui.customerList}>
+                  {topCustomers.map((customer, index) => (
+                    <div key={customer.key} className={ui.customerRow}>
+                      <span
+                        className={`${ui.customerRank} ${ui[rankClasses[index % rankClasses.length]]}`}
+                      >
+                        {index + 1}
+                      </span>
+                      <span className={ui.avatarCircle}>
+                        {getInitials(customer.name)}
+                      </span>
+                      <div className={ui.customerInfo}>
+                        <strong>{customer.name}</strong>
+                        <span>{customer.location}</span>
+                      </div>
+                      <div className={ui.customerAmount}>
+                        <strong>{formatPrice(customer.revenue)}</strong>
+                        <span>{customer.orders} orders</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       <section className={ui.card}>
         <div className={ui.cardBody}>
@@ -127,8 +280,11 @@ export default function AdminOrdersPage() {
                             <strong>#{order.id}</strong>
                           </td>
                           <td>
-                            {order.billing?.first_name} {order.billing?.last_name}
-                            <div className={ui.muted}>{order.billing?.email}</div>
+                            {order.billing?.first_name}{" "}
+                            {order.billing?.last_name}
+                            <div className={ui.muted}>
+                              {order.billing?.email}
+                            </div>
                           </td>
                           <td>{formatDate(order.date_created)}</td>
                           <td>
