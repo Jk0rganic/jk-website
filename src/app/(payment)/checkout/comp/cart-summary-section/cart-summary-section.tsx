@@ -1,15 +1,24 @@
 "use client";
 
+import { Package, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
-import k from "./styles.module.scss";
-import { formatPrice } from "@/utils/format-price";
 import type { CheckoutCoupon } from "@/lib/checkout/coupon";
+import { formatPrice } from "@/utils/format-price";
+import k from "./styles.module.scss";
 
 interface CartSummarySectionProps {
   cartDetails: NonNullable<CheckoutFormType["cartDetails"]>;
   deliveryMethod: CheckoutFormType["delivery_method"];
   shippingCost: NonNullable<CheckoutFormType["shippingCost"]>;
+  deliveryQuote?: {
+    method: "shipping" | "pickup";
+    fee: number;
+    label: string;
+    eta?: string | null;
+    available: boolean;
+  } | null;
   isSubmitting: boolean;
   itemsTotal: number;
   discount: number;
@@ -17,12 +26,14 @@ interface CartSummarySectionProps {
   activeCoupon: CheckoutCoupon | null;
   onCouponApplied: (coupon: CheckoutCoupon) => void;
   onCouponRemoved: () => void;
+  showSubmit?: boolean;
 }
 
 export default function CartSummarySection({
   cartDetails = [],
   deliveryMethod = "shipping",
   shippingCost = 160,
+  deliveryQuote = null,
   isSubmitting = false,
   itemsTotal,
   discount,
@@ -30,12 +41,25 @@ export default function CartSummarySection({
   activeCoupon,
   onCouponApplied,
   onCouponRemoved,
+  showSubmit = true,
 }: CartSummarySectionProps) {
   const [couponInput, setCouponInput] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const itemCount = cartDetails.length;
-  const deliveryFee = deliveryMethod === "shipping" ? shippingCost : 0;
+  const deliveryUnavailable =
+    deliveryMethod === "shipping" && deliveryQuote?.available === false;
+  let deliveryFee = 0;
+  if (deliveryMethod === "shipping") {
+    deliveryFee =
+      deliveryQuote?.available === true ? deliveryQuote.fee : shippingCost;
+  }
+  const deliveryText = (() => {
+    if (deliveryMethod !== "shipping") return "Free";
+    if (deliveryUnavailable) return "Unavailable";
+    return formatPrice(deliveryFee);
+  })();
+  const ctaText = "Send M-Pesa prompt";
 
   const applyCoupon = async () => {
     const code = couponInput.trim();
@@ -80,50 +104,41 @@ export default function CartSummarySection({
 
   return (
     <div className={k.cart_summary}>
-      <h4>Order Summary</h4>
+      <h3>Order summary</h3>
 
-      <table className={k.summary_table}>
-        <tbody>
-          <tr>
-            <td className={k.label}>Items Total ({itemCount})</td>
-            <td>{formatPrice(itemsTotal)}</td>
-          </tr>
-
-          {discount > 0 && activeCoupon && (
-            <tr>
-              <td className={k.label}>Discount ({activeCoupon.code})</td>
-              <td>-{formatPrice(discount)}</td>
-            </tr>
-          )}
-
-          {deliveryMethod === "shipping" && (
-            <tr>
-              <td className={k.label}>Delivery Fee</td>
-              <td>{formatPrice(deliveryFee)}</td>
-            </tr>
-          )}
-
-          <tr className={k.divider_row}>
-            <td colSpan={2}>
-              <hr className={k.divider} />
-            </td>
-          </tr>
-
-          <tr>
-            <td className={k.label}>
-              <strong>Total</strong>
-            </td>
-            <td>
-              <strong className={k.total}>{formatPrice(grandTotal)}</strong>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <ul className={k.cart_items} aria-label="Cart items">
+        {cartDetails.map((item) => (
+          <li className={k.cart_item} key={item.id}>
+            {item.image?.mediaItemUrl ? (
+              <Image
+                className={k.item_image}
+                src={item.image.mediaItemUrl}
+                alt={item.image?.title || item.name}
+                width={64}
+                height={64}
+                sizes="64px"
+                unoptimized
+              />
+            ) : (
+              <span className={k.item_placeholder}>
+                <Package size={18} />
+              </span>
+            )}
+            <div className={k.item_details}>
+              <p className={k.item_name}>{item.name}</p>
+              <p className={k.item_quantity}>Qty {item.quantity}</p>
+            </div>
+            <strong className={k.item_total}>
+              {formatPrice(item.price * item.quantity)}
+            </strong>
+          </li>
+        ))}
+      </ul>
 
       <div className={k.coupon}>
         <input
           type="text"
-          placeholder="Enter coupon code"
+          placeholder="Coupon code"
           value={couponInput}
           onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
           disabled={isSubmitting || isApplyingCoupon || Boolean(activeCoupon)}
@@ -147,13 +162,55 @@ export default function CartSummarySection({
         )}
       </div>
 
-      <button
-        className={k.btn_submit}
-        type="submit"
-        disabled={itemCount === 0 || isSubmitting}
-      >
-        {isSubmitting ? "Confirming Order..." : "Confirm Order"}
-      </button>
+      <div className={k.total_rows}>
+        <div>
+          <span>Subtotal</span>
+          <span>{formatPrice(itemsTotal)}</span>
+        </div>
+
+        {discount > 0 && activeCoupon ? (
+          <div>
+            <span>Discount ({activeCoupon.code})</span>
+            <span>-{formatPrice(discount)}</span>
+          </div>
+        ) : null}
+
+        <div>
+          <span>Delivery</span>
+          <span>{deliveryText}</span>
+        </div>
+
+        {deliveryMethod === "shipping" && deliveryQuote ? (
+          <div className={k.delivery_quote}>
+            <span>{deliveryQuote.label}</span>
+            <span>
+              {deliveryQuote.available
+                ? (deliveryQuote.eta ?? "ETA to be confirmed")
+                : "Choose another county"}
+            </span>
+          </div>
+        ) : null}
+
+        <div className={k.total_row}>
+          <strong>Total</strong>
+          <strong>{formatPrice(grandTotal)}</strong>
+        </div>
+      </div>
+
+      {showSubmit ? (
+        <button
+          className={k.btn_submit}
+          type="submit"
+          disabled={itemCount === 0 || isSubmitting}
+        >
+          {isSubmitting ? "Confirming Order..." : ctaText}
+        </button>
+      ) : null}
+
+      <p className={k.trust_copy}>
+        <ShieldCheck size={15} />
+        No hidden fees — the total above is exactly what you'll pay.
+      </p>
     </div>
   );
 }

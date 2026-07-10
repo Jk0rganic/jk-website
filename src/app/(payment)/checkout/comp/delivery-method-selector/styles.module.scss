@@ -1,17 +1,64 @@
 @use "@/scss/mixin.scss" as mixin;
 
-.delivery{
-    margin-bottom: 1rem;
-    .checkbox_wrapper{
-        display: flex;
-        justify-content: space-between;
-        
-    label{
-        display: block;
-        margin-bottom: .4em;
-        input{
-            margin-right: 5px;
-        }
+.delivery {
+  .choice_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .choice_card {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.9rem;
+    border: 1px solid #dce7df;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background 160ms ease;
+
+    &:has(input:checked) {
+      border-color: #2f7d32;
+      background: rgba(47, 125, 50, 0.06);
+      box-shadow: 0 0 0 1px rgba(47, 125, 50, 0.18);
     }
+
+    input {
+      margin-top: 0.2rem;
+    }
+  }
+
+  .icon {
+    display: inline-flex;
+    color: #2f7d32;
+  }
+
+  .copy {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .title {
+    font-weight: 700;
+    color: black;
+  }
+
+  .description {
+    color: #647268;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
 }
+
+@include mixin.responsive($max: 720px) {
+  .delivery {
+    .choice_grid {
+      grid-template-columns: 1fr;
+    }
+  }
 }

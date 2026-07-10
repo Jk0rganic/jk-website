@@ -12,7 +12,7 @@ const checkoutData = {
   billing_phone: "0712345678",
   useDifferentShipping: false,
   delivery_method: "shipping",
-  paymentMethod: "pay_on_delivery",
+  paymentMethod: "pay_online",
   termsAgreement: true,
   county: "Nairobi",
   delivery_subtype: "door_to_door",
@@ -30,6 +30,26 @@ const cartDetails = [
 ];
 
 describe("buildOrderPayload", () => {
+  it("always builds a prepaid IntaSend order payload", () => {
+    const payload = buildOrderPayload({
+      data: checkoutData,
+      cartDetails,
+      totalPrice: 1000,
+      deliveryMethod: "shipping",
+      shippingCost: 250,
+      shippingMethodTitle: "Nairobi Door Delivery",
+    });
+
+    expect(payload).toEqual(
+      expect.objectContaining({
+        payment_method: "intasend",
+        payment_method_title: "Online Payment",
+        set_paid: false,
+        status: "pending",
+      }),
+    );
+  });
+
   it("lets WooCommerce calculate the final total from line items and shipping", () => {
     const payload = buildOrderPayload({
       data: checkoutData,

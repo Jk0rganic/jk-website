@@ -50,6 +50,8 @@ model User {
   sessions      Session[]
   loginAttempt  LoginAttempt?
   createdAt     DateTime  @default(now()) @map("created_at")
+  disabledAt    DateTime? @map("disabled_at")
+  deletedAt     DateTime? @map("deleted_at")
   @@map("users")
 }
 
@@ -90,4 +92,24 @@ model Payment {
 
   @@index([orderId], map: "payment_order_idx")
   @@map("payments")
+}
+
+model DeliveryRate {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  label           String
+  description     String?
+  fulfillmentType String   @map("fulfillment_type")
+  counties        String[] @default([])
+  towns           String[] @default([])
+  fee             Int
+  freeAbove       Int?     @map("free_above")
+  eta             String
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([active, sortOrder], map: "delivery_rates_active_sort_idx")
+  @@map("delivery_rates")
 }

@@ -1,0 +1,198 @@
+import { describe, expect, it } from "vitest";
+import { resolveDeliveryQuote } from "./delivery-quote";
+
+describe("resolveDeliveryQuote", () => {
+  it("returns a free pickup quote for pickup orders", () => {
+    expect(
+      resolveDeliveryQuote({
+        deliveryMethod: "pickup",
+        county: "Nairobi",
+        cartSubtotal: 1200,
+      }),
+    ).toEqual({
+      code: "pickup",
+      label: "Pickup from JK Organics",
+      fee: 0,
+      eta: "Ready within 24 hours",
+      fulfillmentType: "pickup",
+      freeDeliveryApplied: false,
+      freeDeliveryRemaining: 0,
+    });
+  });
+
+  it("quotes Nairobi doorstep delivery and makes it free above KES 4000", () => {
+    expect(
+      resolveDeliveryQuote({
+        deliveryMethod: "shipping",
+        county: "Nairobi",
+        cartSubtotal: 3900,
+      }),
+    ).toEqual({
+      code: "nairobi-doorstep",
+      label: "Nairobi doorstep delivery",
+      fee: 300,
+      eta: "Same day to 24 hours",
+      fulfillmentType: "doorstep",
+      freeDeliveryApplied: false,
+      freeDeliveryRemaining: 100,
+    });
+
+    expect(
+      resolveDeliveryQuote({
+        deliveryMethod: "shipping",
+        county: "Nairobi",
+        cartSubtotal: 4000,
+      }),
+    ).toEqual({
+      code: "nairobi-doorstep",
+      label: "Nairobi doorstep delivery",
+      fee: 0,
+      originalFee: 300,
+      eta: "Same day to 24 hours",
+      fulfillmentType: "doorstep",
+      freeDeliveryApplied: true,
+      freeDeliveryRemaining: 0,
+    });
+  });
+
+  it("quotes metro doorstep delivery for Kiambu, Kajiado, and Machakos with a KES 5000 free threshold", () => {
+    for (const county of ["Kiambu", "Kajiado", "Machakos"]) {
+      expect(
+        resolveDeliveryQuote({
+          deliveryMethod: "shipping",
+          county,
+          cartSubtotal: 4500,
+        }),
+      ).toMatchObject({
+        code: "metro-doorstep",
+        label: "Metro doorstep delivery",
+        fee: 400,
+        fulfillmentType: "doorstep",
+        freeDeliveryApplied: false,
+        freeDeliveryRemaining: 500,
+      });
+
+      expect(
+        resolveDeliveryQuote({
+          deliveryMethod: "shipping",
+          county,
+          cartSubtotal: 5000,
+        }),
+      ).toMatchObject({
+        code: "metro-doorstep",
+        fee: 0,
+        originalFee: 400,
+        freeDeliveryApplied: true,
+        freeDeliveryRemaining: 0,
+      });
+    }
+  });
+
+  it("quotes major town courier office delivery for Mombasa, Kisumu, Nakuru, and Uasin Gishu", () => {
+    for (const county of ["Mombasa", "Kisumu", "Nakuru", "Uasin Gishu"]) {
+      expect(
+        resolveDeliveryQuote({
+          deliveryMethod: "shipping",
+          county,
+          cartSubtotal: 2500,
+        }),
+      ).toMatchObject({
+        code: "major-town-courier-office",
+        label: "Major town courier office",
+        fee: 450,
+        fulfillmentType: "courier-office",
+        freeDeliveryApplied: false,
+        freeDeliveryRemaining: 2500,
+      });
+    }
+  });
+
+  it("quotes standard upcountry and remote stage rates without returning free shipping", () => {
+    expect(
+      resolveDeliveryQuote({
+        deliveryMethod: "shipping",
+        county: "Bomet",
+        cartSubtotal: 10000,
+      }),
+    ).toMatchObject({
+      code: "standard-upcountry-stage",
+      label: "Standard upcountry stage delivery",
+      fee: 550,
+      fulfillmentType: "stage",
+      freeDeliveryApplied: false,
+      freeDeliveryRemaining: 0,
+    });
+
+    for (const county of ["Mandera", "Marsabit", "Turkana", "Wajir"]) {
+      expect(
+        resolveDeliveryQuote({
+          deliveryMethod: "shipping",
+          county,
+          cartSubtotal: 10000,
+        }),
+      ).toMatchObject({
+        code: "remote-stage",
+        label: "Remote stage delivery",
+        fee: 750,
+        fulfillmentType: "stage",
+        freeDeliveryApplied: false,
+        freeDeliveryRemaining: 0,
+      });
+    }
+  });
+
+  it("falls back to a paid standard shipping quote when no county or admin rate matches", () => {
+    expect(
+      resolveDeliveryQuote({
+        deliveryMethod: "shipping",
+        cartSubtotal: 10000,
+      }),
+    ).toMatchObject({
+      code: "standard-upcountry-stage",
+      fee: 550,
+      fulfillmentType: "stage",
+    });
+  });
+
+  it("prefers matching active admin rates over defaults", () => {
+    const quote = resolveDeliveryQuote(
+      {
+        deliveryMethod: "shipping",
+        county: "Nairobi",
+        cartSubtotal: 6500,
+      },
+      [
+        {
+          code: "inactive-nairobi",
+          label: "Inactive Nairobi test rate",
+          counties: ["Nairobi"],
+          fee: 1,
+          eta: "Never",
+          fulfillmentType: "doorstep",
+          freeAbove: 10,
+          active: false,
+        },
+        {
+          code: "admin-nairobi-express",
+          label: "Admin Nairobi express",
+          counties: ["Nairobi"],
+          fee: 650,
+          eta: "2 hours",
+          fulfillmentType: "doorstep",
+          freeAbove: 7000,
+          active: true,
+        },
+      ],
+    );
+
+    expect(quote).toEqual({
+      code: "admin-nairobi-express",
+      label: "Admin Nairobi express",
+      fee: 650,
+      eta: "2 hours",
+      fulfillmentType: "doorstep",
+      freeDeliveryApplied: false,
+      freeDeliveryRemaining: 500,
+    });
+  });
+});

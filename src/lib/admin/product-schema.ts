@@ -31,6 +31,7 @@ export const productFormSchema = z.object({
     ),
   inStock: z.boolean(),
   published: z.boolean(),
+  featured: z.boolean(),
   categoryIds: z.array(z.number()),
   imageId: z.number().positive().optional(),
   relatedProductIds: z.array(z.number()),

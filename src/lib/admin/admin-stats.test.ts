@@ -205,4 +205,40 @@ describe("computeTopProducts", () => {
       { name: "Shea Cream", quantity: 4, revenue: 900 },
     ]);
   });
+
+  it("keeps the first available product image for top product summaries", () => {
+    const result = computeTopProducts(
+      [
+        {
+          ...sampleOrders[0],
+          line_items: [
+            {
+              name: "Moringa Oil",
+              quantity: 1,
+              total: "800",
+              image: {
+                src: "https://myshop.jkorganics.co.ke/wp-content/uploads/moringa.jpg",
+                alt: "Moringa oil bottle",
+              },
+            } as LineItem & {
+              image: { src: string; alt: string };
+            },
+          ],
+        },
+      ],
+      1,
+    );
+
+    expect(result).toEqual([
+      {
+        name: "Moringa Oil",
+        quantity: 1,
+        revenue: 800,
+        image: {
+          src: "https://myshop.jkorganics.co.ke/wp-content/uploads/moringa.jpg",
+          alt: "Moringa oil bottle",
+        },
+      },
+    ]);
+  });
 });

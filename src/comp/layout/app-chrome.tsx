@@ -1,11 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Navbar from "./navbar-comp/navbar";
-import LokomitiveScroll from "../lokomitiveScroll";
-import Footer from "./footer-comp/footer";
 import { Toaster } from "sonner";
 import FloatWhatapp from "../float-whatapp/float-whatapp";
+import LokomitiveScroll from "../lokomitiveScroll";
+import SpotlightPopup from "../spotlight-popup/spotlight-popup";
+import Footer from "./footer-comp/footer";
+import Navbar from "./navbar-comp/navbar";
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,6 +29,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
       <Footer />
       <Toaster position="top-right" richColors />
       <FloatWhatapp />
+      <SpotlightPopup />
     </>
   );
 }

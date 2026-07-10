@@ -21,6 +21,7 @@ export type WooProductDetail = {
   manage_stock: boolean;
   stock_quantity: number | null;
   stock_status: "instock" | "outofstock" | string;
+  featured?: boolean;
   categories?: Array<{ id: number; name: string; slug: string }>;
   images?: Array<{ id: number; src: string; alt: string }>;
   related_ids?: number[];
@@ -54,6 +55,7 @@ export type AdminProductDetail = {
   stockQuantity: number | null;
   inStock: boolean;
   published: boolean;
+  featured: boolean;
   categories: WooCategory[];
   categoryIds: number[];
   relatedProductIds: number[];
@@ -93,6 +95,7 @@ export function mapWooProductDetail(
     stockQuantity: product.stock_quantity,
     inStock: product.stock_status !== "outofstock",
     published: product.status === "publish",
+    featured: Boolean(product.featured),
     categories: (product.categories ?? []).map((category) => ({
       id: category.id,
       name: category.name,
@@ -140,6 +143,7 @@ export function productDetailToFormValues(
       product.stockQuantity !== null ? String(product.stockQuantity) : "",
     inStock: product.inStock,
     published: product.published,
+    featured: product.featured,
     categoryIds: product.categoryIds,
     relatedProductIds: product.relatedProductIds,
     crossSellProductIds: product.crossSellProductIds,
@@ -165,6 +169,7 @@ export function formValuesToWooPayload(values: ProductFormValues) {
     manage_stock: values.manageStock,
     stock_quantity: stockQuantity,
     stock_status: values.inStock ? "instock" : "outofstock",
+    featured: values.featured,
     categories: values.categoryIds.map((id) => ({ id })),
     related_ids: values.relatedProductIds ?? [],
     cross_sell_ids: values.crossSellProductIds ?? [],

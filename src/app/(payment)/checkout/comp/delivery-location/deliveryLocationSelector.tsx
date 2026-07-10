@@ -2,24 +2,31 @@
 
 import { useEffect, useMemo } from "react";
 import { get } from "react-hook-form";
-import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import {
-  KENYA_COUNTIES,
   getDeliverySubtype,
   getParcelTownsForCounty,
   isDoorToDoorCounty,
+  KENYA_COUNTIES,
 } from "@/data/kenya-delivery";
+import type { CheckoutFormProps } from "@/utils/zod/checkout-schema/checkout-form-props";
 import {
   filterWooShippingZones,
   getDeliveryFee,
 } from "../../lib/delivery-zones";
 import k from "./styles.module.scss";
 
+type DeliveryQuoteSummary = {
+  fee: number;
+  label: string;
+  eta?: string | null;
+};
+
 type Props = Pick<
   CheckoutFormProps,
   "register" | "errors" | "setValue" | "watch"
 > & {
   shippingZones: { zone: string; fee_ksh: number }[];
+  deliveryQuote?: DeliveryQuoteSummary | null;
 };
 
 export default function DeliveryLocationSelector({
@@ -28,6 +35,7 @@ export default function DeliveryLocationSelector({
   setValue,
   watch,
   shippingZones,
+  deliveryQuote,
 }: Props) {
   const county = watch("county") || "";
   const parcelTown = watch("parcel_town") || "";
@@ -43,6 +51,8 @@ export default function DeliveryLocationSelector({
     if (!deliverySubtype) return null;
     return getDeliveryFee(wooZones, deliverySubtype);
   }, [deliverySubtype, wooZones]);
+  const displayFee = deliveryQuote?.fee ?? deliveryFee?.fee;
+  const displayEta = deliveryQuote?.eta;
 
   const towns = useMemo(
     () => (county && !isDoorToDoor ? getParcelTownsForCounty(county) : []),
@@ -113,7 +123,9 @@ export default function DeliveryLocationSelector({
           ))}
         </select>
         {get(errors, "county")?.message ? (
-          <span className={k.error}>{String(get(errors, "county")?.message)}</span>
+          <span className={k.error}>
+            {String(get(errors, "county")?.message)}
+          </span>
         ) : null}
       </div>
 
@@ -124,9 +136,10 @@ export default function DeliveryLocationSelector({
             We deliver directly to your address in {county}. Please provide your
             full street address, estate, and any landmarks below.
           </p>
-          {deliveryFee ? (
+          {typeof displayFee === "number" ? (
             <p className={k.fee}>
-              <strong>Delivery fee:</strong> Ksh {deliveryFee.fee}
+              <strong>Delivery fee:</strong> Ksh {displayFee}
+              {displayEta ? <span> · {displayEta}</span> : null}
             </p>
           ) : null}
         </div>
@@ -140,9 +153,10 @@ export default function DeliveryLocationSelector({
               Outside Nairobi we deliver to the nearest parcel office or stage.
               You will collect your order from the location you select below.
             </p>
-            {deliveryFee ? (
+            {typeof displayFee === "number" ? (
               <p className={k.fee}>
-                <strong>Delivery fee:</strong> Ksh {deliveryFee.fee}
+                <strong>Delivery fee:</strong> Ksh {displayFee}
+                {displayEta ? <span> · {displayEta}</span> : null}
               </p>
             ) : null}
           </div>
@@ -176,7 +190,9 @@ export default function DeliveryLocationSelector({
               <label htmlFor="parcel_office_id">Parcel office *</label>
               <select
                 id="parcel_office_id"
-                className={get(errors, "parcel_office_id") ? k.select_error : ""}
+                className={
+                  get(errors, "parcel_office_id") ? k.select_error : ""
+                }
                 {...register("parcel_office_id")}
                 defaultValue=""
               >

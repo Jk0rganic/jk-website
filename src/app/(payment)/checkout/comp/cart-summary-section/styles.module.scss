@@ -1,70 +1,185 @@
-@use "@/scss/mixin.scss" as mixin;
-
-$border: 0.1px solid rgba(0, 0, 0, 0.15);
-$border-radius: 0.4rem;
+$border: 1px solid rgba(0, 0, 0, 0.1);
+$border-radius: 10px;
 .cart_summary {
-  $padding: 0.8rem 0.5rem;
+  $padding: 0.55rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   width: 100%;
+  padding: 1.35rem;
+  border: $border;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.05);
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    th,
-    td {
-      text-align: left;
-      padding: $padding;
-      border-bottom: $border;
-    }
-    th {
-      background-color: #f5f5f5;
-    }
-    tfoot {
-      font-weight: bold;
-    }
-    .label {
-      strong {
-        font-weight: 600;
-      }
-    }
-    .total {
-      font-weight: 600;
-      font-size: 1.2rem;
-    }
-    .divider_row {
-      td {
-        border-top: none;
-      }
-      .divider {
-        margin: 0;
-      }
-    }
+  h3 {
+    margin: 0;
+    color: #1c1c1c;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.25rem;
+    font-weight: 600;
   }
+
+  .cart_items {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cart_item {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .item_image,
+  .item_placeholder {
+    width: 44px;
+    height: 44px;
+    border: $border;
+    border-radius: $border-radius;
+    background-color: #f7f7f5;
+    color: #666;
+  }
+
+  .item_image {
+    object-fit: cover;
+  }
+
+  .item_placeholder {
+    display: grid;
+    place-items: center;
+  }
+
+  .item_details {
+    min-width: 0;
+  }
+
+  .item_name,
+  .item_quantity {
+    margin: 0;
+  }
+
+  .item_name {
+    overflow: hidden;
+    color: #1c1c1c;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .item_quantity {
+    margin-top: 0.15rem;
+    color: #666;
+    font-size: 0.76rem;
+  }
+
+  .item_total {
+    white-space: nowrap;
+    color: #1c1c1c;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
   .coupon {
     display: flex;
-    margin-top: 1rem;
+    gap: 0.5rem;
+
     input,
     button {
       padding: $padding;
-      background-color: mixin.$white;
-      color: mixin.$black;
-      border-radius: 0;
-      border: 0.1px solid rgba(0, 0, 0, 0.1);
+      border: $border;
+      border-radius: 9px;
+      background-color: #f7f7f5;
+      color: #1c1c1c;
+      font: inherit;
+      font-size: 0.82rem;
     }
+
     input {
       width: 100%;
     }
+
     button {
-      padding: 0 1rem;
-      background-color: rgb(207, 207, 207);
+      padding-inline: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
     }
   }
+
+  .total_rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-top: 0.9rem;
+    border-top: $border;
+    color: #666;
+    font-size: 0.85rem;
+
+    div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+  }
+
+  .total_row {
+    margin-top: 0.2rem;
+    padding-top: 0.6rem;
+    border-top: $border;
+    color: #1c1c1c;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .delivery_quote {
+    align-items: flex-start;
+    padding: 0.55rem 0.65rem;
+    border-radius: 9px;
+    background: #f7f7f5;
+    color: #4b5563;
+    font-size: 0.78rem;
+
+    span:last-child {
+      color: #1c1c1c;
+      font-weight: 700;
+      text-align: right;
+    }
+  }
+
   .btn_submit {
-    margin-top: 1.2em;
     width: 100%;
-    padding: 1em;
-    color: mixin.$white;
-    background-color: mixin.$black;
-    font-weight: 600;
-    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 11px;
+    background-color: #249346;
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+
+  .trust_copy {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    background: #f7f7f5;
+    color: #666;
+    font-size: 0.76rem;
+    line-height: 1.35;
   }
 }

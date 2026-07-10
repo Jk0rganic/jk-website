@@ -1,25 +1,55 @@
 .shell {
-  --admin-sidebar-w: 260px;
-  --admin-topbar-h: 64px;
-  --admin-accent: var(--brand-green);
-  --admin-accent-dark: var(--brand-green-mid);
-  --admin-accent-soft: var(--brand-green-soft);
-  --admin-sidebar: #004b23;
-  --admin-sidebar-hover: rgba(255, 255, 255, 0.08);
-  --admin-bg: var(--brand-cream);
-  --admin-surface: var(--brand-white);
-  --admin-border: rgba(28, 28, 28, 0.1);
-  --admin-text: var(--brand-black);
+  --admin-sidebar-w: 264px;
+  --admin-topbar-h: 70px;
+  --admin-accent: #249346;
+  --admin-accent-dark: #1a6b34;
+  --admin-accent-soft: #e8f5ec;
+  --admin-bg: #f4f4f2;
+  --admin-surface: #ffffff;
+  --admin-surface-2: #f7f7f5;
+  --admin-border: rgba(0, 0, 0, 0.1);
+  --admin-border-strong: rgba(0, 0, 0, 0.16);
+  --admin-text: #1c1c1c;
   --admin-muted: #666666;
-  --admin-shadow: var(--brand-shadow-nav);
-  --admin-radius: var(--brand-radius);
-  --admin-radius-sm: var(--brand-radius);
+  --admin-shadow: 0 1px 1px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  --admin-radius: 16px;
+  --admin-radius-sm: 11px;
+  --admin-sidebar-bg: #ffffff;
+  --admin-sidebar-text: #333333;
+  --admin-sidebar-muted: #9a9a96;
+  --admin-sidebar-border: rgba(0, 0, 0, 0.08);
+  --admin-sidebar-hover: #f2f5f2;
+  --admin-sidebar-active-bg: #e8f5ec;
+  --admin-sidebar-active-text: #1a6b34;
 
   display: flex;
   min-height: 100vh;
   background: var(--admin-bg);
   color: var(--admin-text);
   font-family: var(--font-body), system-ui, sans-serif;
+}
+
+:global(html[data-admin-theme="dark"]) .shell {
+  --admin-bg: #0e0f0d;
+  --admin-surface: #171815;
+  --admin-surface-2: #1e201c;
+  --admin-border: rgba(255, 255, 255, 0.09);
+  --admin-border-strong: rgba(255, 255, 255, 0.18);
+  --admin-text: #eaeae6;
+  --admin-muted: #9a9a94;
+  --admin-shadow: 0 1px 2px rgba(0, 0, 0, 0.4),
+    0 10px 26px rgba(0, 0, 0, 0.35);
+  --admin-accent: #3cbf67;
+  --admin-accent-dark: #3cbf67;
+  --admin-accent-soft: rgba(60, 191, 103, 0.16);
+  --admin-sidebar-bg: #121310;
+  --admin-sidebar-text: #cdd0cb;
+  --admin-sidebar-muted: #77796f;
+  --admin-sidebar-border: rgba(255, 255, 255, 0.08);
+  --admin-sidebar-hover: rgba(255, 255, 255, 0.05);
+  --admin-sidebar-active-bg: rgba(60, 191, 103, 0.16);
+  --admin-sidebar-active-text: #3cbf67;
 }
 
 .main {
@@ -33,8 +63,8 @@
 
 .content {
   flex: 1;
-  padding: 1.5rem;
-  max-width: 1400px;
+  padding: 1.75rem;
+  max-width: 1480px;
   width: 100%;
 }
 

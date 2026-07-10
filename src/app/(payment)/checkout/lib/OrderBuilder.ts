@@ -177,11 +177,8 @@ export const buildOrderPayload = ({
   }
 
   const payload: Record<string, unknown> = {
-    payment_method: data.paymentMethod === "pay_online" ? "intasend" : "cod",
-    payment_method_title:
-      data.paymentMethod === "pay_online"
-        ? "Online Payment"
-        : "Cash on Delivery",
+    payment_method: "intasend",
+    payment_method_title: "Online Payment",
     set_paid: false,
     status: "pending",
     billing,

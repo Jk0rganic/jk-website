@@ -1,0 +1,117 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+
+  th,
+  td {
+    border-bottom: 1px solid var(--admin-border, #e8ebe9);
+    padding: 0.85rem 0.65rem;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    color: var(--admin-muted, #6b7280);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+.rateLabel,
+.rateCode {
+  display: block;
+}
+
+.rateLabel {
+  color: var(--brand-black, #1c1c1c);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.rateCode {
+  color: var(--admin-muted, #6b7280);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+
+  span {
+    color: var(--admin-muted, #6b7280);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  input {
+    width: 100%;
+    min-width: 7rem;
+    border: 1px solid var(--admin-border, #d9dfdc);
+    border-radius: var(--admin-radius, 0.4rem);
+    padding: 0.55rem 0.65rem;
+    font: inherit;
+  }
+}
+
+.checkField {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--brand-black, #1c1c1c);
+  font-size: 0.85rem;
+  font-weight: 700;
+
+  input {
+    accent-color: var(--admin-accent, #249346);
+  }
+}
+
+.saveButton {
+  border: 0;
+  border-radius: var(--admin-radius, 0.4rem);
+  background: var(--admin-accent, #249346);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.55rem 0.8rem;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
+.muted,
+.error {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: var(--admin-muted, #6b7280);
+}
+
+.error {
+  color: #b42318;
+}

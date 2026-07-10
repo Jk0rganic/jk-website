@@ -39,6 +39,7 @@ const defaultValues: ProductFormValues = {
   stockQuantity: "",
   inStock: true,
   published: true,
+  featured: false,
   categoryIds: [],
   relatedProductIds: [],
   crossSellProductIds: [],
@@ -597,6 +598,15 @@ export default function ProductForm({
         </label>
         <p className={k.help}>
           Turn off to hide while you are still preparing the listing.
+        </p>
+
+        <label className={k.checkbox}>
+          <input type="checkbox" {...register("featured")} />
+          Feature this product in the site-wide spotlight popup
+        </label>
+        <p className={k.help}>
+          Featured products are shown to visitors alongside your real
+          bestsellers — use this to give a slow-moving product a boost.
         </p>
       </section>
 

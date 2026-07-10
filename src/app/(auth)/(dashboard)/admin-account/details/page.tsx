@@ -1,13 +1,21 @@
+import { getRoleLabel } from "@/lib/admin/roles";
+import { getSession } from "@/lib/auth/getSession";
 import { seoMeta } from "@/utils/seo/seoMeta";
-import DetailsPage from "../../(resources)/dashboard-comp/(pages-comp)/detailsPage/details-page";
-import { AdminCard } from "../components/ui/page-header";
+import ProfileDetailsPage from "./profile-details-page";
 
 export const metadata = seoMeta.accountDetails;
 
-export default function page() {
+export default async function Page() {
+  const session = await getSession();
+
   return (
-    <AdminCard title="Profile">
-      <DetailsPage />
-    </AdminCard>
+    <ProfileDetailsPage
+      user={{
+        name: session?.user.name || "Admin user",
+        email: session?.user.email || "admin@jkorganics.co.ke",
+        role: session?.user.role || "min_admin",
+        roleLabel: getRoleLabel(session?.user.role || "min_admin"),
+      }}
+    />
   );
 }

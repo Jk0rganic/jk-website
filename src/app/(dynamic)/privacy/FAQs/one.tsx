@@ -1,6 +1,6 @@
 "use client";
+import { useState } from "react";
 import Section from "@/comp/section/section";
-import React, { useState } from "react";
 import k from "./styles.module.scss";
 
 const faqs = [
@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     q: "What payment methods do you accept?",
-    a: "We accept M-Pesa and Cash on Delivery (selected locations).",
+    a: "We accept M-Pesa. Payment is required before your order is prepared.",
   },
   {
     q: "How can I contact customer support?",
@@ -63,9 +63,9 @@ const faqs = [
 ];
 
 export default function One() {
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const toggle = (index: any) => {
+  const toggle = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
 

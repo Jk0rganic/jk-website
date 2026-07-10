@@ -1,9 +1,13 @@
-import { requireSuperAdminSession } from "@/lib/admin/require-admin";
-import { mapAdminUser } from "@/lib/admin/admin-user-service";
-import { ADMIN_ROLE, SUPER_ADMIN_ROLE } from "@/lib/admin/roles";
-import prisma from "@/lib/prisma";
-import { createAdminSchema } from "@/lib/admin/admin-user-schema";
 import bcrypt from "bcryptjs";
+import { createAdminSchema } from "@/lib/admin/admin-user-schema";
+import { mapAdminUser } from "@/lib/admin/admin-user-service";
+import { requireSuperAdminSession } from "@/lib/admin/require-admin";
+import {
+  ADMIN_ROLE,
+  STORE_MANAGER_ROLE,
+  SUPER_ADMIN_ROLE,
+} from "@/lib/admin/roles";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
   const { error, status, session } = await requireSuperAdminSession();
@@ -15,17 +19,28 @@ export async function GET() {
   try {
     const [users, superAdminCount] = await Promise.all([
       prisma.user.findMany({
-        where: { role: { in: [ADMIN_ROLE, SUPER_ADMIN_ROLE] } },
+        where: {
+          role: { in: [ADMIN_ROLE, SUPER_ADMIN_ROLE, STORE_MANAGER_ROLE] },
+          deletedAt: null,
+        },
         select: {
           id: true,
           name: true,
           email: true,
           role: true,
           createdAt: true,
+          disabledAt: true,
+          deletedAt: true,
         },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.user.count({ where: { role: SUPER_ADMIN_ROLE } }),
+      prisma.user.count({
+        where: {
+          role: SUPER_ADMIN_ROLE,
+          disabledAt: null,
+          deletedAt: null,
+        },
+      }),
     ]);
 
     return Response.json({
@@ -70,7 +85,10 @@ export async function POST(request: Request) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      if (existingUser.role === ADMIN_ROLE || existingUser.role === SUPER_ADMIN_ROLE) {
+      if (
+        existingUser.role === ADMIN_ROLE ||
+        existingUser.role === SUPER_ADMIN_ROLE
+      ) {
         return Response.json(
           { error: "This email already belongs to an admin" },
           { status: 409 },
@@ -84,6 +102,8 @@ export async function POST(request: Request) {
           role: ADMIN_ROLE,
           password: await bcrypt.hash(password, 10),
           emailVerified: new Date(),
+          disabledAt: null,
+          deletedAt: null,
         },
         select: {
           id: true,
@@ -91,6 +111,8 @@ export async function POST(request: Request) {
           email: true,
           role: true,
           createdAt: true,
+          disabledAt: true,
+          deletedAt: true,
         },
       });
 
@@ -113,6 +135,8 @@ export async function POST(request: Request) {
         email: true,
         role: true,
         createdAt: true,
+        disabledAt: true,
+        deletedAt: true,
       },
     });
 

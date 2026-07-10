@@ -2,10 +2,13 @@ import type { LucideIcon } from "lucide-react";
 import {
   CreditCard,
   LayoutDashboard,
+  MapPinned,
   Package,
   Settings,
   ShoppingBag,
+  Star,
   Ticket,
+  UserRound,
   Users,
 } from "lucide-react";
 
@@ -34,7 +37,15 @@ export const adminNavGroups: AdminNavGroup[] = [
       { label: "Orders", href: "/admin-account/orders", icon: ShoppingBag },
       { label: "Products", href: "/admin-account/products", icon: Package },
       { label: "Coupons", href: "/admin-account/coupons", icon: Ticket },
+      { label: "Delivery", href: "/admin-account/delivery", icon: MapPinned },
       { label: "Payments", href: "/admin-account/payments", icon: CreditCard },
+      {
+        label: "Customers",
+        href: "/admin-account/customers",
+        icon: UserRound,
+        superAdminOnly: true,
+      },
+      { label: "Reviews", href: "/admin-account/reviews", icon: Star },
     ],
   },
   {
@@ -62,7 +73,10 @@ export const adminPageTitles: Record<string, string> = {
   "/admin-account/products/new": "Add product",
   "/admin-account/coupons": "Coupons",
   "/admin-account/coupons/new": "Create coupon",
+  "/admin-account/delivery": "Delivery rates",
   "/admin-account/payments": "Payments",
+  "/admin-account/customers": "Customers",
+  "/admin-account/reviews": "Reviews",
   "/admin-account/team": "Team",
   "/admin-account/details": "Profile",
 };

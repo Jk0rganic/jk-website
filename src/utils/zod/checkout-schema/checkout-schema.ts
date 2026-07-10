@@ -38,7 +38,7 @@ export const checkOutSchema = z
 
     useDifferentShipping: z.boolean().optional(),
     delivery_method: z.enum(["shipping", "pickup"]),
-    paymentMethod: z.enum(["pay_online", "pay_on_delivery"], {
+    paymentMethod: z.literal("pay_online", {
       error: "Please select a payment method",
     }),
     customer_note: z.string().trim().max(300).optional(),

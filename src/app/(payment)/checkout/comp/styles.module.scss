@@ -30,3 +30,23 @@
 .last_card {
   margin-bottom: 5px;
 }
+
+.order_note {
+  border: 1px dashed #d7e4db;
+  border-radius: 0.45rem;
+  background: #fbfdfb;
+  padding: 0.75rem 0.85rem;
+
+  summary {
+    cursor: pointer;
+    color: #26352a;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0.45rem 0 0.75rem;
+    color: #6b786e;
+    font-size: 0.82rem;
+  }
+}

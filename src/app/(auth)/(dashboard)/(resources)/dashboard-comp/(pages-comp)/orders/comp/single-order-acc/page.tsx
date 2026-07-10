@@ -1,20 +1,20 @@
-import k from "./styles.module.scss";
-import { formatPrice } from "@/utils/format-price";
-import { maskPhone, maskEmail } from "@/utils/mask";
 import OrderPaymentStatusPoller from "@/app/(payment)/payment/comp/order-payment-status-poller";
-import {
-  OrderPaidBanner,
-  PendingPaymentBanner,
-} from "../pending-payment/pending-payment";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
+import {
+  formatDeliveryTypeLabel,
+  getOrderDeliveryInfo,
+} from "@/lib/checkout/order-delivery-info";
+import { formatPrice } from "@/utils/format-price";
+import { maskEmail, maskPhone } from "@/utils/mask";
 import {
   OrderPaymentBadge,
   OrderStatusBadge,
 } from "../order-display/order-display";
 import {
-  formatDeliveryTypeLabel,
-  getOrderDeliveryInfo,
-} from "@/lib/checkout/order-delivery-info";
+  OrderPaidBanner,
+  PendingPaymentBanner,
+} from "../pending-payment/pending-payment";
+import k from "./styles.module.scss";
 
 export default function SingleOrderAccount({
   order,
@@ -67,6 +67,164 @@ export default function SingleOrderAccount({
   const shippingTotal = shippingLines?.total || 0;
   const shippingTitle = shippingLines?.method_title || "N/A";
   const subtotal = Number(total) - Number(shippingTotal);
+  const stageIndex =
+    status === "completed"
+      ? 4
+      : status === "processing"
+        ? 2
+        : status === "cancelled" || status === "refunded"
+          ? 1
+          : 1;
+  const isException = status === "cancelled" || status === "refunded";
+  const trackingHeadline =
+    status === "completed"
+      ? "Delivered"
+      : status === "cancelled"
+        ? "Order cancelled"
+        : status === "refunded"
+          ? "Order refunded"
+          : status === "processing"
+            ? "Being prepared"
+            : "Order placed";
+  const trackingSub =
+    status === "completed"
+      ? "Delivered — we hope you enjoy your order!"
+      : status === "cancelled"
+        ? "This order will not be delivered."
+        : status === "refunded"
+          ? "This order has been refunded to your original payment method."
+          : status === "processing"
+            ? "Your items are being picked and packed at our warehouse."
+            : "We've received your order and it's queued for packing.";
+  const trackingStages = [
+    "Placed",
+    "Processing",
+    "Out for delivery",
+    "Delivered",
+  ];
+
+  if (!isAdmin) {
+    return (
+      <div className={`${k.order_details} ${k.tracking_page}`}>
+        <OrderPaymentStatusPoller
+          orderId={order.id}
+          orderStatus={status}
+          paymentMethodTitle={payment_method_title}
+        />
+
+        <section className={k.tracking_hero}>
+          <span className={k.order_kicker}>Order #{order.id}</span>
+          <h1>{trackingHeadline}</h1>
+          <p>{trackingSub}</p>
+
+          {display.awaitingPayment ? (
+            <PendingPaymentBanner
+              orderId={order.id}
+              total={total}
+              currency={currency}
+            />
+          ) : null}
+
+          {display.isPaidOnline && status === "processing" ? (
+            <OrderPaidBanner />
+          ) : null}
+
+          <ol className={k.stage_tracker} aria-label="Order progress">
+            {trackingStages.map((label, index) => {
+              const currentIndex = index + 1;
+              const isDone = !isException && currentIndex < stageIndex;
+              const isCurrent = !isException && currentIndex === stageIndex;
+
+              return (
+                <li
+                  className={isDone || isCurrent ? k.stage_active : undefined}
+                  key={label}
+                >
+                  <span>{isDone ? "Done" : currentIndex}</span>
+                  <strong>{label}</strong>
+                  <small>
+                    {currentIndex === 1
+                      ? orderDate
+                      : currentIndex <= stageIndex && !isException
+                        ? "Updated"
+                        : "—"}
+                  </small>
+                </li>
+              );
+            })}
+          </ol>
+
+          {isException ? (
+            <div className={k.exception_notice}>
+              {status === "cancelled"
+                ? "This order was cancelled. Refunds, where applicable, are processed within 3-5 business days."
+                : "This order was refunded to the original payment method."}
+            </div>
+          ) : null}
+        </section>
+
+        <section className={k.tracking_grid}>
+          <div className={k.tracking_card}>
+            <h2>Updates sent to you</h2>
+            <div className={k.timeline_list}>
+              <article>
+                <span>1</span>
+                <div>
+                  <h3>Order confirmed</h3>
+                  <p>
+                    We've received order #{order.id} for {formatPrice(total)}.
+                  </p>
+                  <small>SMS + Email · {orderDate}</small>
+                </div>
+              </article>
+              {stageIndex >= 2 && !isException ? (
+                <article>
+                  <span>2</span>
+                  <div>
+                    <h3>Preparing your order</h3>
+                    <p>Your items are being picked and packed.</p>
+                    <small>SMS · Updated</small>
+                  </div>
+                </article>
+              ) : null}
+              {stageIndex >= 3 && !isException ? (
+                <article>
+                  <span>3</span>
+                  <div>
+                    <h3>Out for delivery</h3>
+                    <p>Your delivery is on the way.</p>
+                    <small>SMS + Email · Updated</small>
+                  </div>
+                </article>
+              ) : null}
+            </div>
+          </div>
+
+          <aside className={k.tracking_card}>
+            <h2>Order summary</h2>
+            <ul className={k.tracking_items}>
+              {line_items.map((item) => (
+                <li key={item.id ?? item.product_id}>
+                  <span>
+                    {item.name} · Qty {item.quantity}
+                  </span>
+                  <strong>{formatPrice(item.total)}</strong>
+                </li>
+              ))}
+              <li>
+                <span>Delivery</span>
+                <strong>{formatPrice(shippingTotal)}</strong>
+              </li>
+              <li className={k.tracking_total}>
+                <span>Total</span>
+                <strong>{formatPrice(total)}</strong>
+              </li>
+            </ul>
+          </aside>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className={k.order_details}>
@@ -288,7 +446,9 @@ export default function SingleOrderAccount({
               </>
             ) : null}
             <br />
-            {isAdmin ? shipping.phone : maskPhone(shipping.phone || billing.phone)}
+            {isAdmin
+              ? shipping.phone
+              : maskPhone(shipping.phone || billing.phone)}
           </p>
         </>
       )}

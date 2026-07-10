@@ -57,10 +57,40 @@ export type TopProductSummary = {
   name: string;
   quantity: number;
   revenue: number;
+  image?: {
+    src: string;
+    alt?: string;
+  };
 };
+
+type ProductImageLike =
+  | string
+  | {
+      src?: string | null;
+      alt?: string | null;
+      name?: string | null;
+    }
+  | null
+  | undefined;
 
 function parseOrderTotal(total: string | number): number {
   return Number(total || 0);
+}
+
+function normalizeProductImage(image: ProductImageLike, name: string) {
+  if (!image) return undefined;
+
+  if (typeof image === "string") {
+    return image.trim() ? { src: image, alt: name } : undefined;
+  }
+
+  const src = image.src?.trim();
+  if (!src) return undefined;
+
+  return {
+    src,
+    alt: image.alt?.trim() || image.name?.trim() || name,
+  };
 }
 
 export function computeOrderStatusSummary<T extends { status: string }>(
@@ -132,7 +162,12 @@ export function computePaymentMethodSummary<
 
 export function computeTopProducts<
   T extends {
-    line_items?: Array<{ name?: string; quantity?: number; total?: string }>;
+    line_items?: Array<{
+      name?: string;
+      quantity?: number;
+      total?: string;
+      image?: ProductImageLike;
+    }>;
   },
 >(orders: T[], limit: number): TopProductSummary[] {
   const products = new Map<string, TopProductSummary>();
@@ -145,6 +180,7 @@ export function computeTopProducts<
       const current = products.get(name) ?? { name, quantity: 0, revenue: 0 };
       current.quantity += item.quantity || 0;
       current.revenue += parseOrderTotal(item.total || 0);
+      current.image ??= normalizeProductImage(item.image, name);
       products.set(name, current);
     }
   }

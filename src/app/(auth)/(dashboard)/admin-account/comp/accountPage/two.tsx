@@ -1,31 +1,35 @@
 "use client";
 
-import { formatPrice } from "@/utils/format-price";
-import k from "./styles.module.scss";
 import { useMemo, useState } from "react";
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
 import {
   computeMonthlyChartData,
   computeYearOverYearGrowth,
   getOrderYears,
 } from "@/lib/admin/admin-stats";
+import { formatPrice } from "@/utils/format-price";
+import k from "./styles.module.scss";
 
 interface Props {
   orders: DashboardOrder[];
+  height?: number;
 }
 
 type HoverKey = "revenue" | "orders" | null;
+type LegendEntry = {
+  dataKey?: string | number;
+};
 
-export default function OrdersChart({ orders = [] }: Props) {
+export default function OrdersChart({ orders = [], height = 320 }: Props) {
   const [hoveringKey, setHoveringKey] = useState<HoverKey>(null);
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
@@ -35,21 +39,6 @@ export default function OrdersChart({ orders = [] }: Props) {
     () => getOrderYears(orders, new Date().getFullYear()),
     [orders],
   );
-
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
 
   const data = useMemo(
     () => computeMonthlyChartData(orders, selectedYear),
@@ -89,8 +78,8 @@ export default function OrdersChart({ orders = [] }: Props) {
       </div>
 
       {/* CHART */}
-      <div style={{ width: "100%", height: 400 }}>
-        <ResponsiveContainer>
+      <div style={{ width: "100%", minWidth: 0, height }}>
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
 
@@ -100,7 +89,13 @@ export default function OrdersChart({ orders = [] }: Props) {
             <Tooltip labelFormatter={(month) => month} />
 
             <Legend
-              onMouseEnter={(e: any) => setHoveringKey(e.dataKey)}
+              onMouseEnter={(entry: LegendEntry) => {
+                setHoveringKey(
+                  entry.dataKey === "revenue" || entry.dataKey === "orders"
+                    ? entry.dataKey
+                    : null,
+                );
+              }}
               onMouseLeave={() => setHoveringKey(null)}
             />
 
