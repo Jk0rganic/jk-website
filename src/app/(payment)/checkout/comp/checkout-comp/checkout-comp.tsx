@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ShoppingCartIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   type SubmitErrorHandler,
   type SubmitHandler,
@@ -142,11 +142,14 @@ export default function CheckOutComp() {
     error?: Error | null;
   };
 
-  const wooShippingZones =
-    data?.shippingZones?.map((zone) => ({
-      zone: zone.name,
-      fee_ksh: Number(zone.shippingMethods[0]?.cost ?? 0) || 0,
-    })) || [];
+  const wooShippingZones = useMemo(
+    () =>
+      data?.shippingZones?.map((zone) => ({
+        zone: zone.name,
+        fee_ksh: Number(zone.shippingMethods[0]?.cost ?? 0) || 0,
+      })) || [],
+    [data?.shippingZones],
+  );
 
   useEffect(() => {
     let cancelled = false;
