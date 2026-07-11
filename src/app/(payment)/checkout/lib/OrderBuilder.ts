@@ -1,7 +1,3 @@
-import {
-  findParcelOffice,
-  getParcelTownsForCounty,
-} from "@/data/kenya-delivery";
 import type { CheckOutSchemaType } from "@/utils/zod/checkout-schema/checkout-schema";
 import { getZoneNameForSubtype } from "./delivery-zones";
 
@@ -21,20 +17,6 @@ const PICKUP_POINT_DETAILS = {
   address:
     "Stanbank House, Moi Avenue, Next to Archives, 6th Floor, Shop B613, Nairobi",
 };
-
-function resolveParcelOffice(county: string, officeId?: string) {
-  if (officeId) {
-    return findParcelOffice(county, officeId);
-  }
-
-  const towns = getParcelTownsForCounty(county);
-  if (towns.length !== 1 || towns[0].offices.length !== 1) return undefined;
-
-  return {
-    town: towns[0].name,
-    office: towns[0].offices[0],
-  };
-}
 
 export const buildOrderPayload = ({
   data,
@@ -72,7 +54,7 @@ export const buildOrderPayload = ({
     first_name: data.billing_first_name,
     last_name: data.billing_last_name,
     address_1: data.billing_address_1 || "",
-    city: data.billing_city,
+    city: data.billing_city || data.parcel_town || data.county || "",
     postcode: data.billing_postcode || "",
     phone: data.billing_phone,
     email: data.email,
@@ -89,16 +71,14 @@ export const buildOrderPayload = ({
     const methodTitle = shippingMethodTitle ?? getZoneNameForSubtype(subtype);
 
     if (subtype === "parcel_office" && data.county) {
-      const parcel = resolveParcelOffice(data.county, data.parcel_office_id);
-      const office = parcel?.office;
+      const destinationTown =
+        data.parcel_town?.trim() || data.billing_city || data.county;
 
       shipping = {
         first_name: data.billing_first_name,
         last_name: data.billing_last_name,
-        address_1: office
-          ? `${office.name} – ${office.address}`
-          : data.billing_address_1 || "",
-        city: data.parcel_town || parcel?.town || data.billing_city,
+        address_1: `Customer will collect at ${destinationTown}`,
+        city: destinationTown,
         postcode: data.billing_postcode || "",
         phone: data.billing_phone,
         country: "KE",
@@ -108,19 +88,10 @@ export const buildOrderPayload = ({
       deliveryMeta.push(
         { key: "_delivery_type", value: "parcel_office" },
         { key: "_county", value: data.county },
-        { key: "_parcel_town", value: data.parcel_town || parcel?.town || "" },
-        {
-          key: "_parcel_office_id",
-          value: data.parcel_office_id || office?.id || "",
-        },
-        {
-          key: "_parcel_office_name",
-          value: office?.name || "",
-        },
-        {
-          key: "_parcel_office_address",
-          value: office?.address || "",
-        },
+        { key: "_nearest_town_center", value: destinationTown },
+        { key: "_parcel_town", value: destinationTown },
+        { key: "_pickup_stage", value: destinationTown },
+        { key: "_carrier_assignment", value: "pending_admin_assignment" },
       );
     } else {
       shipping = data.useDifferentShipping

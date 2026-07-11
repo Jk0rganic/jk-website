@@ -59,6 +59,30 @@
   .delivery {
     .choice_grid {
       grid-template-columns: 1fr;
+      gap: 0.55rem;
+    }
+
+    .choice_card {
+      grid-template-columns: auto 1fr;
+      gap: 0.6rem;
+      padding: 0.75rem;
+
+      input {
+        grid-row: 1 / span 2;
+      }
+    }
+
+    .icon {
+      display: none;
+    }
+
+    .title {
+      font-size: 0.92rem;
+    }
+
+    .description {
+      font-size: 0.78rem;
+      line-height: 1.3;
     }
   }
 }

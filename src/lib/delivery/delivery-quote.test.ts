@@ -55,7 +55,7 @@ describe("resolveDeliveryQuote", () => {
     });
   });
 
-  it("quotes metro doorstep delivery for Kiambu, Kajiado, and Machakos with a KES 5000 free threshold", () => {
+  it("quotes metro town/stage pickup for Kiambu, Kajiado, and Machakos with a KES 5000 free threshold", () => {
     for (const county of ["Kiambu", "Kajiado", "Machakos"]) {
       expect(
         resolveDeliveryQuote({
@@ -64,10 +64,10 @@ describe("resolveDeliveryQuote", () => {
           cartSubtotal: 4500,
         }),
       ).toMatchObject({
-        code: "metro-doorstep",
-        label: "Metro doorstep delivery",
+        code: "metro-stage-pickup",
+        label: "Metro town/stage pickup",
         fee: 400,
-        fulfillmentType: "doorstep",
+        fulfillmentType: "stage",
         freeDeliveryApplied: false,
         freeDeliveryRemaining: 500,
       });
@@ -79,7 +79,7 @@ describe("resolveDeliveryQuote", () => {
           cartSubtotal: 5000,
         }),
       ).toMatchObject({
-        code: "metro-doorstep",
+        code: "metro-stage-pickup",
         fee: 0,
         originalFee: 400,
         freeDeliveryApplied: true,
@@ -88,7 +88,7 @@ describe("resolveDeliveryQuote", () => {
     }
   });
 
-  it("quotes major town courier office delivery for Mombasa, Kisumu, Nakuru, and Uasin Gishu", () => {
+  it("quotes major town/stage pickup for Mombasa, Kisumu, Nakuru, and Uasin Gishu", () => {
     for (const county of ["Mombasa", "Kisumu", "Nakuru", "Uasin Gishu"]) {
       expect(
         resolveDeliveryQuote({
@@ -98,9 +98,9 @@ describe("resolveDeliveryQuote", () => {
         }),
       ).toMatchObject({
         code: "major-town-courier-office",
-        label: "Major town courier office",
+        label: "Major town/stage pickup",
         fee: 450,
-        fulfillmentType: "courier-office",
+        fulfillmentType: "stage",
         freeDeliveryApplied: false,
         freeDeliveryRemaining: 2500,
       });
@@ -116,7 +116,7 @@ describe("resolveDeliveryQuote", () => {
       }),
     ).toMatchObject({
       code: "standard-upcountry-stage",
-      label: "Standard upcountry stage delivery",
+      label: "Standard upcountry town/stage pickup",
       fee: 550,
       fulfillmentType: "stage",
       freeDeliveryApplied: false,
@@ -132,7 +132,7 @@ describe("resolveDeliveryQuote", () => {
         }),
       ).toMatchObject({
         code: "remote-stage",
-        label: "Remote stage delivery",
+        label: "Remote town/stage pickup",
         fee: 750,
         fulfillmentType: "stage",
         freeDeliveryApplied: false,
@@ -193,6 +193,34 @@ describe("resolveDeliveryQuote", () => {
       fulfillmentType: "doorstep",
       freeDeliveryApplied: false,
       freeDeliveryRemaining: 500,
+    });
+  });
+
+  it("does not expose old non-Nairobi doorstep admin labels to customers", () => {
+    const quote = resolveDeliveryQuote(
+      {
+        deliveryMethod: "shipping",
+        county: "Kiambu",
+        cartSubtotal: 1000,
+      },
+      [
+        {
+          code: "legacy-metro-doorstep",
+          label: "Metro doorstep delivery",
+          counties: ["Kiambu"],
+          fee: 400,
+          eta: "1 to 2 business days",
+          fulfillmentType: "doorstep",
+          active: true,
+        },
+      ],
+    );
+
+    expect(quote).toMatchObject({
+      code: "legacy-metro-doorstep",
+      label: "Metro town/stage pickup",
+      fulfillmentType: "stage",
+      fee: 400,
     });
   });
 });

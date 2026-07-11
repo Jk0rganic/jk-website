@@ -24,13 +24,60 @@ describe("checkOutSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts counties with a single fallback parcel office without forcing hidden fields", () => {
+  it("requires the nearest town or centre for upcountry delivery", () => {
     const result = checkOutSchema.safeParse({
       ...baseCheckout,
       county: "Bomet",
       delivery_subtype: "parcel_office",
     });
 
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects shipping when the county is not from the list", () => {
+    const result = checkOutSchema.safeParse({
+      ...baseCheckout,
+      county: "Not A County",
+      delivery_subtype: "parcel_office",
+      parcel_town: "Not A County Town",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts upcountry delivery when the customer provides the nearest town or centre", () => {
+    const result = checkOutSchema.safeParse({
+      ...baseCheckout,
+      county: "Kiambu",
+      billing_city: "",
+      delivery_subtype: "parcel_office",
+      parcel_town: "Kimende",
+    });
+
     expect(result.success).toBe(true);
+  });
+
+  it("rejects upcountry delivery when the town or centre is not from the county list", () => {
+    const result = checkOutSchema.safeParse({
+      ...baseCheckout,
+      county: "Kiambu",
+      billing_city: "",
+      delivery_subtype: "parcel_office",
+      parcel_town: "Unknown Village",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("still requires street and estate details for Nairobi door delivery", () => {
+    const result = checkOutSchema.safeParse({
+      ...baseCheckout,
+      county: "Nairobi",
+      billing_address_1: "",
+      billing_city: "",
+      delivery_subtype: "door_to_door",
+    });
+
+    expect(result.success).toBe(false);
   });
 });

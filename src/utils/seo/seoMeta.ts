@@ -64,6 +64,15 @@ export const seoMeta = {
     robots: "noindex, nofollow",
   }),
 
+  adminDashboard: siteMetadata({
+    title: "Admin Dashboard",
+    description:
+      "Manage JK Organics orders, products, payments, and operations.",
+    url: "/admin-account",
+    keywords: "JK Organics admin dashboard",
+    robots: "noindex, nofollow",
+  }),
+
   signup: siteMetadata({
     title: "Sign Up",
     description:

@@ -1,12 +1,17 @@
 import { z } from "zod";
 import {
-  findParcelOffice,
-  getParcelTownsForCounty,
+  getParcelTownNamesForCounty,
   isDoorToDoorCounty,
+  KENYA_COUNTIES,
 } from "@/data/kenya-delivery";
 
 const requiredString = (msg: string) => z.string().min(1, msg);
 const optionalString = z.string().optional();
+
+function matchOption(value: string, options: readonly string[]) {
+  const normalized = value.trim().toLowerCase();
+  return options.find((option) => option.toLowerCase() === normalized);
+}
 
 export const checkOutSchema = z
   .object({
@@ -24,7 +29,7 @@ export const checkOutSchema = z
     billing_first_name: requiredString("First name is required"),
     billing_last_name: requiredString("Last name is required"),
     billing_address_1: optionalString,
-    billing_city: requiredString("Town / City is required"),
+    billing_city: optionalString,
     billing_postcode: optionalString,
     billing_phone: requiredString("Phone Number is required"),
 
@@ -72,6 +77,13 @@ export const checkOutSchema = z
           path: ["pickupPoint"],
         });
       }
+      if (!data.billing_city?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Town / City is required",
+          path: ["billing_city"],
+        });
+      }
       return;
     }
 
@@ -86,7 +98,18 @@ export const checkOutSchema = z
       return;
     }
 
-    if (isDoorToDoorCounty(data.county)) {
+    const matchedCounty = matchOption(data.county, KENYA_COUNTIES);
+
+    if (!matchedCounty) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please select a county from the list",
+        path: ["county"],
+      });
+      return;
+    }
+
+    if (isDoorToDoorCounty(matchedCounty)) {
       if (!data.billing_address_1?.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -94,37 +117,30 @@ export const checkOutSchema = z
           path: ["billing_address_1"],
         });
       }
-    } else {
-      const parcelTowns = getParcelTownsForCounty(data.county);
-      const canUseDefaultParcelOffice =
-        parcelTowns.length === 1 && parcelTowns[0].offices.length === 1;
-
-      if (!data.parcel_town?.trim()) {
-        if (!canUseDefaultParcelOffice) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Please select your town / stage area",
-            path: ["parcel_town"],
-          });
-        }
+      if (!data.billing_city?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Area / estate is required for door-to-door delivery",
+          path: ["billing_city"],
+        });
       }
-      if (!data.parcel_office_id?.trim()) {
-        if (!canUseDefaultParcelOffice) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Please select a parcel office",
-            path: ["parcel_office_id"],
-          });
-        }
+    } else {
+      if (!data.parcel_town?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please select the nearest town/centre for pickup",
+          path: ["parcel_town"],
+        });
       } else if (
-        data.county &&
-        data.parcel_office_id &&
-        !findParcelOffice(data.county, data.parcel_office_id)
+        !matchOption(
+          data.parcel_town,
+          getParcelTownNamesForCounty(matchedCounty),
+        )
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Please select a valid parcel office",
-          path: ["parcel_office_id"],
+          message: "Please select a town/centre from the list",
+          path: ["parcel_town"],
         });
       }
     }

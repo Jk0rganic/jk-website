@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Section from "@/comp/section/section";
+import { isAdminRole } from "@/lib/admin/roles";
 import { getSession } from "@/lib/auth/getSession";
 import { fetchWoo } from "@/lib/fetch/fetchRest";
 import AccountSidebar from "../(resources)/dashboard-comp/account-sidebar/account-sidebar";
@@ -15,10 +16,7 @@ export default async function AccountLayout({
 
   if (!session) {
     redirect("/auth/signin");
-  } else if (
-    session.user.role === "min_admin" ||
-    session.user.role === "super_admin"
-  ) {
+  } else if (isAdminRole(session.user.role)) {
     redirect("/admin-account");
   } else if (session.user.role !== "user") {
     redirect("/");

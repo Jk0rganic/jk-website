@@ -24,9 +24,10 @@ export default function DeliveryMethodSelector({ register }: Props) {
             <Home size={size} />
           </span>
           <span className={k.copy}>
-            <span className={k.title}>Home delivery</span>
+            <span className={k.title}>Delivery</span>
             <span className={k.description}>
-              Nairobi door delivery and county parcel delivery where available.
+              Nairobi door delivery, or upcountry town/stage pickup. We choose
+              the delivery partner.
             </span>
           </span>
         </label>
@@ -37,9 +38,9 @@ export default function DeliveryMethodSelector({ register }: Props) {
             <MapPin size={size} />
           </span>
           <span className={k.copy}>
-            <span className={k.title}>Pickup point</span>
+            <span className={k.title}>Pick up from JK Organics</span>
             <span className={k.description}>
-              Any stage or bus station that is convenient for you.
+              Collect from our Nairobi CBD shop. Free and ready within 24 hours.
             </span>
           </span>
         </label>

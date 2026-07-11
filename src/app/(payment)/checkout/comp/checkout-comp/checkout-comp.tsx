@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useApolloFetcher } from "@/apollo/useApolloFetcher";
 import { FormInput } from "@/comp/form/formInput/formInput";
 import Section from "@/comp/section/section";
+import { KENYA_COUNTIES } from "@/data/kenya-delivery";
 import {
   type CheckoutCoupon,
   calculateCouponDiscount,
@@ -60,6 +61,12 @@ type CheckoutDeliveryQuote = {
   freeDeliveryRemaining: number;
   available: boolean;
 };
+
+function matchCounty(value?: string) {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) return undefined;
+  return KENYA_COUNTIES.find((county) => county.toLowerCase() === normalized);
+}
 
 async function fetchIsLoggedIn(): Promise<boolean> {
   try {
@@ -125,6 +132,8 @@ export default function CheckOutComp() {
 
   const deliveryMethod = watch("delivery_method");
   const selectedCounty = watch("county");
+  const matchedSelectedCounty = matchCounty(selectedCounty);
+  const hasValidSelectedCounty = Boolean(matchedSelectedCounty);
   const deliverySubtype = watch("delivery_subtype");
 
   const { data, loading, error } = useApolloFetcher(GET_SHIPPING_ZONES) as {
@@ -142,7 +151,7 @@ export default function CheckOutComp() {
   useEffect(() => {
     let cancelled = false;
 
-    if (deliveryMethod === "shipping" && !selectedCounty) {
+    if (deliveryMethod === "shipping" && !hasValidSelectedCounty) {
       setDeliveryQuote(null);
       return;
     }
@@ -152,7 +161,7 @@ export default function CheckOutComp() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         deliveryMethod,
-        county: selectedCounty,
+        county: matchedSelectedCounty,
         cartSubtotal: totalPrice,
       }),
     })
@@ -168,7 +177,7 @@ export default function CheckOutComp() {
     return () => {
       cancelled = true;
     };
-  }, [deliveryMethod, selectedCounty, totalPrice]);
+  }, [deliveryMethod, hasValidSelectedCounty, matchedSelectedCounty, totalPrice]);
 
   const shippingCost =
     deliveryMethod === "shipping" && deliveryQuote?.available
@@ -185,7 +194,11 @@ export default function CheckOutComp() {
   const stepTwoDescription =
     deliveryMethod === "pickup"
       ? "Choose the most convenient pickup location."
-      : "Where should we deliver your order?";
+      : !hasValidSelectedCounty
+        ? "Select your county first so we can show the right delivery fields."
+      : deliverySubtype === "parcel_office"
+        ? "Select the nearest town or centre where you can collect your order."
+        : "Where should we deliver your order?";
 
   const goBack = () => {
     setCheckoutStep((step) => (step === 1 ? step : ((step - 1) as 1 | 2 | 3)));
@@ -203,7 +216,11 @@ export default function CheckOutComp() {
           ]
         : deliveryMethod === "pickup"
           ? ["pickupPoint", "billing_city"]
-          : ["county", "billing_city", "billing_address_1"];
+          : [
+              "county",
+              "billing_address_1",
+              "parcel_town",
+            ];
 
     const isStepValid = await trigger(stepFields);
     if (!isStepValid) {
@@ -433,8 +450,21 @@ export default function CheckOutComp() {
                 />
               )}
 
-              <div className={k.field_grid}>
-                {deliveryMethod === "shipping" ? (
+              {deliveryMethod === "pickup" ? (
+                <div className={k.field_grid}>
+                  <FormInput
+                    type="text"
+                    name="billing_city"
+                    register={register}
+                    errors={errors}
+                    placeholder="Your town / city *"
+                  />
+                </div>
+              ) : null}
+
+              {deliveryMethod === "shipping" &&
+              deliverySubtype === "door_to_door" ? (
+                <div className={k.field_grid}>
                   <FormInput
                     type="text"
                     name="billing_address_1"
@@ -442,19 +472,15 @@ export default function CheckOutComp() {
                     errors={errors}
                     placeholder="Street, building, house/apartment no."
                   />
-                ) : null}
-                <FormInput
-                  type="text"
-                  name="billing_city"
-                  register={register}
-                  errors={errors}
-                  placeholder={
-                    deliveryMethod === "pickup"
-                      ? "Your town / city *"
-                      : "Area / estate *"
-                  }
-                />
-              </div>
+                  <FormInput
+                    type="text"
+                    name="billing_city"
+                    register={register}
+                    errors={errors}
+                    placeholder="Area / estate *"
+                  />
+                </div>
+              ) : null}
 
               {deliveryMethod === "shipping" &&
               deliverySubtype === "door_to_door" ? (
@@ -511,7 +537,11 @@ export default function CheckOutComp() {
           </div>
         </div>
 
-        <div className={k.Check_out_form_right}>
+        <div
+          className={`${k.Check_out_form_right} ${
+            checkoutStep === 3 ? k.show_mobile_summary : ""
+          }`}
+        >
           <CartSummarySection
             cartDetails={cartDetails}
             deliveryMethod={deliveryMethod}

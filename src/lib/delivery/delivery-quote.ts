@@ -53,26 +53,26 @@ export const DEFAULT_DELIVERY_RATES: DeliveryDefaultRate[] = [
     freeAbove: 4000,
   },
   {
-    code: "metro-doorstep",
-    label: "Metro doorstep delivery",
+    code: "metro-stage-pickup",
+    label: "Metro town/stage pickup",
     fee: 400,
     eta: "1 to 2 business days",
-    fulfillmentType: "doorstep",
+    fulfillmentType: "stage",
     counties: METRO_COUNTIES,
     freeAbove: 5000,
   },
   {
     code: "major-town-courier-office",
-    label: "Major town courier office",
+    label: "Major town/stage pickup",
     fee: 450,
     eta: "2 to 3 business days",
-    fulfillmentType: "courier-office",
+    fulfillmentType: "stage",
     counties: MAJOR_TOWN_COUNTIES,
     freeAbove: 5000,
   },
   {
     code: "remote-stage",
-    label: "Remote stage delivery",
+    label: "Remote town/stage pickup",
     fee: 750,
     eta: "4 to 6 business days",
     fulfillmentType: "stage",
@@ -80,7 +80,7 @@ export const DEFAULT_DELIVERY_RATES: DeliveryDefaultRate[] = [
   },
   {
     code: "standard-upcountry-stage",
-    label: "Standard upcountry stage delivery",
+    label: "Standard upcountry town/stage pickup",
     fee: 550,
     eta: "3 to 5 business days",
     fulfillmentType: "stage",
@@ -120,29 +120,53 @@ export function resolveDeliveryQuote(
     throw new Error("Missing standard delivery rate");
   }
 
-  return applyFreeDelivery(rate, input.cartSubtotal);
+  return applyFreeDelivery(rate, input.cartSubtotal, input.county);
 }
 
 function applyFreeDelivery(
   rate: DeliveryDefaultRate | DeliveryAdminRate,
   cartSubtotal: number,
+  county?: string,
 ): DeliveryQuote {
+  const normalizedRate = normalizeCustomerFacingRate(rate, county);
   const freeDeliveryApplied =
-    typeof rate.freeAbove === "number" && cartSubtotal >= rate.freeAbove;
+    typeof normalizedRate.freeAbove === "number" &&
+    cartSubtotal >= normalizedRate.freeAbove;
   const freeDeliveryRemaining =
-    typeof rate.freeAbove === "number"
-      ? Math.max(0, rate.freeAbove - cartSubtotal)
+    typeof normalizedRate.freeAbove === "number"
+      ? Math.max(0, normalizedRate.freeAbove - cartSubtotal)
       : 0;
 
   return {
-    code: rate.code,
-    label: rate.label,
-    fee: freeDeliveryApplied ? 0 : rate.fee,
-    ...(freeDeliveryApplied && rate.fee > 0 ? { originalFee: rate.fee } : {}),
-    eta: rate.eta,
-    fulfillmentType: rate.fulfillmentType,
+    code: normalizedRate.code,
+    label: normalizedRate.label,
+    fee: freeDeliveryApplied ? 0 : normalizedRate.fee,
+    ...(freeDeliveryApplied && normalizedRate.fee > 0
+      ? { originalFee: normalizedRate.fee }
+      : {}),
+    eta: normalizedRate.eta,
+    fulfillmentType: normalizedRate.fulfillmentType,
     freeDeliveryApplied,
     freeDeliveryRemaining,
+  };
+}
+
+function normalizeCustomerFacingRate(
+  rate: DeliveryDefaultRate | DeliveryAdminRate,
+  county?: string,
+): DeliveryDefaultRate | DeliveryAdminRate {
+  if (!county || normalizeCounty(county) === "nairobi") {
+    return rate;
+  }
+
+  if (rate.fulfillmentType !== "doorstep" && !/doorstep/i.test(rate.label)) {
+    return rate;
+  }
+
+  return {
+    ...rate,
+    label: rate.label.replace(/doorstep delivery/gi, "town/stage pickup"),
+    fulfillmentType: "stage",
   };
 }
 

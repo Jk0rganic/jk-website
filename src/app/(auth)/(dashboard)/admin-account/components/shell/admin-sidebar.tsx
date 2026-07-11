@@ -7,7 +7,6 @@ import { useState } from "react";
 import { logoutTo } from "@/app/(auth)/auth/signup/comp/social_login/action";
 import { getRoleLabel } from "@/lib/admin/roles";
 import { ADMIN_SIGN_IN_PATH } from "@/lib/auth/admin-login";
-import { BRAND_LOGO_URL } from "@/lib/brand";
 import { adminNavGroups } from "./admin-nav";
 import k from "./admin-sidebar.module.scss";
 
@@ -81,15 +80,11 @@ export default function AdminSidebar({
   const renderSidebarContent = () => (
     <>
       <Link href="/admin-account" className={k.brand} onClick={onClose}>
-        <Image
-          src={BRAND_LOGO_URL}
-          alt="JK Organics"
-          width={168}
-          height={46}
-          className={k.brandLogo}
-          priority
-        />
-        <span className={k.adminBadge}>Admin</span>
+        <span className={k.logoMark}>JK</span>
+        <span className={k.brandText}>
+          <strong>JK Organics</strong>
+          <small>Admin console</small>
+        </span>
       </Link>
 
       <nav className={k.nav} aria-label="Admin workflows">
@@ -114,7 +109,8 @@ export default function AdminSidebar({
                     onClick={onClose}
                   >
                     <Icon size={18} strokeWidth={2} />
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.href === "/admin-account/orders" && <em>12</em>}
                   </Link>
                 );
               })}

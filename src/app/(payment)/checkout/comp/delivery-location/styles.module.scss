@@ -14,9 +14,16 @@
     display: block;
     margin-bottom: 0.4rem;
     font-size: 0.95rem;
+
+    span {
+      color: rgba(0, 0, 0, 0.55);
+      font-size: 0.85rem;
+    }
   }
 
-  select {
+  select,
+  input,
+  textarea {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid rgba(0, 0, 0, 0.15);
@@ -25,8 +32,31 @@
     background: #fff;
   }
 
+  textarea {
+    min-height: 92px;
+    resize: vertical;
+  }
+
+  .help {
+    display: block;
+    margin-top: 0.35rem;
+    color: rgba(0, 0, 0, 0.58);
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
   .select_error {
     border-color: #c0392b;
+  }
+
+  .disabled_field {
+    opacity: 0.72;
+
+    input {
+      background: #f7f7f5;
+      color: rgba(0, 0, 0, 0.56);
+      cursor: not-allowed;
+    }
   }
 
   .error {
@@ -60,6 +90,54 @@
 
     strong {
       font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .delivery_location {
+    margin-bottom: 0;
+
+    h5 {
+      margin-bottom: 0.65rem;
+      font-size: 1.05rem;
+    }
+
+    .field {
+      margin-bottom: 0.7rem;
+    }
+
+    label {
+      margin-bottom: 0.3rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    select,
+    input,
+    textarea {
+      min-height: 44px;
+      padding: 0.62rem 0.7rem;
+      font-size: 0.92rem;
+    }
+
+    .notice {
+      padding: 0.7rem 0.8rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.82rem;
+      line-height: 1.35;
+
+      p {
+        margin: 0.25rem 0 0;
+      }
+    }
+
+    .help {
+      font-size: 0.76rem;
+    }
+
+    .fee {
+      font-size: 0.82rem;
     }
   }
 }

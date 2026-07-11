@@ -1,23 +1,25 @@
 .shell {
-  --admin-sidebar-w: 264px;
+  --admin-sidebar-w: 198px;
   --admin-topbar-h: 64px;
-  --admin-bg: #f3f8fb;
-  --admin-surface: #ffffff;
-  --admin-border: #dce8ee;
-  --admin-ink: #15211a;
-  --admin-muted: #667482;
-  --admin-sidebar: #171c24;
+  --admin-accent: var(--brand-green);
+  --admin-accent-dark: var(--brand-green-mid);
+  --admin-accent-soft: var(--brand-green-soft);
+  --admin-bg: var(--brand-cream);
+  --admin-surface: var(--brand-white);
+  --admin-border: rgba(28, 28, 28, 0.1);
+  --admin-ink: var(--brand-black);
+  --admin-text: var(--brand-black);
+  --admin-muted: #666666;
+  --admin-sidebar: var(--brand-green-dark);
   --admin-sidebar-hover: rgba(255, 255, 255, 0.08);
-  --admin-accent: #22984f;
-  --admin-accent-soft: #e7f6ed;
   --admin-info: #22a9e8;
   --admin-chart-blue: #2f54d8;
   --admin-chart-cyan: #55c7ee;
   --admin-warning: #b7791f;
   --admin-danger: #c2413f;
-  --admin-radius: 8px;
-  --admin-radius-sm: 6px;
-  --admin-shadow: 0 16px 40px rgba(21, 33, 26, 0.07);
+  --admin-radius: var(--brand-radius);
+  --admin-radius-sm: var(--brand-radius);
+  --admin-shadow: var(--brand-shadow-nav);
 
   display: flex;
   min-height: 100vh;
@@ -37,7 +39,7 @@
 
 .content {
   flex: 1;
-  padding: 1.25rem 1.5rem 1.5rem;
+  padding: 1.35rem 1.35rem 1.5rem;
   max-width: 1400px;
   width: 100%;
 }

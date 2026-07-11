@@ -245,21 +245,82 @@
 }
 
 @include mixin.responsive($max: 720px) {
-  .storefront_bar {
-    grid-template-columns: 1fr;
-    justify-items: start;
-  }
+  .Check_Out {
+    padding-bottom: 1.25rem;
 
-  .checkout_tabs,
-  .secure_note {
-    justify-self: stretch;
-  }
+    :global(.container) {
+      form {
+        gap: 0.8rem;
+        padding-top: 0.8rem;
+      }
 
-  .checkout_tabs button {
-    flex: 1;
-  }
+      .Check_out_form_right {
+        display: none;
+        order: 2;
+      }
 
-  .field_grid {
-    grid-template-columns: 1fr;
+      .show_mobile_summary {
+        display: block;
+      }
+    }
+
+    .storefront_bar {
+      display: none;
+    }
+
+    .handoff_card {
+      gap: 0.85rem;
+      padding: 1rem;
+      border-radius: 14px;
+    }
+
+    .step_intro {
+      h2 {
+        font-size: 1.22rem;
+      }
+
+      p {
+        font-size: 0.78rem;
+        line-height: 1.35;
+      }
+    }
+
+    .field_grid {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    .group_label {
+      margin-bottom: 0.35rem;
+    }
+
+    .updates_opt_in {
+      font-size: 0.78rem;
+    }
+
+    .step_actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      margin: 0 -1rem -1.25rem;
+      padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--checkout-border);
+      background: rgba(244, 244, 242, 0.94);
+      backdrop-filter: blur(10px);
+    }
+
+    .back_button,
+    .next_button {
+      min-height: 48px;
+      padding: 0.7rem 1rem;
+    }
+
+    .back_button {
+      flex: 0 0 34%;
+    }
+
+    .next_button {
+      flex: 1;
+    }
   }
 }

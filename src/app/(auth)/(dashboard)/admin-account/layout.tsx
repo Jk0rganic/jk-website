@@ -17,7 +17,7 @@ export default async function AdminLayout({
   }
 
   if (status === 403 || !session) {
-    redirect("/account");
+    redirect(getAdminSignInUrl("/admin-account"));
   }
 
   let orders: DashboardOrder[] = [];

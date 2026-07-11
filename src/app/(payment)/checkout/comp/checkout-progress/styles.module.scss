@@ -61,3 +61,39 @@
 .active {
   color: #249346 !important;
 }
+
+@media (max-width: 720px) {
+  .progress {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    margin: 0 -1rem;
+    padding: 0.7rem 1rem 0.65rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(244, 244, 242, 0.96);
+    backdrop-filter: blur(10px);
+  }
+
+  .progress_header {
+    span {
+      font-size: 0.68rem;
+    }
+
+    strong {
+      max-width: 52%;
+      overflow: hidden;
+      font-size: 0.78rem;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .track {
+    height: 4px;
+  }
+
+  .milestones {
+    display: none;
+  }
+}

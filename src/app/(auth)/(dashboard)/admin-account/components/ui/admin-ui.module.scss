@@ -9,10 +9,11 @@
 
 .pageTitle {
   margin: 0;
-  font-size: 1.35rem;
-  font-weight: 750;
+  font-family: var(--font-quintessential), serif;
+  font-size: 1.55rem;
+  font-weight: 400;
   line-height: 1.15;
-  color: var(--admin-ink, #15211a);
+  color: var(--brand-black);
 }
 
 .pageSubtitle {
@@ -24,8 +25,8 @@
 
 .card {
   background: var(--admin-surface, #fff);
-  border: 1px solid var(--admin-border, #dce8ee);
-  border-radius: var(--admin-radius, 8px);
+  border: 1px solid var(--admin-border, rgba(28, 28, 28, 0.1));
+  border-radius: var(--admin-radius, 0.4rem);
   box-shadow: var(--admin-shadow);
 }
 
@@ -41,7 +42,8 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
-    color: var(--admin-ink, #15211a);
+    font-family: var(--font-cormorant), serif;
+    color: var(--brand-black);
   }
 
   p {
@@ -63,14 +65,14 @@
 }
 
 .cardBody {
-  padding: 1rem;
+  padding: 1.25rem;
 }
 
 .statGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 @media (max-width: 1100px) {
@@ -87,13 +89,13 @@
 
 .statCard {
   background: var(--admin-surface, #fff);
-  border: 1px solid var(--admin-border, #dce8ee);
-  border-radius: var(--admin-radius, 8px);
+  border: 1px solid var(--admin-border, rgba(28, 28, 28, 0.1));
+  border-radius: var(--admin-radius, 0.4rem);
   padding: 1.15rem 1.25rem;
   box-shadow: var(--admin-shadow);
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.85rem;
 }
 
 .statTop {
@@ -112,13 +114,13 @@
 }
 
 .iconGreen {
-  background: var(--admin-accent-soft, #e7f6ed);
-  color: var(--admin-accent, #22984f);
+  background: var(--brand-green-soft);
+  color: var(--brand-green);
 }
 
 .iconBlue {
-  background: #eef7fd;
-  color: var(--admin-info, #22a9e8);
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .iconAmber {
@@ -127,23 +129,23 @@
 }
 
 .iconViolet {
-  background: #eef1ff;
-  color: var(--admin-chart-blue, #2f54d8);
+  background: #f5f3ff;
+  color: #7c3aed;
 }
 
 .statIcon {
   width: 42px;
   height: 42px;
-  border-radius: var(--admin-radius, 8px);
+  border-radius: 12px;
   display: grid;
   place-items: center;
 }
 
 .statValue {
-  font-size: 1.35rem;
+  font-size: 1.65rem;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
 }
 
 .statFooter {
@@ -178,12 +180,12 @@
 
 .trendUp {
   composes: statTrend;
-  color: var(--admin-accent, #22984f);
+  color: #16a34a;
 }
 
 .trendDown {
   composes: statTrend;
-  color: var(--admin-danger, #c2413f);
+  color: #dc2626;
 }
 
 .priorityGrid {
@@ -195,10 +197,10 @@
 }
 
 .hero {
-  background: var(--admin-surface, #fff);
-  color: var(--admin-ink, #15211a);
-  border: 1px solid var(--admin-border, #dce8ee);
-  border-radius: var(--admin-radius, 8px);
+  background: var(--brand-gradient);
+  color: var(--brand-white);
+  border: 0;
+  border-radius: var(--admin-radius, 0.4rem);
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.25rem;
   display: flex;
@@ -206,17 +208,19 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  box-shadow: var(--admin-shadow);
+  box-shadow: 0 12px 32px rgba(0, 75, 35, 0.18);
 
   h2 {
     margin: 0 0 0.35rem;
-    font-size: 1.35rem;
-    font-weight: 750;
+    font-family: var(--font-quintessential), serif;
+    font-size: 1.65rem;
+    font-weight: 400;
   }
 
   p {
     margin: 0;
-    color: var(--admin-muted, #667482);
+    color: inherit;
+    opacity: 0.9;
     font-size: 0.92rem;
     max-width: 40ch;
   }
@@ -259,9 +263,8 @@
 
 .heroActions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
-  margin-top: 0.75rem;
 }
 
 .btnPrimary {
@@ -269,10 +272,10 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.65rem 1rem;
-  border-radius: var(--admin-radius, 8px);
+  border-radius: var(--brand-radius);
   border: none;
-  background: var(--admin-accent);
-  color: #fff;
+  background: var(--brand-white);
+  color: var(--brand-green-mid);
   font-weight: 700;
   font-size: 0.88rem;
   text-decoration: none;
@@ -291,17 +294,17 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.65rem 1rem;
-  border-radius: var(--admin-radius, 8px);
-  border: 1px solid var(--admin-border, #dce8ee);
-  background: var(--admin-surface, #fff);
-  color: var(--admin-ink, #15211a);
+  border-radius: var(--brand-radius);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--brand-white);
   font-weight: 600;
   font-size: 0.88rem;
   text-decoration: none;
   text-transform: capitalize;
 
   &:hover {
-    background: var(--admin-accent-soft, #e7f6ed);
+    background: rgba(255, 255, 255, 0.18);
   }
 }
 

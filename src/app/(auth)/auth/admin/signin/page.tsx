@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { isAdminRole } from "@/lib/admin/roles";
+import { requireAdminSession } from "@/lib/admin/require-admin";
 import { getAdminCallbackUrl } from "@/lib/auth/admin-login";
-import { getSession } from "@/lib/auth/getSession";
 import { seoMeta } from "@/utils/seo/seoMeta";
 import AdminSignInForm from "./comp/admin-signin-form";
 
@@ -14,9 +13,9 @@ export default async function AdminSignInPage({
 }) {
   const { callbackUrl } = await searchParams;
   const safeCallbackUrl = getAdminCallbackUrl(callbackUrl);
-  const session = await getSession();
+  const { status } = await requireAdminSession();
 
-  if (session && isAdminRole(session.user.role)) {
+  if (status === 200) {
     redirect(safeCallbackUrl);
   }
 

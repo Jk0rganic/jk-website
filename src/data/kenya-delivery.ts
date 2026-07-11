@@ -91,6 +91,25 @@ function countySlug(county: string): string {
  */
 export const PARCEL_OFFICES_BY_COUNTY: ParcelCounty[] = [
   {
+    county: "Kiambu",
+    towns: [
+      { name: "Kiambu Town", offices: [] },
+      { name: "Thika", offices: [] },
+      { name: "Ruiru", offices: [] },
+      { name: "Juja", offices: [] },
+      { name: "Limuru", offices: [] },
+      { name: "Kikuyu", offices: [] },
+      { name: "Githunguri", offices: [] },
+      { name: "Gatundu", offices: [] },
+      { name: "Lari", offices: [] },
+      { name: "Kimende", offices: [] },
+      { name: "Banana", offices: [] },
+      { name: "Wangige", offices: [] },
+      { name: "Ruaka", offices: [] },
+      { name: "Kiambaa", offices: [] },
+    ],
+  },
+  {
     county: "Mombasa",
     towns: [
       {
@@ -262,6 +281,10 @@ export function getParcelTownsForCounty(county: string): ParcelTown[] {
       ],
     },
   ];
+}
+
+export function getParcelTownNamesForCounty(county: string): string[] {
+  return getParcelTownsForCounty(county).map((town) => town.name);
 }
 
 export function findParcelOffice(

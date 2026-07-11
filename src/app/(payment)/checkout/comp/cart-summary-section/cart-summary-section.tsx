@@ -49,6 +49,7 @@ export default function CartSummarySection({
   const itemCount = cartDetails.length;
   const deliveryUnavailable =
     deliveryMethod === "shipping" && deliveryQuote?.available === false;
+  const deliveryPending = deliveryMethod === "shipping" && !deliveryQuote;
   let deliveryFee = 0;
   if (deliveryMethod === "shipping") {
     deliveryFee =
@@ -56,6 +57,7 @@ export default function CartSummarySection({
   }
   const deliveryText = (() => {
     if (deliveryMethod !== "shipping") return "Free";
+    if (deliveryPending) return "Select county";
     if (deliveryUnavailable) return "Unavailable";
     return formatPrice(deliveryFee);
   })();

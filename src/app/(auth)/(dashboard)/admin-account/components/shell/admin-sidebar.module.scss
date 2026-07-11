@@ -1,14 +1,14 @@
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  width: var(--admin-sidebar-w, 264px);
-  background: var(--admin-sidebar, #171c24);
-  color: #f8fafc;
+  width: var(--admin-sidebar-w, 260px);
+  background: #fff;
+  color: var(--brand-black);
   display: flex;
   flex-direction: column;
   z-index: 40;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 10px 0 30px rgba(21, 33, 26, 0.12);
+  border-right: 1px solid rgba(28, 28, 28, 0.1);
+  box-shadow: 6px 0 24px rgba(28, 28, 28, 0.04);
 }
 
 .desktopSidebar {
@@ -21,33 +21,44 @@
 
 .brand {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.55rem;
+  align-items: center;
+  gap: 0.75rem;
   padding: 1.15rem 1.15rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(28, 28, 28, 0.1);
   text-decoration: none;
 }
 
-.brandLogo {
-  width: 100%;
-  max-width: 10.5rem;
-  height: 2.85rem;
-  object-fit: contain;
-  object-position: left center;
+.logoMark {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--brand-green-soft);
+  color: var(--brand-green);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
-.adminBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--admin-radius-sm, 6px);
-  background: rgba(34, 152, 79, 0.18);
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.brandText {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+
+  strong {
+    color: var(--brand-black);
+    font-family: var(--font-cormorant), serif;
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  small {
+    color: #888d88;
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
 }
 
 .nav {
@@ -62,10 +73,10 @@
 
 .groupTitle {
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(238, 238, 238, 0.55);
+  color: #9b9f9b;
   padding: 0 0.75rem;
   margin-bottom: 0.5rem;
 }
@@ -74,39 +85,55 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.68rem 0.82rem;
-  border-radius: var(--admin-radius, 8px);
-  color: rgba(238, 238, 238, 0.88);
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--brand-radius);
+  color: #3f463f;
   text-decoration: none;
   font-size: 0.92rem;
-  font-weight: 500;
+  font-weight: 750;
   transition: background 0.15s ease, color 0.15s ease;
 
   svg {
     flex-shrink: 0;
-    opacity: 0.9;
+    color: #3f463f;
   }
 
   &:hover {
-    background: var(--admin-sidebar-hover);
-    color: var(--brand-white);
+    background: #f4f7f4;
+    color: var(--brand-green);
   }
 
   &.active {
-    background: rgba(34, 152, 79, 0.16);
-    color: var(--brand-white);
-    box-shadow: inset 3px 0 0 var(--admin-accent);
+    background: var(--brand-green-soft);
+    color: var(--brand-green);
+    box-shadow: none;
 
     svg {
-      color: #9fe4b8;
+      color: var(--brand-green);
       opacity: 1;
     }
+  }
+
+  span {
+    flex: 1;
+  }
+
+  em {
+    min-width: 24px;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: var(--brand-green);
+    color: #fff;
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 900;
+    text-align: center;
   }
 }
 
 .footer {
   padding: 1rem 0.75rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(28, 28, 28, 0.1);
 }
 
 .userCard {
@@ -115,8 +142,8 @@
   gap: 0.65rem;
   padding: 0.65rem 0.75rem;
   margin-bottom: 0.5rem;
-  border-radius: var(--admin-radius, 8px);
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--brand-radius);
+  background: #f7f8f6;
 }
 
 .avatar {
@@ -129,8 +156,8 @@
 .initials {
   width: 36px;
   height: 36px;
-  border-radius: var(--admin-radius, 8px);
-  background: var(--admin-accent);
+  border-radius: 50%;
+  background: var(--brand-green);
   color: var(--brand-white);
   display: grid;
   place-items: center;
@@ -144,7 +171,7 @@
   strong {
     display: block;
     font-size: 0.85rem;
-    color: var(--brand-white);
+    color: var(--brand-black);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -153,7 +180,7 @@
   span {
     display: block;
     font-size: 0.72rem;
-    color: rgba(238, 238, 238, 0.65);
+    color: #777d77;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -162,18 +189,18 @@
 
 .logoutBtn {
   width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: transparent;
-  color: rgba(238, 238, 238, 0.9);
+  border: 1px solid rgba(28, 28, 28, 0.12);
+  background: #fff;
+  color: #666b66;
   padding: 0.55rem 0.75rem;
-  border-radius: var(--admin-radius, 8px);
+  border-radius: var(--brand-radius);
   font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.15s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--brand-white);
+    background: #f7f8f6;
+    color: var(--brand-green);
   }
 }
 

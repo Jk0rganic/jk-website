@@ -112,4 +112,27 @@ describe("CartSummarySection", () => {
     expect(screen.getByText(/choose another county/i)).toBeInTheDocument();
     expect(screen.queryByText("Free")).not.toBeInTheDocument();
   });
+
+  it("asks for a county before showing a shipping fee", () => {
+    render(
+      <form>
+        <CartSummarySection
+          cartDetails={cartDetails}
+          deliveryMethod="shipping"
+          shippingCost={0}
+          deliveryQuote={null}
+          isSubmitting={false}
+          itemsTotal={1700}
+          discount={0}
+          grandTotal={1700}
+          activeCoupon={null}
+          onCouponApplied={() => undefined}
+          onCouponRemoved={() => undefined}
+        />
+      </form>,
+    );
+
+    expect(screen.getByText("Select county")).toBeInTheDocument();
+    expect(screen.queryByText("KSh 0")).not.toBeInTheDocument();
+  });
 });

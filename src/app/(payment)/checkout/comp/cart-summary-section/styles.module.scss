@@ -183,3 +183,32 @@ $border-radius: 10px;
     line-height: 1.35;
   }
 }
+
+@media (max-width: 720px) {
+  .cart_summary {
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 14px;
+
+    h3 {
+      font-size: 1.1rem;
+    }
+
+    .cart_items {
+      max-height: 190px;
+      overflow: auto;
+      padding-right: 0.15rem;
+    }
+
+    .coupon {
+      input,
+      button {
+        min-height: 44px;
+      }
+    }
+
+    .trust_copy {
+      font-size: 0.72rem;
+    }
+  }
+}

@@ -77,12 +77,13 @@ describe("buildOrderPayload", () => {
     ]);
   });
 
-  it("uses the county fallback parcel office when parcel fields were not submitted", () => {
+  it("stores selected upcountry town details without exposing carrier choice", () => {
     const payload = buildOrderPayload({
       data: {
         ...checkoutData,
-        county: "Bomet",
+        county: "Kiambu",
         delivery_subtype: "parcel_office",
+        parcel_town: "Kimende",
       },
       cartDetails,
       totalPrice: 1000,
@@ -93,17 +94,19 @@ describe("buildOrderPayload", () => {
 
     expect(payload.shipping).toEqual(
       expect.objectContaining({
-        address_1:
-          "Bomet Nearest Stage / Parcel Office – Nearest parcel office or stage in Bomet",
-        city: "Bomet Town",
-        state: "Bomet",
+        address_1: "Customer will collect at Kimende",
+        city: "Kimende",
+        state: "Kiambu",
       }),
     );
     expect(payload.meta_data).toEqual(
       expect.arrayContaining([
         { key: "_delivery_type", value: "parcel_office" },
-        { key: "_parcel_town", value: "Bomet Town" },
-        { key: "_parcel_office_id", value: "bomet_main_stage" },
+        { key: "_county", value: "Kiambu" },
+        { key: "_nearest_town_center", value: "Kimende" },
+        { key: "_parcel_town", value: "Kimende" },
+        { key: "_pickup_stage", value: "Kimende" },
+        { key: "_carrier_assignment", value: "pending_admin_assignment" },
       ]),
     );
   });

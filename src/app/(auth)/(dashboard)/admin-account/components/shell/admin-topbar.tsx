@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Plus, Search, Store } from "lucide-react";
+import { Bell, Menu, Moon, Search, Store } from "lucide-react";
 import Link from "next/link";
 import { getAdminPageTitle } from "./admin-nav";
 import k from "./admin-topbar.module.scss";
@@ -55,12 +55,28 @@ export default function AdminTopbar({
         <label className={k.search}>
           <Search size={16} aria-hidden="true" />
           <span className={k.searchLabel}>Search admin</span>
-          <input type="search" placeholder="Search" aria-label="Search admin" />
+          <input
+            type="search"
+            placeholder="Search orders, products, customers"
+            aria-label="Search admin"
+          />
+          <kbd>⌘K</kbd>
         </label>
-        <Link href="/admin-account/products/new" className={k.actionLink}>
-          <Plus size={16} aria-hidden="true" />
-          <span>New product</span>
-        </Link>
+        <button
+          type="button"
+          className={k.iconButton}
+          aria-label="Toggle dark mode"
+        >
+          <Moon size={17} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className={k.iconButton}
+          aria-label="Notifications"
+        >
+          <Bell size={17} aria-hidden="true" />
+          <i />
+        </button>
         <Link href="/" className={k.storeLink} target="_blank" rel="noreferrer">
           <Store size={16} aria-hidden="true" />
           <span>View store</span>
