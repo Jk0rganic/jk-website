@@ -22,8 +22,16 @@ export default function ShippingSection({
         <label>
           <input
             type="radio"
-            checked={!useDifferentBilling}
-            onChange={() => setValue("useDifferentShipping", false)}
+            name="useDifferentShipping"
+            value="false"
+            checked={useDifferentBilling !== true}
+            onChange={() =>
+              setValue("useDifferentShipping", false, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              })
+            }
           />
           Same as billing address
         </label>
@@ -31,8 +39,16 @@ export default function ShippingSection({
         <label>
           <input
             type="radio"
-            checked={useDifferentBilling}
-            onChange={() => setValue("useDifferentShipping", true)}
+            name="useDifferentShipping"
+            value="true"
+            checked={useDifferentBilling === true}
+            onChange={() =>
+              setValue("useDifferentShipping", true, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              })
+            }
           />
           Use a different shipping address
         </label>

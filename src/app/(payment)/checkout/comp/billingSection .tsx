@@ -7,7 +7,7 @@ import PickUpPoint from "./pickUpPoint/pickUpPoint";
 
 type BillingSectionProps = Pick<
   CheckoutFormProps,
-  "register" | "errors" | "setValue" | "watch" | "loading" | "error"
+  "register" | "control" | "errors" | "setValue" | "watch" | "loading" | "error"
 > & {
   deliveryMethod: CheckOutSchemaType["delivery_method"];
   shippingZones: NonNullable<CheckoutFormType["shippingZone"]>[];
@@ -16,6 +16,7 @@ type BillingSectionProps = Pick<
 
 export default function BillingSection({
   register,
+  control,
   errors,
   deliveryMethod,
   shippingZones,
@@ -32,9 +33,9 @@ export default function BillingSection({
       {deliveryMethod === "shipping" ? (
         <DeliveryLocationSelector
           register={register}
+          control={control}
           errors={errors}
           setValue={setValue}
-          watch={watch}
           shippingZones={shippingZones}
         />
       ) : null}

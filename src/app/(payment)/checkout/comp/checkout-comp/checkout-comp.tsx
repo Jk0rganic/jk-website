@@ -433,10 +433,9 @@ export default function CheckOutComp() {
 
               {deliveryMethod === "shipping" ? (
                 <DeliveryLocationSelector
-                  register={register}
+                  control={control}
                   errors={errors}
                   setValue={setValue}
-                  watch={watch}
                   shippingZones={wooShippingZones}
                   deliveryQuote={deliveryQuote}
                 />

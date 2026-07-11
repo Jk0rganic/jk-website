@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { get } from "react-hook-form";
+import { get, useController } from "react-hook-form";
 import {
   getDeliverySubtype,
   getParcelTownNamesForCounty,
@@ -13,6 +13,7 @@ import {
   filterWooShippingZones,
   getDeliveryFee,
 } from "../../lib/delivery-zones";
+import ComboboxInput from "./comboboxInput";
 import k from "./styles.module.scss";
 
 type DeliveryQuoteSummary = {
@@ -21,10 +22,7 @@ type DeliveryQuoteSummary = {
   eta?: string | null;
 };
 
-type Props = Pick<
-  CheckoutFormProps,
-  "register" | "errors" | "setValue" | "watch"
-> & {
+type Props = Pick<CheckoutFormProps, "control" | "errors" | "setValue"> & {
   shippingZones: { zone: string; fee_ksh: number }[];
   deliveryQuote?: DeliveryQuoteSummary | null;
 };
@@ -35,23 +33,23 @@ function matchOption(value: string, options: readonly string[]) {
 }
 
 export default function DeliveryLocationSelector({
-  register,
+  control,
   errors,
   setValue,
-  watch,
   shippingZones,
   deliveryQuote,
 }: Props) {
-  const county = watch("county") || "";
+  const {
+    field: { value: countyValue, onChange: onCountyChange },
+  } = useController({ control, name: "county", defaultValue: "" });
+  const county = countyValue || "";
   const selectedCounty = matchOption(county, KENYA_COUNTIES);
-  const countyField = register("county", {
-    onBlur: (event) => {
-      const match = matchOption(event.target.value, KENYA_COUNTIES);
-      if (match) {
-        setValue("county", match, { shouldDirty: true, shouldValidate: true });
-      }
-    },
-  });
+  const commitCounty = (raw: string) => {
+    const match = matchOption(raw, KENYA_COUNTIES);
+    if (match) {
+      setValue("county", match, { shouldDirty: true, shouldValidate: true });
+    }
+  };
   const isValidCounty = Boolean(selectedCounty);
   const deliverySubtype = selectedCounty
     ? getDeliverySubtype(selectedCounty)
@@ -79,17 +77,18 @@ export default function DeliveryLocationSelector({
         : [],
     [selectedCounty, isDoorToDoor],
   );
-  const parcelTownField = register("parcel_town", {
-    onBlur: (event) => {
-      const match = matchOption(event.target.value, towns);
-      if (match) {
-        setValue("parcel_town", match, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-      }
-    },
-  });
+  const {
+    field: { value: parcelTownValue, onChange: onParcelTownChange },
+  } = useController({ control, name: "parcel_town", defaultValue: "" });
+  const commitParcelTown = (raw: string) => {
+    const match = matchOption(raw, towns);
+    if (match) {
+      setValue("parcel_town", match, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  };
 
   useEffect(() => {
     if (!isValidCounty) {
@@ -129,21 +128,15 @@ export default function DeliveryLocationSelector({
 
       <div className={k.field}>
         <label htmlFor="county">County *</label>
-        <input
+        <ComboboxInput
           id="county"
-          type="text"
-          list="county-suggestions"
+          value={county}
+          options={KENYA_COUNTIES}
           placeholder="Start typing, e.g. Kiambu"
-          autoComplete="off"
-          spellCheck={false}
           className={get(errors, "county") ? k.select_error : ""}
-          {...countyField}
+          onChange={onCountyChange}
+          onCommit={commitCounty}
         />
-        <datalist id="county-suggestions">
-          {KENYA_COUNTIES.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
         {get(errors, "county")?.message ? (
           <span className={k.error}>
             {String(get(errors, "county")?.message)}
@@ -219,21 +212,15 @@ export default function DeliveryLocationSelector({
             <label htmlFor="parcel_town">
               Nearest town / centre for pickup *
             </label>
-            <input
+            <ComboboxInput
               id="parcel_town"
-              type="text"
-              list="parcel-town-suggestions"
+              value={parcelTownValue || ""}
+              options={towns}
               placeholder="Start typing, e.g. Kimende"
-              autoComplete="off"
-              spellCheck={false}
               className={get(errors, "parcel_town") ? k.select_error : ""}
-              {...parcelTownField}
+              onChange={onParcelTownChange}
+              onCommit={commitParcelTown}
             />
-            <datalist id="parcel-town-suggestions">
-              {towns.map((town) => (
-                <option key={town} value={town} />
-              ))}
-            </datalist>
             <p className={k.help}>
               Type to search, then choose one of the listed towns/centres.
               We&apos;ll use this to confirm whether we can deliver there or

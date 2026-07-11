@@ -1,13 +1,23 @@
 @use "@/scss/mixin.scss" as mixin;
-.shipping_address{
-    margin-bottom: 1rem;
-    .options{
-        label{
-            display: block;
-            margin-bottom: .4em;
-            input{
-                margin-right: 5px;
-            }
-        }
+
+.shipping_address {
+  margin-bottom: 1rem;
+
+  .options {
+    display: grid;
+    gap: 0.45rem;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: fit-content;
+      cursor: pointer;
+
+      input {
+        margin: 0;
+        cursor: pointer;
+      }
     }
+  }
 }
