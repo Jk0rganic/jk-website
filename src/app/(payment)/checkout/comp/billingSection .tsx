@@ -32,7 +32,6 @@ export default function BillingSection({
 
       {deliveryMethod === "shipping" ? (
         <DeliveryLocationSelector
-          register={register}
           control={control}
           errors={errors}
           setValue={setValue}
