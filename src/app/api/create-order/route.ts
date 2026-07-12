@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { listActiveDeliveryAdminRates } from "@/lib/delivery/admin-delivery-rates";
 import { resolveDeliveryQuote } from "@/lib/delivery/delivery-quote";
 import { createOrder } from "@/lib/fetch/createOrder";
+import { notifyStaffOfNewOrder } from "@/lib/notifications/notify-new-order";
 
 interface OrderBody {
   billing?: { state?: string };
@@ -82,6 +83,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const enforcedBody = await enforceDeliveryQuote(body);
     const order = await createOrder(enforcedBody);
+
+    try {
+      await notifyStaffOfNewOrder(order as WooOrderResponse);
+    } catch (error) {
+      console.error("[NEW_ORDER_NOTIFICATION_ERROR]", error);
+    }
 
     return NextResponse.json(order);
   } catch (error) {

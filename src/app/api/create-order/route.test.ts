@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "./route";
 
-const { createOrder, resolveDeliveryQuote, listActiveDeliveryAdminRates } =
-  vi.hoisted(() => ({
-    createOrder: vi.fn(),
-    resolveDeliveryQuote: vi.fn(),
-    listActiveDeliveryAdminRates: vi.fn(),
-  }));
+const {
+  createOrder,
+  resolveDeliveryQuote,
+  listActiveDeliveryAdminRates,
+  notifyStaffOfNewOrder,
+} = vi.hoisted(() => ({
+  createOrder: vi.fn(),
+  resolveDeliveryQuote: vi.fn(),
+  listActiveDeliveryAdminRates: vi.fn(),
+  notifyStaffOfNewOrder: vi.fn(),
+}));
 
 vi.mock("@/lib/fetch/createOrder", () => ({
   createOrder,
@@ -17,6 +22,9 @@ vi.mock("@/lib/delivery/delivery-quote", () => ({
 }));
 vi.mock("@/lib/delivery/admin-delivery-rates", () => ({
   listActiveDeliveryAdminRates,
+}));
+vi.mock("@/lib/notifications/notify-new-order", () => ({
+  notifyStaffOfNewOrder,
 }));
 
 function request(body: unknown) {
@@ -76,6 +84,7 @@ describe("POST /api/create-order", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     listActiveDeliveryAdminRates.mockResolvedValue([]);
+    notifyStaffOfNewOrder.mockResolvedValue(undefined);
   });
 
   it("recalculates shipping and corrects tampered shipping line fees before creating the order", async () => {
@@ -145,5 +154,45 @@ describe("POST /api/create-order", () => {
         ],
       }),
     );
+  });
+
+  it("notifies staff of the new order after it is created", async () => {
+    const createdOrder = { id: 123, total: "1350.00" };
+    resolveDeliveryQuote.mockReturnValueOnce({
+      code: "nairobi-doorstep",
+      fee: 350,
+      label: "Nairobi door delivery",
+      eta: "Today",
+      fulfillmentType: "doorstep",
+      freeDeliveryApplied: false,
+      freeDeliveryRemaining: 0,
+    });
+    createOrder.mockResolvedValueOnce(createdOrder);
+
+    await POST(request(baseOrder) as never);
+
+    expect(notifyStaffOfNewOrder).toHaveBeenCalledWith(createdOrder);
+  });
+
+  it("still returns the created order when the staff notification fails", async () => {
+    resolveDeliveryQuote.mockReturnValueOnce({
+      code: "nairobi-doorstep",
+      fee: 350,
+      label: "Nairobi door delivery",
+      eta: "Today",
+      fulfillmentType: "doorstep",
+      freeDeliveryApplied: false,
+      freeDeliveryRemaining: 0,
+    });
+    createOrder.mockResolvedValueOnce({ id: 123, total: "1350.00" });
+    notifyStaffOfNewOrder.mockRejectedValueOnce(new Error("SMTP down"));
+
+    const response = await POST(request(baseOrder) as never);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      id: 123,
+      total: "1350.00",
+    });
   });
 });
