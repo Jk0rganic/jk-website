@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function DeliveryMethodSelector({ register }: Props) {
-  const size = 20;
+  const size = 18;
 
   return (
     <div className={k.delivery}>
@@ -24,11 +24,8 @@ export default function DeliveryMethodSelector({ register }: Props) {
             <Home size={size} />
           </span>
           <span className={k.copy}>
-            <span className={k.title}>Delivery</span>
-            <span className={k.description}>
-              Nairobi door delivery, or upcountry town/stage pickup. We choose
-              the delivery partner.
-            </span>
+            <span className={k.title}>Deliver</span>
+            <span className={k.description}>Nairobi & upcountry</span>
           </span>
         </label>
 
@@ -38,10 +35,8 @@ export default function DeliveryMethodSelector({ register }: Props) {
             <MapPin size={size} />
           </span>
           <span className={k.copy}>
-            <span className={k.title}>Pick up from JK Organics</span>
-            <span className={k.description}>
-              Collect from our Nairobi CBD shop. Free and ready within 24 hours.
-            </span>
+            <span className={k.title}>Collect from shop</span>
+            <span className={k.description}>Free · ready in 24h</span>
           </span>
         </label>
       </div>

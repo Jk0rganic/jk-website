@@ -83,7 +83,7 @@ export default function CheckOutComp() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeCoupon, setActiveCoupon] = useState<CheckoutCoupon | null>(null);
-  const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3>(1);
+  const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
   const [deliveryQuote, setDeliveryQuote] =
     useState<CheckoutDeliveryQuote | null>(null);
 
@@ -192,9 +192,9 @@ export default function CheckOutComp() {
       : undefined;
   const discount = calculateCouponDiscount(activeCoupon, totalPrice);
   const orderTotal = getCheckoutTotal(totalPrice, shippingCost, discount);
-  const stepTwoTitle =
+  const deliveryStepTitle =
     deliveryMethod === "pickup" ? "Choose pickup point" : "Delivery address";
-  const stepTwoDescription =
+  const deliveryStepDescription =
     deliveryMethod === "pickup"
       ? "Choose the most convenient pickup location."
       : !hasValidSelectedCounty
@@ -204,26 +204,20 @@ export default function CheckOutComp() {
         : "Where should we deliver your order?";
 
   const goBack = () => {
-    setCheckoutStep((step) => (step === 1 ? step : ((step - 1) as 1 | 2 | 3)));
+    setCheckoutStep((step) => (step === 1 ? step : 1));
   };
 
   const goNext = async () => {
-    const stepFields: Array<keyof CheckOutSchemaType> =
-      checkoutStep === 1
-        ? [
-            "billing_first_name",
-            "billing_last_name",
-            "email",
-            "billing_phone",
-            "delivery_method",
-          ]
-        : deliveryMethod === "pickup"
-          ? ["pickupPoint", "billing_city"]
-          : [
-              "county",
-              "billing_address_1",
-              "parcel_town",
-            ];
+    const stepFields: Array<keyof CheckOutSchemaType> = [
+      "billing_first_name",
+      "billing_last_name",
+      "email",
+      "billing_phone",
+      "delivery_method",
+      ...(deliveryMethod === "pickup"
+        ? (["pickupPoint", "billing_city"] as const)
+        : (["county", "billing_address_1", "parcel_town"] as const)),
+    ];
 
     const isStepValid = await trigger(stepFields);
     if (!isStepValid) {
@@ -231,7 +225,7 @@ export default function CheckOutComp() {
       return;
     }
 
-    setCheckoutStep((step) => (step === 3 ? step : ((step + 1) as 1 | 2 | 3)));
+    setCheckoutStep(2);
   };
 
   useEffect(() => {
@@ -369,16 +363,13 @@ export default function CheckOutComp() {
 
       <form onSubmit={handleSubmit(onSubmit, onInvalidSubmit)}>
         <div className={k.Check_out_form_left}>
-          <CheckoutProgress
-            currentStep={checkoutStep}
-            stepTwoTitle={stepTwoTitle}
-          />
+          <CheckoutProgress currentStep={checkoutStep} />
 
           {checkoutStep === 1 ? (
             <section className={k.handoff_card}>
               <div className={k.step_intro}>
-                <h2>Contact &amp; delivery</h2>
-                <p>We'll use these to send order &amp; delivery updates.</p>
+                <h2>Your details</h2>
+                <p>Tell us who you are and where to send your order.</p>
               </div>
 
               <div className={k.field_grid}>
@@ -420,6 +411,75 @@ export default function CheckOutComp() {
                 <DeliveryMethodSelector register={register} />
               </div>
 
+              <div className={k.section_divider} />
+
+              <div className={k.delivery_reveal} key={deliveryMethod}>
+                <div className={k.inline_intro}>
+                  <h3>{deliveryStepTitle}</h3>
+                  <p>{deliveryStepDescription}</p>
+                </div>
+
+                {deliveryMethod === "shipping" ? (
+                  <DeliveryLocationSelector
+                    control={control}
+                    errors={errors}
+                    setValue={setValue}
+                    shippingZones={wooShippingZones}
+                    deliveryQuote={deliveryQuote}
+                  />
+                ) : (
+                  <PickUpPoint
+                    register={register}
+                    setValue={setValue}
+                    loading={loading}
+                    error={error}
+                    watch={watch}
+                  />
+                )}
+
+                {deliveryMethod === "pickup" ? (
+                  <div className={k.field_grid}>
+                    <FormInput
+                      type="text"
+                      name="billing_city"
+                      register={register}
+                      errors={errors}
+                      placeholder="Your town / city *"
+                    />
+                  </div>
+                ) : null}
+
+                {deliveryMethod === "shipping" &&
+                deliverySubtype === "door_to_door" ? (
+                  <div className={k.field_grid}>
+                    <FormInput
+                      type="text"
+                      name="billing_address_1"
+                      register={register}
+                      errors={errors}
+                      placeholder="Street, building, house/apartment no."
+                    />
+                    <FormInput
+                      type="text"
+                      name="billing_city"
+                      register={register}
+                      errors={errors}
+                      placeholder="Area / estate *"
+                    />
+                  </div>
+                ) : null}
+
+                {deliveryMethod === "shipping" &&
+                deliverySubtype === "door_to_door" ? (
+                  <ShippingSection
+                    watch={watch}
+                    setValue={setValue}
+                    register={register}
+                    errors={errors}
+                  />
+                ) : null}
+              </div>
+
               <label className={k.updates_opt_in}>
                 <input type="checkbox" defaultChecked />
                 Send me SMS &amp; email updates about this order (recommended)
@@ -428,75 +488,6 @@ export default function CheckOutComp() {
           ) : null}
 
           {checkoutStep === 2 ? (
-            <section className={k.handoff_card}>
-              <div className={k.step_intro}>
-                <h2>{stepTwoTitle}</h2>
-                <p>{stepTwoDescription}</p>
-              </div>
-
-              {deliveryMethod === "shipping" ? (
-                <DeliveryLocationSelector
-                  control={control}
-                  errors={errors}
-                  setValue={setValue}
-                  shippingZones={wooShippingZones}
-                  deliveryQuote={deliveryQuote}
-                />
-              ) : (
-                <PickUpPoint
-                  register={register}
-                  setValue={setValue}
-                  loading={loading}
-                  error={error}
-                  watch={watch}
-                />
-              )}
-
-              {deliveryMethod === "pickup" ? (
-                <div className={k.field_grid}>
-                  <FormInput
-                    type="text"
-                    name="billing_city"
-                    register={register}
-                    errors={errors}
-                    placeholder="Your town / city *"
-                  />
-                </div>
-              ) : null}
-
-              {deliveryMethod === "shipping" &&
-              deliverySubtype === "door_to_door" ? (
-                <div className={k.field_grid}>
-                  <FormInput
-                    type="text"
-                    name="billing_address_1"
-                    register={register}
-                    errors={errors}
-                    placeholder="Street, building, house/apartment no."
-                  />
-                  <FormInput
-                    type="text"
-                    name="billing_city"
-                    register={register}
-                    errors={errors}
-                    placeholder="Area / estate *"
-                  />
-                </div>
-              ) : null}
-
-              {deliveryMethod === "shipping" &&
-              deliverySubtype === "door_to_door" ? (
-                <ShippingSection
-                  watch={watch}
-                  setValue={setValue}
-                  register={register}
-                  errors={errors}
-                />
-              ) : null}
-            </section>
-          ) : null}
-
-          {checkoutStep === 3 ? (
             <section className={k.handoff_card}>
               <div className={k.step_intro}>
                 <h2>Payment &amp; review</h2>
@@ -523,7 +514,7 @@ export default function CheckOutComp() {
             >
               {checkoutStep === 1 ? "" : "Back"}
             </button>
-            {checkoutStep === 3 ? (
+            {checkoutStep === 2 ? (
               <button
                 type="submit"
                 className={k.next_button}
@@ -541,7 +532,7 @@ export default function CheckOutComp() {
 
         <div
           className={`${k.Check_out_form_right} ${
-            checkoutStep === 3 ? k.show_mobile_summary : ""
+            checkoutStep === 2 ? k.show_mobile_summary : ""
           }`}
         >
           <CartSummarySection

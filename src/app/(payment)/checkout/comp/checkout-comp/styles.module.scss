@@ -153,6 +153,34 @@
   gap: 1rem;
 }
 
+.section_divider {
+  height: 1px;
+  background: var(--checkout-border);
+}
+
+.delivery_reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  animation: fade_up 0.3s ease;
+}
+
+.inline_intro {
+  h3 {
+    margin: 0 0 0.2rem;
+    color: var(--checkout-text);
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: var(--checkout-muted);
+    font-size: 0.83rem;
+  }
+}
+
 .group_label {
   display: block;
   margin-bottom: 0.5rem;
@@ -292,6 +320,21 @@
 
     .group_label {
       margin-bottom: 0.35rem;
+    }
+
+    .delivery_reveal {
+      gap: 0.85rem;
+    }
+
+    .inline_intro {
+      h3 {
+        font-size: 1.05rem;
+      }
+
+      p {
+        font-size: 0.76rem;
+        line-height: 1.35;
+      }
     }
 
     .updates_opt_in {

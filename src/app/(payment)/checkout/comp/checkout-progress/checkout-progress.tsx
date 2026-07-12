@@ -1,32 +1,26 @@
 import { Check } from "lucide-react";
 import k from "./styles.module.scss";
 
-const stepLabels = ["Contact", "Address", "Payment"];
+const stepLabels = ["Details", "Payment"];
 const stepTitles = {
-  1: "Contact & delivery",
-  2: "Delivery address",
-  3: "Payment & review",
+  1: "Your details",
+  2: "Payment & review",
 } as const;
 
 interface CheckoutProgressProps {
-  currentStep?: 1 | 2 | 3;
-  stepTwoTitle?: string;
+  currentStep?: 1 | 2;
 }
 
 export default function CheckoutProgress({
   currentStep = 1,
-  stepTwoTitle,
 }: CheckoutProgressProps) {
-  const title =
-    currentStep === 2 && stepTwoTitle
-      ? stepTwoTitle
-      : stepTitles[currentStep] || stepTitles[1];
-  const progress = `${(currentStep / 3) * 100}%`;
+  const title = stepTitles[currentStep] || stepTitles[1];
+  const progress = `${(currentStep / 2) * 100}%`;
 
   return (
     <nav className={k.progress} aria-label="Checkout progress">
       <div className={k.progress_header}>
-        <span>Step {currentStep} of 3</span>
+        <span>Step {currentStep} of 2</span>
         <strong>{title}</strong>
       </div>
 
@@ -36,7 +30,7 @@ export default function CheckoutProgress({
 
       <ol className={k.milestones}>
         {stepLabels.map((label, index) => {
-          const stepNumber = (index + 1) as 1 | 2 | 3;
+          const stepNumber = (index + 1) as 1 | 2;
           const isDone = stepNumber < currentStep;
           const isActive = stepNumber <= currentStep;
 

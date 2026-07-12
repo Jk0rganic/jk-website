@@ -141,11 +141,6 @@ export default function DeliveryLocationSelector({
           <span className={k.error}>
             {String(get(errors, "county")?.message)}
           </span>
-        ) : !county ? (
-          <p className={k.help}>
-            We&apos;ll show Nairobi address fields or upcountry pickup town
-            options after you choose a county.
-          </p>
         ) : null}
       </div>
 
@@ -166,25 +161,17 @@ export default function DeliveryLocationSelector({
             placeholder="Select county first"
             disabled
           />
-          <p className={k.help}>
-            After county selection, we&apos;ll show the approved pickup towns
-            and centres for that county.
-          </p>
         </div>
       ) : null}
 
       {isValidCounty && isDoorToDoor ? (
         <div className={`${k.notice} ${k.door_notice}`}>
-          <strong>Door-to-door delivery</strong>
-          <p>
-            We deliver directly to your address in {selectedCounty}. Please
-            provide your full street address, estate, and any landmarks below.
-          </p>
+          <strong>Door-to-door delivery to {selectedCounty}</strong>
           {typeof displayFee === "number" ? (
-            <p className={k.fee}>
-              <strong>Delivery fee:</strong> Ksh {displayFee}
-              {displayEta ? <span> · {displayEta}</span> : null}
-            </p>
+            <span className={k.fee}>
+              Ksh {displayFee}
+              {displayEta ? ` · ${displayEta}` : ""}
+            </span>
           ) : null}
         </div>
       ) : null}
@@ -192,19 +179,12 @@ export default function DeliveryLocationSelector({
       {isValidCounty && !isDoorToDoor ? (
         <>
           <div className={`${k.notice} ${k.parcel_notice}`}>
-            <strong>Nearest town/centre pickup</strong>
-            <p>
-              Outside Nairobi, tell us the nearest town or centre to you — for
-              example Kiambu county, Kimende town. We use this to confirm
-              whether we can deliver there or advise the nearest pickup point.
-              We&apos;ll contact you with the final pickup details after
-              dispatch.
-            </p>
+            <strong>Pickup delivery to {selectedCounty}</strong>
             {typeof displayFee === "number" ? (
-              <p className={k.fee}>
-                <strong>Delivery fee:</strong> Ksh {displayFee}
-                {displayEta ? <span> · {displayEta}</span> : null}
-              </p>
+              <span className={k.fee}>
+                Ksh {displayFee}
+                {displayEta ? ` · ${displayEta}` : ""}
+              </span>
             ) : null}
           </div>
 
@@ -221,11 +201,6 @@ export default function DeliveryLocationSelector({
               onChange={onParcelTownChange}
               onCommit={commitParcelTown}
             />
-            <p className={k.help}>
-              Type to search, then choose one of the listed towns/centres.
-              We&apos;ll use this to confirm whether we can deliver there or
-              suggest the nearest pickup point.
-            </p>
             {get(errors, "parcel_town")?.message ? (
               <span className={k.error}>
                 {String(get(errors, "parcel_town")?.message)}

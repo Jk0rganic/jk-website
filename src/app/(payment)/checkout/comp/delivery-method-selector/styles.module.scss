@@ -8,11 +8,10 @@
   }
 
   .choice_card {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
-    gap: 0.75rem;
-    align-items: flex-start;
-    padding: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 0.7rem;
     border: 1px solid #dce7df;
     border-radius: 8px;
     background: #fff;
@@ -29,29 +28,36 @@
     }
 
     input {
-      margin-top: 0.2rem;
+      margin: 0;
     }
   }
 
   .icon {
     display: inline-flex;
+    flex-shrink: 0;
     color: #2f7d32;
   }
 
   .copy {
-    display: grid;
-    gap: 0.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    min-width: 0;
   }
 
   .title {
     font-weight: 700;
     color: black;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .description {
+    overflow: hidden;
     color: #647268;
-    font-size: 0.92rem;
-    line-height: 1.4;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
@@ -59,30 +65,27 @@
   .delivery {
     .choice_grid {
       grid-template-columns: 1fr;
-      gap: 0.55rem;
+      gap: 0.45rem;
     }
 
     .choice_card {
-      grid-template-columns: auto 1fr;
-      gap: 0.6rem;
-      padding: 0.75rem;
-
-      input {
-        grid-row: 1 / span 2;
-      }
+      padding: 0.55rem 0.65rem;
     }
 
     .icon {
       display: none;
     }
 
+    .copy {
+      gap: 0.3rem;
+    }
+
     .title {
-      font-size: 0.92rem;
+      font-size: 0.85rem;
     }
 
     .description {
-      font-size: 0.78rem;
-      line-height: 1.3;
+      font-size: 0.74rem;
     }
   }
 }

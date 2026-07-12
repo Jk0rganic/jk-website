@@ -85,13 +85,12 @@ describe("CheckOutComp checkout flow", () => {
 
     render(<CheckOutComp />);
 
+    await screen.findByRole("heading", { name: /delivery address/i });
+
     await user.type(screen.getByPlaceholderText(/first name/i), "Joseph");
     await user.type(screen.getByPlaceholderText(/last name/i), "Thuku");
     await user.type(screen.getByPlaceholderText(/amina@gmail.com/i), "joseph@example.com");
     await user.type(screen.getByPlaceholderText(/0712 345 678/i), "0712345678");
-    await user.click(screen.getByRole("button", { name: /^continue$/i }));
-
-    await screen.findByRole("heading", { name: /delivery address/i });
 
     const county = screen.getByLabelText(/county/i);
     await user.type(county, "Kiambu");

@@ -22,14 +22,14 @@ describe("DeliveryMethodSelector", () => {
   it("renders delivery choice cards while preserving radio values", () => {
     render(<DeliveryHarness />);
 
-    const shipping = screen.getByRole("radio", { name: /home delivery/i });
+    const shipping = screen.getByRole("radio", { name: /deliver/i });
     const pickup = screen.getByRole("radio", {
-      name: /pickup point/i,
+      name: /collect from shop/i,
     });
 
     expect(shipping).toHaveAttribute("value", "shipping");
     expect(pickup).toHaveAttribute("value", "pickup");
-    expect(screen.getByText(/door delivery/i)).toBeInTheDocument();
-    expect(screen.getByText(/stage or bus station/i)).toBeInTheDocument();
+    expect(screen.getByText(/nairobi & upcountry/i)).toBeInTheDocument();
+    expect(screen.getByText(/ready in 24h/i)).toBeInTheDocument();
   });
 });
