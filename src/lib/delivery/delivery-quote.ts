@@ -55,7 +55,7 @@ export const DEFAULT_DELIVERY_RATES: DeliveryDefaultRate[] = [
   {
     code: "metro-stage-pickup",
     label: "Metro town/stage pickup",
-    fee: 400,
+    fee: 300,
     eta: "1 to 2 business days",
     fulfillmentType: "stage",
     counties: METRO_COUNTIES,
@@ -64,7 +64,7 @@ export const DEFAULT_DELIVERY_RATES: DeliveryDefaultRate[] = [
   {
     code: "major-town-courier-office",
     label: "Major town/stage pickup",
-    fee: 450,
+    fee: 300,
     eta: "2 to 3 business days",
     fulfillmentType: "stage",
     counties: MAJOR_TOWN_COUNTIES,
@@ -73,7 +73,7 @@ export const DEFAULT_DELIVERY_RATES: DeliveryDefaultRate[] = [
   {
     code: "remote-stage",
     label: "Remote town/stage pickup",
-    fee: 750,
+    fee: 300,
     eta: "4 to 6 business days",
     fulfillmentType: "stage",
     counties: REMOTE_COUNTIES,
@@ -81,7 +81,7 @@ export const DEFAULT_DELIVERY_RATES: DeliveryDefaultRate[] = [
   {
     code: "standard-upcountry-stage",
     label: "Standard upcountry town/stage pickup",
-    fee: 550,
+    fee: 300,
     eta: "3 to 5 business days",
     fulfillmentType: "stage",
   },

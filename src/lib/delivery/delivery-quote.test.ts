@@ -66,7 +66,7 @@ describe("resolveDeliveryQuote", () => {
       ).toMatchObject({
         code: "metro-stage-pickup",
         label: "Metro town/stage pickup",
-        fee: 400,
+        fee: 300,
         fulfillmentType: "stage",
         freeDeliveryApplied: false,
         freeDeliveryRemaining: 500,
@@ -81,7 +81,7 @@ describe("resolveDeliveryQuote", () => {
       ).toMatchObject({
         code: "metro-stage-pickup",
         fee: 0,
-        originalFee: 400,
+        originalFee: 300,
         freeDeliveryApplied: true,
         freeDeliveryRemaining: 0,
       });
@@ -99,7 +99,7 @@ describe("resolveDeliveryQuote", () => {
       ).toMatchObject({
         code: "major-town-courier-office",
         label: "Major town/stage pickup",
-        fee: 450,
+        fee: 300,
         fulfillmentType: "stage",
         freeDeliveryApplied: false,
         freeDeliveryRemaining: 2500,
@@ -117,7 +117,7 @@ describe("resolveDeliveryQuote", () => {
     ).toMatchObject({
       code: "standard-upcountry-stage",
       label: "Standard upcountry town/stage pickup",
-      fee: 550,
+      fee: 300,
       fulfillmentType: "stage",
       freeDeliveryApplied: false,
       freeDeliveryRemaining: 0,
@@ -133,7 +133,7 @@ describe("resolveDeliveryQuote", () => {
       ).toMatchObject({
         code: "remote-stage",
         label: "Remote town/stage pickup",
-        fee: 750,
+        fee: 300,
         fulfillmentType: "stage",
         freeDeliveryApplied: false,
         freeDeliveryRemaining: 0,
@@ -149,7 +149,7 @@ describe("resolveDeliveryQuote", () => {
       }),
     ).toMatchObject({
       code: "standard-upcountry-stage",
-      fee: 550,
+      fee: 300,
       fulfillmentType: "stage",
     });
   });
