@@ -20,7 +20,7 @@ describe("productFormSchema", () => {
       published: true,
       featured: false,
       categoryIds: [3, 7],
-      imageId: 44,
+      imageIds: [44, 45],
       relatedProductIds: [],
       crossSellProductIds: [],
       upsellProductIds: [],
@@ -52,6 +52,8 @@ describe("formValuesToWooPayload", () => {
       sku: "FS-01",
       regularPrice: "1500",
       salePrice: "1200",
+      saleStartsAt: "2026-07-01",
+      saleEndsAt: "2026-07-31",
       manageStock: true,
       stockQuantity: "8",
       inStock: true,
@@ -61,6 +63,7 @@ describe("formValuesToWooPayload", () => {
       relatedProductIds: [],
       crossSellProductIds: [],
       upsellProductIds: [],
+      imageIds: [],
     });
 
     expect(payload).toEqual({
@@ -70,6 +73,8 @@ describe("formValuesToWooPayload", () => {
       sku: "FS-01",
       regular_price: "1500",
       sale_price: "1200",
+      date_on_sale_from: "2026-07-01T00:00:00",
+      date_on_sale_to: "2026-07-31T23:59:59",
       status: "draft",
       manage_stock: true,
       stock_quantity: 8,
@@ -94,6 +99,7 @@ describe("formValuesToWooPayload", () => {
       relatedProductIds: [12, 15],
       crossSellProductIds: [20],
       upsellProductIds: [30],
+      imageIds: [],
     });
 
     expect(payload.related_ids).toEqual([12, 15]);
@@ -101,7 +107,7 @@ describe("formValuesToWooPayload", () => {
     expect(payload.upsell_ids).toEqual([30]);
   });
 
-  it("adds the selected image id to the WooCommerce images payload", () => {
+  it("adds all selected image ids to the WooCommerce gallery payload", () => {
     const payload = formValuesToWooPayload({
       name: "Face Serum",
       regularPrice: "1500",
@@ -110,13 +116,13 @@ describe("formValuesToWooPayload", () => {
       published: true,
       featured: false,
       categoryIds: [],
-      imageId: 88,
+      imageIds: [88, 89, 90],
       relatedProductIds: [],
       crossSellProductIds: [],
       upsellProductIds: [],
     });
 
-    expect(payload.images).toEqual([{ id: 88 }]);
+    expect(payload.images).toEqual([{ id: 88 }, { id: 89 }, { id: 90 }]);
   });
 });
 
@@ -133,6 +139,7 @@ describe("createProductPayload", () => {
       relatedProductIds: [],
       crossSellProductIds: [],
       upsellProductIds: [],
+      imageIds: [],
     });
 
     expect(payload.type).toBe("simple");
@@ -153,6 +160,8 @@ describe("mapWooProductDetail", () => {
       short_description: "Daily care",
       regular_price: "700",
       sale_price: "",
+      date_on_sale_from: null,
+      date_on_sale_to: null,
       price: "700",
       manage_stock: true,
       stock_quantity: 4,
@@ -171,7 +180,9 @@ describe("mapWooProductDetail", () => {
     expect(product.crossSellProductIds).toEqual([4]);
     expect(product.upsellProductIds).toEqual([5]);
     expect(product.imageUrl).toBe("https://example.com/img.jpg");
-    expect(product.imageId).toBe(1);
+    expect(product.images).toEqual([
+      { id: 1, src: "https://example.com/img.jpg", alt: "Shea" },
+    ]);
   });
 });
 
@@ -188,6 +199,8 @@ describe("productDetailToFormValues", () => {
       short_description: "Short",
       regular_price: "500",
       sale_price: "400",
+      date_on_sale_from: "2026-07-10T00:00:00",
+      date_on_sale_to: "2026-07-20T23:59:59",
       price: "400",
       manage_stock: true,
       stock_quantity: 2,
@@ -201,8 +214,29 @@ describe("productDetailToFormValues", () => {
       stockQuantity: "2",
       inStock: false,
       published: false,
-      imageId: undefined,
+      imageIds: [],
+      saleStartsAt: "2026-07-10",
+      saleEndsAt: "2026-07-20",
     });
+  });
+
+  it("rejects an expiry date when no discount price is set", () => {
+    const result = productFormSchema.safeParse({
+      name: "Organic Honey",
+      regularPrice: "850",
+      salePrice: "",
+      saleEndsAt: "2026-12-31",
+      manageStock: false,
+      inStock: true,
+      published: true,
+      featured: false,
+      categoryIds: [],
+      relatedProductIds: [],
+      crossSellProductIds: [],
+      upsellProductIds: [],
+    });
+
+    expect(result.success).toBe(false);
   });
 });
 

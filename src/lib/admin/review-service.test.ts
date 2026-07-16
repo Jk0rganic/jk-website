@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/fetch/fetchGraphQL", () => ({
   fetchGraphQL: vi.fn(),
 }));
+vi.mock("@/lib/fetch/fetchRest", () => ({ fetchWoo: vi.fn() }));
 
 import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import { fetchWoo } from "@/lib/fetch/fetchRest";
 import {
   computeReviewSummary,
   fetchAdminReviews,
@@ -13,10 +15,13 @@ import {
 } from "./review-service";
 
 const mockedFetchGraphQL = vi.mocked(fetchGraphQL);
+const mockedFetchWoo = vi.mocked(fetchWoo);
 
 describe("mapCommentToAdminReview", () => {
   beforeEach(() => {
     mockedFetchGraphQL.mockReset();
+    mockedFetchWoo.mockReset();
+    mockedFetchWoo.mockRejectedValue(new Error("REST unavailable"));
   });
 
   it("maps WPGraphQL comment fixtures to admin reviews", () => {
@@ -173,7 +178,7 @@ describe("mapCommentToAdminReview", () => {
       )
       .mockRejectedValueOnce(fallbackError);
 
-    await expect(fetchAdminReviews()).rejects.toThrow("WordPress offline");
+    await expect(fetchAdminReviews()).rejects.toThrow("REST unavailable");
   });
 
   it("keeps product reviews when rating metadata is absent", async () => {
@@ -215,26 +220,22 @@ describe("mapCommentToAdminReview", () => {
   });
 
   it("maps and preserves flat Woo REST review fields", async () => {
-    mockedFetchGraphQL.mockResolvedValue({
-      comments: {
-        nodes: [
-          {
-            id: 404,
-            product_id: 99,
-            product_name: "Avocado Hair Mask",
-            product_slug: "avocado-hair-mask",
-            reviewer: "Lilian",
-            reviewer_email: "lilian@example.com",
-            rating: 4,
-            date_created: "2026-06-18T07:30:00",
-            date_created_gmt: "2026-06-18T04:30:00",
-            status: "approved",
-            review: "<p>Softened my curls.</p>",
-            verified: true,
-          },
-        ],
+    mockedFetchWoo.mockResolvedValue([
+      {
+        id: 404,
+        product_id: 99,
+        product_name: "Avocado Hair Mask",
+        product_slug: "avocado-hair-mask",
+        reviewer: "Lilian",
+        reviewer_email: "lilian@example.com",
+        rating: 4,
+        date_created: "2026-06-18T07:30:00",
+        date_created_gmt: "2026-06-18T04:30:00",
+        status: "approved",
+        review: "<p>Softened my curls.</p>",
+        verified: true,
       },
-    });
+    ]);
 
     await expect(fetchAdminReviews()).resolves.toEqual([
       {
@@ -250,6 +251,11 @@ describe("mapCommentToAdminReview", () => {
         content: "Softened my curls.",
       },
     ]);
+    expect(mockedFetchWoo).toHaveBeenCalledWith(
+      "products/reviews?per_page=100&status=all",
+      { noCache: true },
+    );
+    expect(mockedFetchGraphQL).not.toHaveBeenCalled();
   });
 });
 

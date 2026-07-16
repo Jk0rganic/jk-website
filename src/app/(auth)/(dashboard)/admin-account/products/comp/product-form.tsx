@@ -35,6 +35,8 @@ const defaultValues: ProductFormValues = {
   sku: "",
   regularPrice: "",
   salePrice: "",
+  saleStartsAt: "",
+  saleEndsAt: "",
   manageStock: true,
   stockQuantity: "",
   inStock: true,
@@ -44,6 +46,7 @@ const defaultValues: ProductFormValues = {
   relatedProductIds: [],
   crossSellProductIds: [],
   upsellProductIds: [],
+  imageIds: [],
 };
 
 export default function ProductForm({
@@ -58,10 +61,10 @@ export default function ProductForm({
   const [variations, setVariations] = useState<VariationFormValues[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [creatingCategory, setCreatingCategory] = useState(false);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<
-    string | null
-  >(null);
+  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
+  const [selectedImagePreviewUrls, setSelectedImagePreviewUrls] = useState<
+    string[]
+  >([]);
   const [saving, setSaving] = useState(false);
 
   const {
@@ -81,7 +84,10 @@ export default function ProductForm({
   const crossSellProductIds = watch("crossSellProductIds") ?? [];
   const upsellProductIds = watch("upsellProductIds") ?? [];
   const isVariable = product?.type === "variable";
-  const productImagePreview = selectedImagePreviewUrl ?? product?.imageUrl;
+  const productImagePreviews = [
+    ...(product?.images.map((image) => image.src) ?? []),
+    ...selectedImagePreviewUrls,
+  ];
 
   useEffect(() => {
     async function loadCategories() {
@@ -145,11 +151,9 @@ export default function ProductForm({
 
   useEffect(() => {
     return () => {
-      if (selectedImagePreviewUrl) {
-        URL.revokeObjectURL(selectedImagePreviewUrl);
-      }
+      for (const url of selectedImagePreviewUrls) URL.revokeObjectURL(url);
     };
-  }, [selectedImagePreviewUrl]);
+  }, [selectedImagePreviewUrls]);
 
   function toggleCategory(categoryId: number) {
     const next = selectedCategoryIds.includes(categoryId)
@@ -160,9 +164,9 @@ export default function ProductForm({
   }
 
   function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null;
-    setSelectedImageFile(file);
-    setSelectedImagePreviewUrl(file ? URL.createObjectURL(file) : null);
+    const files = Array.from(event.target.files ?? []);
+    setSelectedImageFiles(files);
+    setSelectedImagePreviewUrls(files.map((file) => URL.createObjectURL(file)));
   }
 
   async function createCategory() {
@@ -202,25 +206,22 @@ export default function ProductForm({
     }
   }
 
-  async function uploadSelectedImage() {
-    if (!selectedImageFile) {
-      return null;
-    }
-
-    const formData = new FormData();
-    formData.append("file", selectedImageFile);
-
-    const res = await fetch("/api/admin/media", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Failed to upload product image");
-    }
-
-    return data.media.id as number;
+  async function uploadSelectedImages() {
+    return Promise.all(
+      selectedImageFiles.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/admin/media", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || `Failed to upload ${file.name}`);
+        }
+        return data.media.id as number;
+      }),
+    );
   }
 
   function updateVariation(
@@ -241,13 +242,13 @@ export default function ProductForm({
     setSaving(true);
 
     try {
-      const uploadedImageId = await uploadSelectedImage();
-      const valuesToSave = uploadedImageId
-        ? { ...values, imageId: uploadedImageId }
+      const uploadedImageIds = await uploadSelectedImages();
+      const valuesToSave = uploadedImageIds.length
+        ? { ...values, imageIds: [...values.imageIds, ...uploadedImageIds] }
         : values;
 
-      if (uploadedImageId) {
-        setValue("imageId", uploadedImageId, { shouldDirty: true });
+      if (uploadedImageIds.length) {
+        setValue("imageIds", valuesToSave.imageIds, { shouldDirty: true });
       }
 
       const endpoint =
@@ -400,6 +401,26 @@ export default function ProductForm({
               </label>
             </div>
 
+            <div className={k.row}>
+              <label className={k.field}>
+                <span>Discount starts (optional)</span>
+                <input
+                  type="date"
+                  {...register("saleStartsAt")}
+                  disabled={isVariable}
+                />
+              </label>
+              <label className={k.field}>
+                <span>Discount expires (optional)</span>
+                <input
+                  type="date"
+                  {...register("saleEndsAt")}
+                  disabled={isVariable}
+                />
+                {errors.saleEndsAt && <em>{errors.saleEndsAt.message}</em>}
+              </label>
+            </div>
+
             {isVariable && (
               <p className={k.note}>
                 This product has size or variant options. Set prices for each
@@ -458,25 +479,33 @@ export default function ProductForm({
               <div>
                 <h2>Images</h2>
                 <p className={k.help}>
-                  Choose the main image shown on product cards.
+                  Upload a main image and additional gallery images. The first
+                  image is shown on product cards.
                 </p>
               </div>
             </div>
 
             <div className={k.imageUpload}>
               <div className={k.imagePreview}>
-                {productImagePreview ? (
-                  <img src={productImagePreview} alt="" />
+                {productImagePreviews.length ? (
+                  productImagePreviews.map((src, index) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={`Product preview ${index + 1}`}
+                    />
+                  ))
                 ) : (
-                  <span>No image selected</span>
+                  <span>No images selected</span>
                 )}
               </div>
 
               <label className={k.field}>
-                <span>Main image</span>
+                <span>Product images</span>
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleImageChange}
                 />
               </label>

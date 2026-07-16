@@ -17,6 +17,8 @@ export type WooProductDetail = {
   short_description: string;
   regular_price: string;
   sale_price: string;
+  date_on_sale_from?: string | null;
+  date_on_sale_to?: string | null;
   price: string;
   manage_stock: boolean;
   stock_quantity: number | null;
@@ -50,6 +52,8 @@ export type AdminProductDetail = {
   description: string;
   regularPrice: string;
   salePrice: string;
+  saleStartsAt: string;
+  saleEndsAt: string;
   displayPrice: string;
   manageStock: boolean;
   stockQuantity: number | null;
@@ -62,7 +66,7 @@ export type AdminProductDetail = {
   crossSellProductIds: number[];
   upsellProductIds: number[];
   imageUrl: string | null;
-  imageId?: number;
+  images: Array<{ id: number; src: string; alt: string }>;
   variations: AdminVariation[];
 };
 
@@ -84,6 +88,8 @@ export type WooProductPayload = {
   sku: string;
   regular_price: string;
   sale_price: string;
+  date_on_sale_from: string | null;
+  date_on_sale_to: string | null;
   status: "publish" | "draft";
   manage_stock: boolean;
   stock_quantity: number | null;
@@ -109,6 +115,8 @@ export function mapWooProductDetail(
     description: product.description || "",
     regularPrice: product.regular_price || "",
     salePrice: product.sale_price || "",
+    saleStartsAt: toDateInputValue(product.date_on_sale_from),
+    saleEndsAt: toDateInputValue(product.date_on_sale_to),
     displayPrice: product.price || product.regular_price || "",
     manageStock: Boolean(product.manage_stock),
     stockQuantity: product.stock_quantity,
@@ -125,7 +133,7 @@ export function mapWooProductDetail(
     crossSellProductIds: product.cross_sell_ids ?? [],
     upsellProductIds: product.upsell_ids ?? [],
     imageUrl: product.images?.[0]?.src ?? null,
-    imageId: product.images?.[0]?.id,
+    images: product.images ?? [],
     variations: [],
   };
 }
@@ -157,6 +165,8 @@ export function productDetailToFormValues(
     sku: product.sku,
     regularPrice: product.regularPrice,
     salePrice: product.salePrice,
+    saleStartsAt: product.saleStartsAt,
+    saleEndsAt: product.saleEndsAt,
     manageStock: product.manageStock,
     stockQuantity:
       product.stockQuantity !== null ? String(product.stockQuantity) : "",
@@ -167,7 +177,7 @@ export function productDetailToFormValues(
     relatedProductIds: product.relatedProductIds,
     crossSellProductIds: product.crossSellProductIds,
     upsellProductIds: product.upsellProductIds,
-    imageId: product.imageId,
+    imageIds: product.images.map((image) => image.id),
   };
 }
 
@@ -186,6 +196,14 @@ export function formValuesToWooPayload(
     sku: values.sku || "",
     regular_price: values.regularPrice,
     sale_price: values.salePrice || "",
+    date_on_sale_from:
+      values.salePrice && values.saleStartsAt
+        ? `${values.saleStartsAt}T00:00:00`
+        : null,
+    date_on_sale_to:
+      values.salePrice && values.saleEndsAt
+        ? `${values.saleEndsAt}T23:59:59`
+        : null,
     status: values.published ? "publish" : "draft",
     manage_stock: values.manageStock,
     stock_quantity: stockQuantity,
@@ -197,12 +215,16 @@ export function formValuesToWooPayload(
     upsell_ids: values.upsellProductIds ?? [],
   };
 
-  return values.imageId
+  return (values.imageIds ?? []).length
     ? {
         ...payload,
-        images: [{ id: values.imageId }],
+        images: (values.imageIds ?? []).map((id) => ({ id })),
       }
     : payload;
+}
+
+function toDateInputValue(value: string | null | undefined) {
+  return value ? value.slice(0, 10) : "";
 }
 
 export function variationToWooPayload(variation: {

@@ -1,4 +1,5 @@
 import { fetchGraphQL } from "@/lib/fetch/fetchGraphQL";
+import { fetchWoo } from "@/lib/fetch/fetchRest";
 
 export type AdminReview = {
   id: number | string;
@@ -153,11 +154,26 @@ type AdminReviewsResponse = {
 };
 
 export async function fetchAdminReviews(): Promise<AdminReview[]> {
-  const data = await fetchAdminReviewsData();
+  try {
+    const reviews = await fetchWoo<unknown[]>(
+      "products/reviews?per_page=100&status=all",
+      { noCache: true },
+    );
 
-  return (data.comments?.nodes ?? [])
-    .map(mapCommentToAdminReview)
-    .filter((review) => review.productId > 0);
+    return reviews
+      .map(mapCommentToAdminReview)
+      .filter((review) => review.productId > 0);
+  } catch (restError) {
+    try {
+      const data = await fetchAdminReviewsData();
+
+      return (data.comments?.nodes ?? [])
+        .map(mapCommentToAdminReview)
+        .filter((review) => review.productId > 0);
+    } catch {
+      throw restError;
+    }
+  }
 }
 
 async function fetchAdminReviewsData() {
