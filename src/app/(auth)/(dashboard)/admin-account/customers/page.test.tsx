@@ -1,7 +1,46 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import CustomersPage from "./page";
+
+const liveData = {
+  customers: [
+    {
+      id: "7",
+      name: "Real Customer",
+      email: "real@shop.test",
+      phone: "0712345678",
+      location: "Nairobi - Kilimani",
+      orders: 3,
+      spend: 48200,
+      lastOrder: "2026-07-08T10:00:00Z",
+      status: "vip",
+    },
+    {
+      id: "guest:buyer@test.com",
+      name: "Guest Buyer",
+      email: "buyer@test.com",
+      phone: "Not provided",
+      location: "Mombasa - Nyali",
+      orders: 1,
+      spend: 1650,
+      lastOrder: "2026-07-01T10:00:00Z",
+      status: "new",
+    },
+  ],
+  summary: {
+    total: 2,
+    newThisMonth: 1,
+    returningRate: 50,
+    averageLifetimeSpend: 24925,
+  },
+};
 
 describe("CustomersPage", () => {
   afterEach(() => {
@@ -9,79 +48,55 @@ describe("CustomersPage", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders customer stats, rows, initials, and actions", () => {
+  it("renders stats and customers returned by the admin API without fake actions", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(liveData)),
+    );
     render(<CustomersPage />);
-
-    expect(screen.getByText("Total customers")).toBeInTheDocument();
-    expect(screen.getByText("1,284")).toBeInTheDocument();
-
-    const aminaRow = screen.getByRole("row", { name: /amina yusuf/i });
-    expect(within(aminaRow).getByText("AY")).toBeInTheDocument();
-    expect(within(aminaRow).getByText("+254 712 345 678")).toBeInTheDocument();
+    expect(screen.getByText("Loading customers…")).toBeInTheDocument();
+    const row = await screen.findByRole("row", { name: /real customer/i });
+    expect(within(row).getByText("KES 48,200")).toBeInTheDocument();
+    expect(screen.getByText("50%")).toBeInTheDocument();
     expect(
-      within(aminaRow).getByText("Nairobi - Westlands"),
-    ).toBeInTheDocument();
-    expect(within(aminaRow).getByText("21")).toBeInTheDocument();
-    expect(within(aminaRow).getByText("KES 48,200")).toBeInTheDocument();
-    expect(within(aminaRow).getByText("VIP")).toBeInTheDocument();
-    expect(within(aminaRow).getByRole("button", { name: /reset password/i }));
-    expect(within(aminaRow).getByRole("button", { name: /block customer/i }));
-    expect(within(aminaRow).getByRole("button", { name: /delete customer/i }));
+      screen.queryByRole("button", { name: /reset|block|delete/i }),
+    ).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/admin/customers",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
-  it("filters customers by search, status, and location", async () => {
+  it("filters live results by search and status", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(liveData)),
+    );
     const user = userEvent.setup();
     render(<CustomersPage />);
-
+    await screen.findByText("Real Customer");
     await user.type(
       screen.getByRole("searchbox", { name: /search customers/i }),
-      "mary",
+      "guest",
     );
-
-    expect(screen.getByText("Mary Achieng")).toBeInTheDocument();
-    expect(screen.queryByText("Amina Yusuf")).not.toBeInTheDocument();
-
+    expect(screen.getByText("Guest Buyer")).toBeInTheDocument();
+    expect(screen.queryByText("Real Customer")).not.toBeInTheDocument();
     await user.clear(
       screen.getByRole("searchbox", { name: /search customers/i }),
     );
     await user.selectOptions(screen.getByLabelText("Status"), "VIP");
-
-    expect(screen.getByText("Amina Yusuf")).toBeInTheDocument();
-    expect(screen.queryByText("Peter Otieno")).not.toBeInTheDocument();
-
-    await user.selectOptions(screen.getByLabelText("Status"), "All customers");
-    await user.selectOptions(screen.getByLabelText("Location"), "Kisumu");
-
-    expect(screen.getByText("Peter Otieno")).toBeInTheDocument();
-    expect(screen.getByText("Mary Achieng")).toBeInTheDocument();
-    expect(screen.queryByText("Grace Wanjiru")).not.toBeInTheDocument();
+    expect(screen.getByText("Real Customer")).toBeInTheDocument();
+    expect(screen.queryByText("Guest Buyer")).not.toBeInTheDocument();
   });
 
-  it("confirms a block action in a modal and updates the row", async () => {
-    const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, "confirm");
-
-    render(<CustomersPage />);
-
-    const peterRow = screen.getByRole("row", { name: /peter otieno/i });
-    await user.click(
-      within(peterRow).getByRole("button", { name: /block customer/i }),
+  it("shows an honest API failure instead of fixture data", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response("", { status: 500 }),
     );
-
-    expect(confirmSpy).not.toHaveBeenCalled();
-    const dialog = screen.getByRole("dialog", { name: "Block customer?" });
-    expect(
-      within(dialog).getByText(
-        "Peter Otieno will be signed out and blocked from signing in or ordering until unblocked.",
+    render(<CustomersPage />);
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not load customers",
       ),
-    ).toBeInTheDocument();
-
-    await user.click(within(dialog).getByRole("button", { name: "Block" }));
-
-    const updatedRow = screen.getByRole("row", { name: /peter otieno/i });
-    expect(within(updatedRow).getByText("Blocked")).toBeInTheDocument();
-    expect(
-      within(updatedRow).getByRole("button", { name: /unblock customer/i }),
-    ).toBeInTheDocument();
+    );
+    expect(screen.queryByText("Amina Yusuf")).not.toBeInTheDocument();
   });
 });

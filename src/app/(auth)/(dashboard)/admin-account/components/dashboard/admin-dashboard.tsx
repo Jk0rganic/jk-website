@@ -11,43 +11,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   computeOrderStatusSummary,
   computeTopProducts,
 } from "@/lib/admin/admin-stats";
+import type { ProductInventoryItem } from "@/lib/admin/product-inventory";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
 import { formatPrice } from "@/utils/format-price";
 import { formatDate } from "@/utils/formatDate";
 import { useAccount } from "../../../(resources)/dashboard-utils/account-context";
 import styles from "../../styles.module.scss";
-
-const monthLabels = [
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-];
-
-const fallbackSales = [
-  196_000, 210_000, 228_000, 202_000, 266_000, 238_000, 252_000, 270_000,
-  258_000, 279_000, 292_000, 280_000,
-];
-
-const lowStockItems = [
-  { name: "Herbal Detox Tea 20 bags", sku: "HDT-020", stock: "3 Left" },
-  { name: "Raw Forest Honey 500g", sku: "RFH-500", stock: "8 Left" },
-  { name: "Turmeric Capsules 60ct", sku: "TMC-060", stock: "Out Of Stock" },
-  { name: "Aloe Vera Juice 1L", sku: "AVJ-1000", stock: "Out Of Stock" },
-];
 
 function parseMoney(value: string | number | undefined | null): number {
   const numeric = Number(String(value ?? 0).replace(/[^0-9.-]/g, ""));
@@ -121,8 +95,14 @@ function Sparkline({
   );
 }
 
-function SalesAreaChart({ values }: { values: number[] }) {
-  const max = Math.max(...values, 333_000);
+function SalesAreaChart({
+  values,
+  labels,
+}: {
+  values: number[];
+  labels: string[];
+}) {
+  const max = Math.max(...values, 1);
   const width = 820;
   const height = 300;
   const left = 58;
@@ -138,7 +118,7 @@ function SalesAreaChart({ values }: { values: number[] }) {
   });
   const line = points.map((point) => `${point.x},${point.y}`).join(" ");
   const area = `${left},${height - bottom} ${line} ${width - right},${height - bottom}`;
-  const ticks = [0, 83_000, 166_000, 249_000, 333_000];
+  const ticks = [0, max * 0.25, max * 0.5, max * 0.75, max];
 
   return (
     <svg
@@ -184,10 +164,10 @@ function SalesAreaChart({ values }: { values: number[] }) {
           strokeWidth="4"
         />
       ))}
-      {monthLabels.map((label, index) => (
+      {labels.map((label, index) => (
         <text
           key={label}
-          x={left + (index / Math.max(1, monthLabels.length - 1)) * plotW}
+          x={left + (index / Math.max(1, labels.length - 1)) * plotW}
           y={height - 12}
           textAnchor="middle"
         >
@@ -259,28 +239,76 @@ function OrderStatusDonut({
 
 export default function AdminDashboard() {
   const { orders, session } = useAccount();
-  const firstName = session.user.name?.split(" ")[0] || "Joan";
+  const firstName = session.user.name?.split(" ")[0] || "Admin";
+  const [products, setProducts] = useState<ProductInventoryItem[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function loadProducts() {
+      try {
+        const response = await fetch("/api/admin/products");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to load stock");
+        if (active) setProducts(data.products ?? []);
+      } catch (error) {
+        if (active) {
+          setProductsError(
+            error instanceof Error ? error.message : "Failed to load stock",
+          );
+        }
+      } finally {
+        if (active) setProductsLoading(false);
+      }
+    }
+    loadProducts();
+    return () => {
+      active = false;
+    };
+  }, []);
   const orderHealth = useMemo(
     () => computeOrderStatusSummary(orders),
     [orders],
   );
   const topProducts = useMemo(() => computeTopProducts(orders, 5), [orders]);
   const recentOrders = useMemo(() => [...orders].slice(0, 6), [orders]);
+  const lowStockItems = useMemo(
+    () =>
+      products
+        .filter(
+          (product) =>
+            product.stockStatus === "outofstock" ||
+            (product.stockQuantity !== null && product.stockQuantity <= 5),
+        )
+        .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0))
+        .slice(0, 4),
+    [products],
+  );
 
   const summary = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     const previousMonth = new Date(currentYear, currentMonth - 1, 1);
-    const monthly = Array.from({ length: 12 }, (_, index) => ({
-      label: monthLabels[index],
-      revenue: 0,
-      orders: 0,
-    }));
+    const monthly = Array.from({ length: 12 }, (_, index) => {
+      const date = new Date(currentYear, currentMonth - 11 + index, 1);
+      return {
+        key: `${date.getFullYear()}-${date.getMonth()}`,
+        label: date.toLocaleDateString("en-KE", { month: "short" }),
+        revenue: 0,
+        orders: 0,
+        units: 0,
+      };
+    });
 
     let totalSales = 0;
     let monthRevenue = 0;
     let previousRevenue = 0;
+    let monthOrders = 0;
+    let previousOrders = 0;
+    let monthUnits = 0;
+    let previousUnits = 0;
     let unitsSold = 0;
 
     for (const order of orders) {
@@ -292,11 +320,17 @@ export default function AdminDashboard() {
         0,
       );
 
-      const label = monthLabels[date.getMonth()];
-      const point = monthly.find((item) => item.label === label);
+      const orderUnits = (order.line_items ?? []).reduce(
+        (sum, item) => sum + (item.quantity || 0),
+        0,
+      );
+      const point = monthly.find(
+        (item) => item.key === `${date.getFullYear()}-${date.getMonth()}`,
+      );
       if (point) {
         point.revenue += total;
         point.orders += 1;
+        point.units += orderUnits;
       }
 
       if (
@@ -304,6 +338,8 @@ export default function AdminDashboard() {
         date.getFullYear() === currentYear
       ) {
         monthRevenue += total;
+        monthOrders += 1;
+        monthUnits += orderUnits;
       }
 
       if (
@@ -311,30 +347,34 @@ export default function AdminDashboard() {
         date.getFullYear() === previousMonth.getFullYear()
       ) {
         previousRevenue += total;
+        previousOrders += 1;
+        previousUnits += orderUnits;
       }
     }
 
-    const chartValues = monthly.map((item, index) =>
-      item.revenue > 0 ? item.revenue : fallbackSales[index],
-    );
-    const totalOrders = orders.length || 142;
-    const revenue = monthRevenue || 284_500;
-    const sales = totalSales || 1_842_300;
-    const units = unitsSold || 389;
-    const averageOrder = totalOrders > 0 ? sales / totalOrders : 2004;
+    const chartValues = monthly.map((item) => item.revenue);
+    const chartLabels = monthly.map((item) => item.label);
+    const totalOrders = orders.length;
+    const averageOrder = totalOrders > 0 ? totalSales / totalOrders : 0;
+    const currentAverage = monthOrders > 0 ? monthRevenue / monthOrders : 0;
+    const previousAverage =
+      previousOrders > 0 ? previousRevenue / previousOrders : 0;
 
     return {
-      totalSales: sales,
-      revenue,
+      totalSales,
+      revenue: monthRevenue,
       orders: totalOrders,
-      unitsSold: units,
+      unitsSold,
       averageOrder,
-      revenueTrend: percentChange(revenue, previousRevenue || revenue * 0.88),
-      salesTrend: 9.6,
-      orderTrend: 8.1,
-      unitsTrend: 5.2,
-      averageTrend: -1.3,
+      revenueTrend: percentChange(monthRevenue, previousRevenue),
+      salesTrend: percentChange(monthRevenue, previousRevenue),
+      orderTrend: percentChange(monthOrders, previousOrders),
+      unitsTrend: percentChange(monthUnits, previousUnits),
+      averageTrend: percentChange(currentAverage, previousAverage),
       chartValues,
+      chartLabels,
+      monthlyOrders: monthly.map((item) => item.orders),
+      monthlyUnits: monthly.map((item) => item.units),
     };
   }, [orders]);
 
@@ -345,7 +385,7 @@ export default function AdminDashboard() {
       trend: summary.salesTrend,
       icon: TrendingUp,
       tone: "green" as const,
-      values: [2, 3, 3.4, 4.1, 5.2, 6.4],
+      values: summary.chartValues.slice(-6),
     },
     {
       label: "Revenue",
@@ -353,7 +393,7 @@ export default function AdminDashboard() {
       trend: summary.revenueTrend,
       icon: CreditCard,
       tone: "blue" as const,
-      values: [2, 2.6, 2.4, 3, 3.1, 4.2],
+      values: summary.chartValues.slice(-6),
     },
     {
       label: "Orders",
@@ -361,7 +401,7 @@ export default function AdminDashboard() {
       trend: summary.orderTrend,
       icon: ShoppingBag,
       tone: "blue" as const,
-      values: [2.3, 2.7, 2.5, 3.6, 4.1, 4.4],
+      values: summary.monthlyOrders.slice(-6),
     },
     {
       label: "Units sold",
@@ -369,7 +409,7 @@ export default function AdminDashboard() {
       trend: summary.unitsTrend,
       icon: Package,
       tone: "orange" as const,
-      values: [2.2, 3, 2.7, 3.8, 3.5, 4.1],
+      values: summary.monthlyUnits.slice(-6),
     },
     {
       label: "Avg. order",
@@ -377,41 +417,22 @@ export default function AdminDashboard() {
       trend: summary.averageTrend,
       icon: ArrowUpRight,
       tone: "purple" as const,
-      values: [4, 2.8, 3.2, 2.1, 2.7, 2.5],
+      values: summary.chartValues.slice(-6),
     },
   ];
 
-  const activityItems = [
-    ["New order #10442 from Amina Yusuf", "8 minutes ago", styles.dotBlue],
-    ["M-Pesa payment received · KSh 1,200", "22 minutes ago", styles.dotGreen],
-    [
-      "Herbal Detox Tea is low on stock (3 left)",
-      "1 hour ago",
-      styles.dotOrange,
-    ],
-    ["Coupon WELLNESS15 was redeemed", "2 hours ago", styles.dotPurple],
-    ["Order #10438 cancelled by customer", "3 hours ago", styles.dotRed],
-  ];
-
-  const productRows = topProducts.length
-    ? topProducts
-    : [
-        { name: "Moringa Powder 250g", quantity: 84, revenue: 71_400 },
-        { name: "Raw Forest Honey 500g", quantity: 63, revenue: 75_600 },
-        { name: "Cold-Pressed Coconut Oil", quantity: 58, revenue: 56_840 },
-        { name: "Turmeric Capsules 60ct", quantity: 47, revenue: 68_150 },
-        { name: "Baobab Powder 200g", quantity: 41, revenue: 36_900 },
-      ];
+  const activityItems = recentOrders.map((order) => ({
+    text: `Order #${order.id} from ${getCustomerName(order)} · ${getOrderDisplayInfo(order).orderLabel}`,
+    time: formatDate(order.date_created),
+    dot: getStatusTone(order.status),
+  }));
 
   return (
     <div className={styles.pdfDashboard}>
       <section className={styles.pdfHero}>
         <div>
           <h2>Welcome back, {firstName}</h2>
-          <p>
-            Here is how JK Organics is performing this week. Revenue is up and
-            you're on track to hit your monthly goal.
-          </p>
+          <p>Live store performance from WooCommerce orders and inventory.</p>
           <div className={styles.pdfHeroActions}>
             <Link href="/admin-account/products/new">+ Add product</Link>
             <Link href="/admin-account/orders">View orders</Link>
@@ -420,12 +441,10 @@ export default function AdminDashboard() {
         </div>
         <aside className={styles.goalCard}>
           <div>
-            <span>Monthly revenue goal</span>
-            <strong>81%</strong>
+            <span>Current month revenue</span>
           </div>
           <p>{formatPrice(summary.revenue)}</p>
-          <small>of KSh 350,000 target</small>
-          <i />
+          <small>Calculated from loaded orders</small>
         </aside>
       </section>
 
@@ -466,7 +485,14 @@ export default function AdminDashboard() {
               <strong>12M</strong>
             </div>
           </header>
-          <SalesAreaChart values={summary.chartValues} />
+          {orders.length ? (
+            <SalesAreaChart
+              values={summary.chartValues}
+              labels={summary.chartLabels}
+            />
+          ) : (
+            <p>No sales data yet.</p>
+          )}
         </article>
 
         <article className={styles.pdfPanel}>
@@ -484,13 +510,19 @@ export default function AdminDashboard() {
               <AlertTriangle size={18} />
             </span>
             <h2>Low stock alerts</h2>
-            <strong>4</strong>
+            <strong>{lowStockItems.length}</strong>
           </div>
           <Link href="/admin-account/products">Restock now →</Link>
         </header>
         <div className={styles.lowStockGrid}>
+          {productsLoading && <p>Loading inventory...</p>}
+          {productsError && <p>Inventory unavailable: {productsError}</p>}
+          {!productsLoading && !productsError && !lowStockItems.length && (
+            <p>No low-stock products.</p>
+          )}
           {lowStockItems.map((item) => {
-            const out = item.stock.toLowerCase().includes("out");
+            const out = item.stockStatus === "outofstock";
+            const stock = out ? "Out of stock" : `${item.stockQuantity} left`;
             return (
               <div key={item.sku} className={out ? styles.stockOut : ""}>
                 <span>
@@ -500,7 +532,7 @@ export default function AdminDashboard() {
                   <strong>{item.name}</strong>
                   <small>SKU: {item.sku}</small>
                 </p>
-                <em>{item.stock}</em>
+                <em>{stock}</em>
               </div>
             );
           })}
@@ -546,6 +578,11 @@ export default function AdminDashboard() {
                     </tr>
                   );
                 })}
+                {!recentOrders.length && (
+                  <tr>
+                    <td colSpan={4}>No recent orders yet.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -556,15 +593,16 @@ export default function AdminDashboard() {
             <h2>Activity</h2>
           </header>
           <div className={styles.activityList}>
-            {activityItems.map(([text, time, dot]) => (
-              <div key={text}>
-                <span className={dot} />
+            {activityItems.map((item) => (
+              <div key={item.text}>
+                <span className={item.dot} />
                 <p>
-                  <strong>{text}</strong>
-                  <small>{time}</small>
+                  <strong>{item.text}</strong>
+                  <small>{item.time}</small>
                 </p>
               </div>
             ))}
+            {!activityItems.length && <p>No order activity yet.</p>}
           </div>
         </article>
       </section>
@@ -574,7 +612,7 @@ export default function AdminDashboard() {
           <h2>Top products</h2>
         </header>
         <div className={styles.productList}>
-          {productRows.map((product) => (
+          {topProducts.map((product) => (
             <div key={product.name}>
               <span>
                 <Box size={17} />
@@ -586,6 +624,7 @@ export default function AdminDashboard() {
               <em>{formatPrice(product.revenue)}</em>
             </div>
           ))}
+          {!topProducts.length && <p>No product sales yet.</p>}
         </div>
       </article>
     </div>

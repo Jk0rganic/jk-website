@@ -87,7 +87,7 @@ describe("AdminLayout", () => {
     expect(mockedFetchAdminOrders).not.toHaveBeenCalled();
   });
 
-  it("redirects non-admin guard failures to the customer account page", async () => {
+  it("redirects non-admin guard failures to the admin sign-in page", async () => {
     mockedRequireAdminSession.mockResolvedValue({
       error: "Forbidden",
       status: 403,
@@ -99,9 +99,9 @@ describe("AdminLayout", () => {
 
     await expect(
       AdminLayout({ children: React.createElement("div") }),
-    ).rejects.toThrow("redirect:/account");
+    ).rejects.toThrow("redirect:/auth/admin/signin");
 
-    expect(mockedRedirect).toHaveBeenCalledWith("/account");
+    expect(mockedRedirect).toHaveBeenCalledWith("/auth/admin/signin");
   });
 
   it("passes the fresh guard session to the account provider", async () => {
@@ -126,7 +126,7 @@ describe("AdminLayout", () => {
 });
 
 describe("admin navigation foundation", () => {
-  it("uses workflow groups with Admins and Account destination labels", () => {
+  it("uses the current store and settings navigation groups", () => {
     expect(
       adminNavGroups.map((group) => ({
         title: group.title,
@@ -134,24 +134,31 @@ describe("admin navigation foundation", () => {
       })),
     ).toEqual([
       { title: "Overview", items: ["Dashboard"] },
-      { title: "Fulfillment", items: ["Orders", "Payments"] },
-      { title: "Catalog", items: ["Products", "Coupons", "Reviews"] },
-      { title: "Customers", items: ["Customers"] },
-      { title: "Growth", items: ["Analytics"] },
-      { title: "Team", items: ["Admins"] },
-      { title: "Settings", items: ["Account"] },
+      {
+        title: "Store",
+        items: [
+          "Orders",
+          "Products",
+          "Coupons",
+          "Payments",
+          "Delivery fees",
+          "Customers",
+          "Reviews",
+        ],
+      },
+      { title: "Settings", items: ["Team", "Profile"] },
     ]);
 
     expect(
       adminNavGroups
         .flatMap((group) => group.items)
         .find((item) => item.href === "/admin-account/team"),
-    ).toMatchObject({ label: "Admins", superAdminOnly: true });
+    ).toMatchObject({ label: "Team", superAdminOnly: true });
   });
 
   it("returns updated titles for admin team and account settings pages", () => {
-    expect(getAdminPageTitle("/admin-account/team")).toBe("Admins");
-    expect(getAdminPageTitle("/admin-account/details")).toBe("Account");
+    expect(getAdminPageTitle("/admin-account/team")).toBe("Team");
+    expect(getAdminPageTitle("/admin-account/details")).toBe("Profile");
     expect(getAdminPageTitle("/admin-account/products/123")).toBe(
       "Edit product",
     );

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  Banknote,
-  CheckCircle2,
-  Clock3,
-  Smartphone,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -124,13 +118,6 @@ export default function AdminPaymentsPage() {
           icon={AlertTriangle}
           tone="danger"
           detail={`${summary.failed} failed records`}
-        />
-        <AdminMetricCard
-          label="Cash total"
-          value={formatPaymentAmount(0)}
-          icon={Banknote}
-          tone="neutral"
-          detail="No cash records in this feed"
         />
         <AdminMetricCard
           label="M-Pesa / IntaSend"

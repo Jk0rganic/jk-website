@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminDashboard from "./admin-dashboard";
 
 vi.mock("next/image", () => ({
@@ -16,7 +16,7 @@ vi.mock("next/image", () => ({
   ),
 }));
 
-const orders: DashboardOrder[] = [
+const fixtureOrders: DashboardOrder[] = [
   {
     id: 1201,
     status: "processing",
@@ -155,9 +155,11 @@ const orders: DashboardOrder[] = [
   },
 ];
 
+let accountOrders = fixtureOrders;
+
 vi.mock("../../../(resources)/dashboard-utils/account-context", () => ({
   useAccount: () => ({
-    orders,
+    orders: accountOrders,
     session: {
       user: {
         name: "Joan Kimani",
@@ -166,20 +168,49 @@ vi.mock("../../../(resources)/dashboard-utils/account-context", () => ({
   }),
 }));
 
-vi.mock("../../comp/accountPage/two", () => ({
-  default: () => <div data-testid="orders-chart">Sales chart</div>,
-}));
-
 describe("AdminDashboard", () => {
-  it("renders the analytics dashboard sections from account data", () => {
+  beforeEach(() => {
+    accountOrders = fixtureOrders;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          products: [
+            {
+              id: 1,
+              name: "Real Woo Low Stock",
+              sku: "REAL-LOW",
+              stockStatus: "instock",
+              stockQuantity: 2,
+            },
+            {
+              id: 2,
+              name: "Real Woo Out of Stock",
+              sku: "REAL-OUT",
+              stockStatus: "outofstock",
+              stockQuantity: 0,
+            },
+            {
+              id: 3,
+              name: "Healthy Stock",
+              sku: "REAL-OK",
+              stockStatus: "instock",
+              stockQuantity: 20,
+            },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it("renders order metrics and inventory from WooCommerce data", async () => {
     render(<AdminDashboard />);
 
     expect(
       screen.getByRole("heading", { name: /welcome back, joan/i }),
     ).toBeInTheDocument();
 
-    // Weekly KPI cards (labels only — values depend on a "this week" window
-    // relative to the real clock, so don't assert exact numbers here).
     expect(screen.getByText("Revenue")).toBeInTheDocument();
     expect(screen.getByText("Orders")).toBeInTheDocument();
     expect(screen.getByText("Units sold")).toBeInTheDocument();
@@ -188,30 +219,14 @@ describe("AdminDashboard", () => {
     expect(
       screen.getByRole("heading", { name: /sales overview/i }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("orders-chart")).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("heading", { name: /weekly stats/i }),
-    ).toBeInTheDocument();
-
-    // Top products draws from all orders regardless of date, so this is
-    // deterministic.
     const topProducts = screen
       .getByRole("heading", { name: /top products/i })
-      .closest("section");
+      .closest("article");
     if (!topProducts) throw new Error("Top products section missing");
     expect(within(topProducts).getByText("Moringa Oil")).toBeInTheDocument();
     expect(within(topProducts).getByText("Shea Cream")).toBeInTheDocument();
     expect(within(topProducts).getByText("Baobab Powder")).toBeInTheDocument();
 
-    const topLocations = screen
-      .getByRole("heading", { name: /top locations/i })
-      .closest("section");
-    if (!topLocations) throw new Error("Top locations section missing");
-    expect(within(topLocations).getByText("Nairobi")).toBeInTheDocument();
-    expect(within(topLocations).getByText("Kisumu")).toBeInTheDocument();
-
-    // Recent orders shows all loaded orders regardless of date.
     const recentOrders = screen
       .getByRole("heading", { name: /recent orders/i })
       .closest("section");
@@ -224,9 +239,38 @@ describe("AdminDashboard", () => {
       within(firstRecentOrder).getByText("Amina Yusuf"),
     ).toBeInTheDocument();
 
+    await waitFor(() =>
+      expect(screen.getByText("Real Woo Low Stock")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Real Woo Out of Stock")).toBeInTheDocument();
+    expect(screen.queryByText("Healthy Stock")).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/admin/products");
+    expect(screen.queryByText(/350,000 target/i)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /pending and unpaid/i }),
-    ).toBeInTheDocument();
+      screen.queryByText(/Herbal Detox Tea 20 bags/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows honest empty states and zero metrics when WooCommerce has no data", async () => {
+    accountOrders = [];
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ products: [] }),
+    } as Response);
+
+    render(<AdminDashboard />);
+
+    expect(screen.getAllByText("KSh 0").length).toBeGreaterThan(0);
+    expect(screen.getByText("No recent orders yet.")).toBeInTheDocument();
+    expect(screen.getByText("No order activity yet.")).toBeInTheDocument();
+    expect(screen.getByText("No sales data yet.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText("No low-stock products.")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Moringa Powder 250g")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("New order #10442 from Amina Yusuf"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the welcome section before the weekly KPI cards and analytics", () => {
