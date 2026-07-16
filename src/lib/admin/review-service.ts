@@ -154,26 +154,49 @@ type AdminReviewsResponse = {
 };
 
 export async function fetchAdminReviews(): Promise<AdminReview[]> {
+  let restError: unknown;
+  let restReviews: AdminReview[] = [];
+
   try {
     const reviews = await fetchWoo<unknown[]>(
       "products/reviews?per_page=100&status=all",
       { noCache: true },
     );
-
-    return reviews
+    restReviews = reviews
       .map(mapCommentToAdminReview)
       .filter((review) => review.productId > 0);
-  } catch (restError) {
-    try {
-      const data = await fetchAdminReviewsData();
+  } catch (error) {
+    restError = error;
+  }
 
-      return (data.comments?.nodes ?? [])
-        .map(mapCommentToAdminReview)
-        .filter((review) => review.productId > 0);
-    } catch {
-      throw restError;
+  try {
+    const data = await fetchAdminReviewsData();
+    const graphReviews = (data.comments?.nodes ?? [])
+      .map(mapCommentToAdminReview)
+      .filter((review) => review.productId > 0);
+
+    return mergeAdminReviews(restReviews, graphReviews);
+  } catch (graphError) {
+    if (restError) throw restError;
+    if (restReviews.length) return restReviews;
+    throw graphError;
+  }
+}
+
+export function mergeAdminReviews(...sources: AdminReview[][]) {
+  const reviews = new Map<string, AdminReview>();
+
+  for (const review of sources.flat()) {
+    const key = String(review.id);
+    const current = reviews.get(key);
+    if (!current || (current.rating === 0 && review.rating > 0)) {
+      reviews.set(key, review);
     }
   }
+
+  return [...reviews.values()].sort(
+    (a, b) => Date.parse(b.date) - Date.parse(a.date),
+  );
 }
 
 async function fetchAdminReviewsData() {

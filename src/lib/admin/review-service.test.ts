@@ -255,7 +255,41 @@ describe("mapCommentToAdminReview", () => {
       "products/reviews?per_page=100&status=all",
       { noCache: true },
     );
-    expect(mockedFetchGraphQL).not.toHaveBeenCalled();
+    expect(mockedFetchGraphQL).toHaveBeenCalled();
+  });
+
+  it("includes existing GraphQL product comments when Woo returns no reviews", async () => {
+    mockedFetchWoo.mockResolvedValue([]);
+    mockedFetchGraphQL.mockResolvedValue({
+      comments: {
+        nodes: [
+          {
+            databaseId: 606,
+            content: "Submitted through the storefront form.",
+            date: "2026-07-16T10:00:00",
+            status: "approved",
+            author: { node: { name: "Faith", email: "faith@example.com" } },
+            commentedOn: {
+              node: {
+                databaseId: 77,
+                name: "Face Scrub",
+                slug: "face-scrub",
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    await expect(fetchAdminReviews()).resolves.toEqual([
+      expect.objectContaining({
+        id: 606,
+        productId: 77,
+        productName: "Face Scrub",
+        reviewer: "Faith",
+        rating: 0,
+      }),
+    ]);
   });
 });
 

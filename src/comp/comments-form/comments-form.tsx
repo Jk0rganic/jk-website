@@ -58,28 +58,33 @@ export function ReviewForm({ productId }: ReviewFormProps) {
   });
 
   const saveReview = async (data: ReviewFormData) => {
-    const variables: AddReviewVariables = {
-      productId: Number(productId),
-      author: data.reviewer,
-      authorEmail: data.reviewer_email,
-      content: data.review,
-    };
-
     try {
-      const result = await fetchGraphQL<AddReviewResponse, AddReviewVariables>(
-        ADD_REVIEW,
-        variables,
-      );
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: Number(productId),
+          reviewer: data.reviewer,
+          reviewerEmail: data.reviewer_email,
+          review: data.review,
+          rating: data.rating,
+        }),
+      });
 
-      if (result?.createComment) {
-        toast.success("Review submitted successfully!");
-        reset();
-      } else {
-        toast.error("Failed to submit review.");
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || "Failed to submit review");
       }
+
+      toast.success("Review submitted successfully!");
+      reset();
     } catch (err) {
       console.error(err);
-      toast.error("An error occurred while submitting the review.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while submitting the review.",
+      );
     }
   };
 

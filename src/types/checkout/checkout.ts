@@ -113,6 +113,8 @@ export interface LineItem {
   sku: string;
   variation_id?: number;
   meta_data: OrderMeta[];
+  image?: { id?: number; src?: string };
+  price?: number;
 }
 
 export interface ShippingLine {

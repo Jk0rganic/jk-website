@@ -186,16 +186,13 @@ describe("AdminOrdersPage", () => {
   it("still renders the searchable order table", () => {
     render(<AdminOrdersPage />);
 
-    expect(screen.queryByText("#1201")).not.toBeInTheDocument();
+    expect(screen.getByText("#1201")).toBeInTheDocument();
     expect(screen.getByText("#1202")).toBeInTheDocument();
+    expect(screen.getByText("#1203")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Confirm order" })).toHaveAttribute(
       "href",
       "/admin-account/orders/1202",
     );
-
-    fireEvent.click(screen.getByRole("button", { name: "All orders" }));
-    expect(screen.getByText("#1201")).toBeInTheDocument();
-    expect(screen.getByText("#1203")).toBeInTheDocument();
 
     fireEvent.change(
       screen.getByPlaceholderText("Search order #, name, email, phone"),

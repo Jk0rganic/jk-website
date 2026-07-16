@@ -132,7 +132,7 @@ export default function AdminOrdersPage() {
   const [paymentFilter, setPaymentFilter] = useState("");
   const [search, setSearch] = useState("");
   const [showInsights, setShowInsights] = useState(false);
-  const [queueView, setQueueView] = useState<QueueView>("attention");
+  const [queueView, setQueueView] = useState<QueueView>("all");
 
   const topLocations = useMemo(
     () => computeTopLocations(orders, TOP_LOCATIONS_LIMIT),

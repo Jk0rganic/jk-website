@@ -81,4 +81,39 @@ describe("SingleOrderAccount customer tracking", () => {
     expect(screen.getByText("Delivered")).toBeInTheDocument();
     expect(screen.getByText("Updates sent to you")).toBeInTheDocument();
   });
+
+  it("shows admins a fulfilment-ready product preview with image, quantity, SKU, options, and notes", () => {
+    const adminOrder: DashboardOrder = {
+      ...order,
+      customer_note: "Please call before pickup.",
+      line_items: [
+        {
+          ...order.line_items[0],
+          quantity: 2,
+          image: { id: 45, src: "https://example.com/moringa.jpg" },
+          variation_id: 12,
+          meta_data: [
+            { key: "Size", value: "250g" },
+            { key: "_internal", value: "hidden" },
+          ],
+        },
+      ],
+    };
+
+    render(<SingleOrderAccount order={adminOrder} variant="admin" />);
+
+    expect(
+      screen.getByRole("heading", { name: "Products to fulfil" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Moringa Powder 250g" }),
+    ).toHaveAttribute("src", "https://example.com/moringa.jpg");
+    expect(screen.getByText(/SKU: MOR-250/)).toBeInTheDocument();
+    expect(screen.getByText("Size: 250g")).toBeInTheDocument();
+    expect(screen.queryByText(/hidden/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText("2 units across 1 product lines"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Please call before pickup.")).toBeInTheDocument();
+  });
 });

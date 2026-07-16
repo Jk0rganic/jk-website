@@ -334,85 +334,105 @@ export default function SingleOrderAccount({
         </section>
       ) : null}
 
-      <h3>Order details</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {line_items.map((item) => (
-            <tr key={item.id}>
-              <td className={k.product_name}>
-                {item.name} – {item.quantity}
-              </td>
-              <td className={k.product_name}>
-                <strong>{formatPrice(item.total)}</strong>
-              </td>
-            </tr>
-          ))}
-          <tr>
-            <td className={k.product_name}>Delivery method</td>
-            <td className={k.product_name}>
-              {deliveryTypeLabel || shippingTitle}
-            </td>
-          </tr>
-          {deliveryInfo.parcelOfficeName ? (
-            <tr>
-              <td className={k.product_name}>Parcel office</td>
-              <td className={k.product_name}>
-                {deliveryInfo.parcelOfficeName}
-                {deliveryInfo.parcelOfficeAddress ? (
-                  <>
-                    <br />
-                    {deliveryInfo.parcelOfficeAddress}
-                  </>
-                ) : null}
-              </td>
-            </tr>
-          ) : null}
-          <tr>
-            <td className={k.product_name}>Delivery fee</td>
-            <td className={k.product_name}>{formatPrice(shippingTotal)}</td>
-          </tr>
+      <section className={k.admin_order_items}>
+        <div className={k.admin_section_heading}>
+          <div>
+            <h3>Products to fulfil</h3>
+            <p>
+              {line_items.reduce((sum, item) => sum + item.quantity, 0)} units
+              across {line_items.length} product lines
+            </p>
+          </div>
+        </div>
 
-          <tr className={k.total}>
-            <td>
-              <strong>Subtotal:</strong>
-            </td>
-            <td>
-              <strong>{formatPrice(subtotal)}</strong>
-            </td>
-          </tr>
-          <tr className={k.total}>
-            <td>
-              <strong>Total:</strong>
-            </td>
-            <td>
-              <strong>{formatPrice(total)}</strong>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <strong>Payment method:</strong>
-            </td>
-            <td>{payment_method_title}</td>
-          </tr>
-          <tr>
-            <td>
-              <strong>Payment status:</strong>
-            </td>
-            <td>
+        <div className={k.admin_item_list}>
+          {line_items.map((item) => {
+            const unitPrice = item.quantity
+              ? Number(item.total) / item.quantity
+              : Number(item.total);
+            const options = (item.meta_data ?? []).filter(
+              (meta) => !meta.key.startsWith("_") && meta.value,
+            );
+
+            return (
+              <article
+                className={k.admin_item}
+                key={item.id ?? item.product_id}
+              >
+                <div className={k.admin_item_image}>
+                  {item.image?.src ? (
+                    // biome-ignore lint/performance/noImgElement: Woo order images may use dynamic remote hosts.
+                    <img src={item.image.src} alt={item.name} />
+                  ) : (
+                    <span aria-hidden="true">No image</span>
+                  )}
+                </div>
+                <div className={k.admin_item_info}>
+                  <strong>{item.name}</strong>
+                  <span>
+                    SKU: {item.sku || "Not provided"}
+                    {item.variation_id
+                      ? ` · Variation #${item.variation_id}`
+                      : ""}
+                  </span>
+                  {options.length > 0 && (
+                    <ul>
+                      {options.map((option) => (
+                        <li key={`${option.key}-${option.value}`}>
+                          {option.key}: {option.value}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className={k.admin_item_quantity}>
+                  <span>Quantity</span>
+                  <strong>{item.quantity}</strong>
+                </div>
+                <div className={k.admin_item_price}>
+                  <span>{formatPrice(unitPrice)} each</span>
+                  <strong>{formatPrice(item.total)}</strong>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {customer_note ? (
+        <section className={k.admin_customer_note}>
+          <strong>Customer order note</strong>
+          <p>{customer_note}</p>
+        </section>
+      ) : null}
+
+      <section className={k.admin_totals}>
+        <h3>Payment and delivery summary</h3>
+        <dl>
+          <div>
+            <dt>Products subtotal</dt>
+            <dd>{formatPrice(subtotal)}</dd>
+          </div>
+          <div>
+            <dt>{deliveryTypeLabel || shippingTitle}</dt>
+            <dd>{formatPrice(shippingTotal)}</dd>
+          </div>
+          <div className={k.admin_grand_total}>
+            <dt>Order total</dt>
+            <dd>{formatPrice(total)}</dd>
+          </div>
+          <div>
+            <dt>Payment</dt>
+            <dd>
+              {payment_method_title}{" "}
               <OrderPaymentBadge
                 label={display.paymentLabel}
                 tone={display.paymentTone}
               />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       <h3>{isAdmin ? "Customer details" : "Billing address"}</h3>
       <p>
@@ -452,13 +472,6 @@ export default function SingleOrderAccount({
           </p>
         </>
       )}
-
-      {customer_note ? (
-        <>
-          <h3>Delivery notes</h3>
-          <p>{customer_note}</p>
-        </>
-      ) : null}
     </div>
   );
 }
