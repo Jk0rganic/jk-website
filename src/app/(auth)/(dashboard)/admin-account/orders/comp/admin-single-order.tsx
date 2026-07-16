@@ -61,33 +61,6 @@ function getCustomerName(order: DashboardOrder) {
     .join(" ");
 }
 
-function formatAddress(address?: Partial<BillingAddress | ShippingAddress>) {
-  return [
-    address?.address_1,
-    address?.city,
-    address?.state,
-    address?.postcode,
-    address?.country,
-  ]
-    .filter(Boolean)
-    .join(", ");
-}
-
-function getDeliverySummary(order: DashboardOrder) {
-  return {
-    method:
-      order.shipping_lines?.[0]?.method_title || "Delivery method not set",
-    location:
-      [
-        order.shipping?.city || order.billing?.city,
-        order.shipping?.state || order.billing?.state,
-      ]
-        .filter(Boolean)
-        .join(", ") || "Location not set",
-    address: formatAddress(order.shipping) || formatAddress(order.billing),
-  };
-}
-
 export default function AdminSingleOrder({
   order,
 }: {
@@ -158,7 +131,6 @@ export default function AdminSingleOrder({
   const canPromptPayment = isOrderAwaitingPayment(currentOrder);
   const display = getOrderDisplayInfo(currentOrder);
   const customerName = getCustomerName(currentOrder);
-  const delivery = getDeliverySummary(currentOrder);
 
   async function handleStatusUpdate() {
     if (status === currentOrder.status) return;
@@ -298,42 +270,7 @@ export default function AdminSingleOrder({
 
       <div className={k.detailGrid}>
         <main className={k.mainColumn}>
-          <AdminPanel
-            title="Order and customer"
-            description="Contact details, delivery destination, and fulfillment notes."
-          >
-            <div className={k.summaryGrid}>
-              <div>
-                <span>Customer</span>
-                <strong>{customerName || "Guest customer"}</strong>
-                <p>{currentOrder.billing?.email || "No email"}</p>
-                <p>{currentOrder.billing?.phone || "No phone"}</p>
-              </div>
-              <div>
-                <span>Delivery</span>
-                <strong>{delivery.location}</strong>
-                <p>{delivery.method}</p>
-                <p>{delivery.address || "No address supplied"}</p>
-              </div>
-              <div>
-                <span>Items</span>
-                <strong>{currentOrder.line_items?.length ?? 0}</strong>
-                <p>
-                  {(currentOrder.line_items ?? [])
-                    .slice(0, 3)
-                    .map((item) => item.name)
-                    .join(", ") || "No line items"}
-                </p>
-              </div>
-            </div>
-
-            <div className={k.customerNote}>
-              <span>Customer checkout note</span>
-              <p>
-                {currentOrder.customer_note || "No customer note supplied."}
-              </p>
-            </div>
-          </AdminPanel>
+          <SingleOrderAccount order={currentOrder} variant="admin" />
 
           <AdminPanel
             title="Fulfillment notes"
@@ -412,7 +349,7 @@ export default function AdminSingleOrder({
             </div>
           </AdminPanel>
 
-          <AdminPanel title="Quick actions">
+          <AdminPanel title="Next actions">
             <div className={k.statusControl}>
               <label htmlFor="order-status">Order status</label>
               <select
@@ -452,45 +389,50 @@ export default function AdminSingleOrder({
               </div>
             )}
 
-            <form className={k.quickForm} onSubmit={handleMarkPaid}>
-              <div>
-                <strong>Mark paid manually</strong>
-                <p>Use this after confirming payment outside automatic sync.</p>
-              </div>
-              <div className={k.formGrid}>
-                <label>
-                  Reference
-                  <input
-                    value={transactionRef}
-                    onChange={(event) => setTransactionRef(event.target.value)}
-                    placeholder="M-Pesa transaction ref"
-                    disabled={markPaidSaving}
-                  />
-                </label>
-                <label>
-                  Note
-                  <input
-                    value={manualPaymentNote}
-                    onChange={(event) =>
-                      setManualPaymentNote(event.target.value)
-                    }
-                    placeholder="Optional internal note"
-                    disabled={markPaidSaving}
-                  />
-                </label>
-                <button
-                  type="submit"
-                  disabled={markPaidSaving || !transactionRef.trim()}
-                >
-                  {markPaidSaving ? "Saving…" : "Mark paid"}
-                </button>
-              </div>
-            </form>
+            {!currentOrder.date_paid &&
+            currentOrder.payment_method !== "cod" ? (
+              <form className={k.quickForm} onSubmit={handleMarkPaid}>
+                <div>
+                  <strong>Mark paid manually</strong>
+                  <p>
+                    Use this after confirming payment outside automatic sync.
+                  </p>
+                </div>
+                <div className={k.formGrid}>
+                  <label>
+                    Reference
+                    <input
+                      value={transactionRef}
+                      onChange={(event) =>
+                        setTransactionRef(event.target.value)
+                      }
+                      placeholder="M-Pesa transaction ref"
+                      disabled={markPaidSaving}
+                    />
+                  </label>
+                  <label>
+                    Note
+                    <input
+                      value={manualPaymentNote}
+                      onChange={(event) =>
+                        setManualPaymentNote(event.target.value)
+                      }
+                      placeholder="Optional internal note"
+                      disabled={markPaidSaving}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={markPaidSaving || !transactionRef.trim()}
+                  >
+                    {markPaidSaving ? "Saving…" : "Mark paid"}
+                  </button>
+                </div>
+              </form>
+            ) : null}
           </AdminPanel>
         </aside>
       </div>
-
-      <SingleOrderAccount order={currentOrder} variant="admin" />
     </div>
   );
 }

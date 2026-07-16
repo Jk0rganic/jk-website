@@ -131,7 +131,7 @@ describe("AdminOrdersPage", () => {
         .map((el) => el.closest("article"))
         .find((el): el is HTMLElement => el !== null);
 
-    // #1202 is pending, #1201 is processing, #1203 is completed, #1202 is unpaid
+    // #1202 is pending, but cash-on-delivery is not an overdue online payment.
     expect(
       within(findMetricCard("Pending") as HTMLElement).getByText("1"),
     ).toBeInTheDocument();
@@ -142,7 +142,7 @@ describe("AdminOrdersPage", () => {
       within(findMetricCard("Completed") as HTMLElement).getByText("1"),
     ).toBeInTheDocument();
     expect(
-      within(findMetricCard("Unpaid") as HTMLElement).getByText("1"),
+      within(findMetricCard("Payment due") as HTMLElement).getByText("0"),
     ).toBeInTheDocument();
   });
 
@@ -150,6 +150,11 @@ describe("AdminOrdersPage", () => {
     render(<AdminOrdersPage />);
 
     expect(screen.getByText("Store insights")).toBeInTheDocument();
+
+    expect(
+      screen.queryByText("Top delivery locations"),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /show/i }));
 
     const locationsSection = screen
       .getByText("Top delivery locations")
@@ -181,8 +186,15 @@ describe("AdminOrdersPage", () => {
   it("still renders the searchable order table", () => {
     render(<AdminOrdersPage />);
 
-    expect(screen.getByText("#1201")).toBeInTheDocument();
+    expect(screen.queryByText("#1201")).not.toBeInTheDocument();
     expect(screen.getByText("#1202")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Confirm order" })).toHaveAttribute(
+      "href",
+      "/admin-account/orders/1202",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "All orders" }));
+    expect(screen.getByText("#1201")).toBeInTheDocument();
     expect(screen.getByText("#1203")).toBeInTheDocument();
 
     fireEvent.change(

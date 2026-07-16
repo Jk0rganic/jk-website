@@ -1,5 +1,6 @@
 import { updateOrder } from "@/lib/fetch/updateOrder";
 import { mapIntaSendState } from "@/lib/intasend/types";
+import { notifyStaffOfNewOrder } from "@/lib/notifications/notify-new-order";
 import prisma from "@/lib/prisma";
 
 function resolveFailureReason(
@@ -56,7 +57,7 @@ export async function syncPaymentFromInvoice(
   });
 
   if (status === "SUCCESS" && payment.status !== "SUCCESS") {
-    await updateOrder(payment.orderId, {
+    const order = await updateOrder(payment.orderId, {
       status: "processing",
       set_paid: true,
       transaction_id: transactionRef ?? invoice.invoice_id,
@@ -68,6 +69,7 @@ export async function syncPaymentFromInvoice(
           : []),
       ],
     });
+    await notifyStaffOfNewOrder(order as WooOrderResponse);
   }
 
   return status;

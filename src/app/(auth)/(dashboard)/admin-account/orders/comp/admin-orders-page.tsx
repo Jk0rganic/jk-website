@@ -95,13 +95,44 @@ function getDeliverySummary(order: DashboardOrder) {
   return { method, location };
 }
 
+type QueueView = "attention" | "all" | "unpaid" | "processing";
+
+function needsAttention(order: DashboardOrder) {
+  return (
+    (order.payment_method !== "cod" && !order.date_paid) ||
+    order.status === "pending" ||
+    order.status === "on-hold"
+  );
+}
+
+function isPaymentDue(order: DashboardOrder) {
+  return order.payment_method !== "cod" && !order.date_paid;
+}
+
+function getNextAction(order: DashboardOrder) {
+  if (order.payment_method !== "cod" && !order.date_paid) {
+    return { label: "Collect payment", hint: "Payment required" };
+  }
+  if (order.status === "pending") {
+    return { label: "Confirm order", hint: "Ready to accept" };
+  }
+  if (order.status === "on-hold") {
+    return { label: "Review hold", hint: "Needs a decision" };
+  }
+  if (order.status === "processing") {
+    return { label: "Prepare order", hint: "Paid and confirmed" };
+  }
+  return { label: "View order", hint: "No action required" };
+}
+
 export default function AdminOrdersPage() {
   const { orders } = useAccount();
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const [search, setSearch] = useState("");
-  const [showInsights, setShowInsights] = useState(true);
+  const [showInsights, setShowInsights] = useState(false);
+  const [queueView, setQueueView] = useState<QueueView>("attention");
 
   const topLocations = useMemo(
     () => computeTopLocations(orders, TOP_LOCATIONS_LIMIT),
@@ -124,15 +155,24 @@ export default function AdminOrdersPage() {
     [orders, statusFilter, paymentFilter, search],
   );
 
+  const queueOrders = useMemo(() => {
+    if (queueView === "attention") return filteredOrders.filter(needsAttention);
+    if (queueView === "unpaid") return filteredOrders.filter(isPaymentDue);
+    if (queueView === "processing") {
+      return filteredOrders.filter((order) => order.status === "processing");
+    }
+    return filteredOrders;
+  }, [filteredOrders, queueView]);
+
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredOrders.length / ITEMS_PER_PAGE),
+    Math.ceil(queueOrders.length / ITEMS_PER_PAGE),
   );
 
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredOrders.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredOrders, currentPage]);
+    return queueOrders.slice(start, start + ITEMS_PER_PAGE);
+  }, [queueOrders, currentPage]);
 
   const fulfillmentStats = useMemo(
     () => ({
@@ -143,7 +183,7 @@ export default function AdminOrdersPage() {
       ).length,
       completed: filteredOrders.filter((order) => order.status === "completed")
         .length,
-      unpaid: filteredOrders.filter((order) => !order.date_paid).length,
+      unpaid: filteredOrders.filter(isPaymentDue).length,
     }),
     [filteredOrders],
   );
@@ -153,8 +193,8 @@ export default function AdminOrdersPage() {
   return (
     <>
       <PageHeader
-        title="Fulfillment queue"
-        subtitle={`${filteredOrders.length} visible of ${orders.length} loaded orders. Search, filter, and manage customer fulfillment.`}
+        title="Order management"
+        subtitle="See what needs attention, confirm payment, and move each order through fulfilment."
       />
 
       <section className={`${ui.card} ${ui.insightsCard}`}>
@@ -259,18 +299,40 @@ export default function AdminOrdersPage() {
           detail="Delivered or closed"
         />
         <AdminMetricCard
-          label="Unpaid"
+          label="Payment due"
           value={fulfillmentStats.unpaid}
           icon={WalletCards}
           tone="danger"
-          detail="No paid date"
+          detail="Online payment required"
         />
       </section>
 
       <AdminPanel
         title="Orders"
-        description="Customer, payment, delivery, and status in one operational view."
+        description={`${queueOrders.length} orders in this view. Each row shows the next recommended action.`}
       >
+        <fieldset className={styles.queueTabs} aria-label="Order queue views">
+          {(
+            [
+              ["attention", "Needs attention"],
+              ["all", "All orders"],
+              ["unpaid", "Unpaid"],
+              ["processing", "Preparing"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={queueView === value}
+              onClick={() => {
+                setQueueView(value);
+                setCurrentPage(1);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </fieldset>
         <AdminToolbar
           searchLabel="Search orders"
           searchPlaceholder="Search order #, name, email, phone"
@@ -314,7 +376,7 @@ export default function AdminOrdersPage() {
           </label>
         </AdminToolbar>
 
-        {!filteredOrders.length ? (
+        {!queueOrders.length ? (
           <AdminEmptyState
             title="No orders match these filters"
             description="Adjust the search, status, or payment filters to widen the queue."
@@ -327,13 +389,10 @@ export default function AdminOrdersPage() {
                 <thead>
                   <tr>
                     <th>Order</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Delivery / location</th>
+                    <th>Customer &amp; delivery</th>
+                    <th>Progress</th>
                     <th>Total</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th>Next action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -341,50 +400,48 @@ export default function AdminOrdersPage() {
                     const display = getOrderDisplayInfo(order);
                     const customerName = getCustomerName(order);
                     const delivery = getDeliverySummary(order);
+                    const nextAction = getNextAction(order);
 
                     return (
                       <tr key={order.id}>
                         <td data-label="Order">
                           <strong>#{order.id}</strong>
-                          <span>{order.line_items?.length ?? 0} items</span>
+                          <span>
+                            {formatDate(order.date_created)} ·{" "}
+                            {order.line_items?.length ?? 0} items
+                          </span>
                         </td>
-                        <td data-label="Customer">
+                        <td data-label="Customer & delivery">
                           <strong>{customerName || "Guest customer"}</strong>
-                          <span>{order.billing?.email || "No email"}</span>
                           <span>{order.billing?.phone || "No phone"}</span>
+                          <span>
+                            {delivery.location} · {delivery.method}
+                          </span>
                         </td>
-                        <td data-label="Status">
+                        <td data-label="Progress">
                           <AdminBadge tone={orderBadgeTone(order.status)}>
                             {display.orderLabel}
                           </AdminBadge>
-                          {display.orderHint && (
-                            <span>{display.orderHint}</span>
-                          )}
-                        </td>
-                        <td data-label="Payment">
                           <AdminBadge tone={paymentBadgeTone(order)}>
-                            {display.paymentLabel ||
-                              order.payment_method_title ||
-                              "Payment"}
+                            {order.date_paid
+                              ? "Paid"
+                              : order.payment_method === "cod"
+                                ? "Pay on delivery"
+                                : "Payment due"}
                           </AdminBadge>
-                          <span>{order.date_paid ? "Paid" : "Unpaid"}</span>
-                        </td>
-                        <td data-label="Delivery / location">
-                          <strong>{delivery.location}</strong>
-                          <span>{delivery.method}</span>
                         </td>
                         <td data-label="Total" className={styles.totalCell}>
                           {order.total} {order.currency}
                         </td>
-                        <td data-label="Date">
-                          {formatDate(order.date_created)}
-                        </td>
-                        <td data-label="Actions">
+                        <td data-label="Next action">
+                          <span className={styles.actionHint}>
+                            {nextAction.hint}
+                          </span>
                           <Link
                             className={styles.manageLink}
                             href={`${link}${order.id}`}
                           >
-                            Manage
+                            {nextAction.label}
                           </Link>
                         </td>
                       </tr>

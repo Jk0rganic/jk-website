@@ -80,19 +80,19 @@ export function buildNewOrderEmail(order: WooOrderResponse) {
     )
     .join("");
 
-  const subject = `New order #${order.id} — ${money(order.total, symbol)}`;
+  const subject = `Paid order #${order.id} — ${money(order.total, symbol)}`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:${BRAND_COLORS.black};">
       <div style="background:${BRAND_COLORS.greenDark};padding:24px;border-radius:8px 8px 0 0;text-align:center;">
         <img src="${BRAND_LOGO_SQUARE_URL}" alt="${BRAND_NAME}" width="48" height="48" style="border-radius:8px;display:block;margin:0 auto 12px;" />
-        <h2 style="color:${BRAND_COLORS.white};margin:0;font-size:18px;">New order received — #${order.id}</h2>
+        <h2 style="color:${BRAND_COLORS.white};margin:0;font-size:18px;">Order paid — #${order.id}</h2>
         <p style="color:${BRAND_COLORS.greenSoft};margin:6px 0 0;font-size:13px;">${formatDate(order.date_created)}</p>
       </div>
 
       <div style="border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px;">
         <p style="margin:0 0 16px;font-size:14px;">
-          <strong>${escapeHtml(customerName)}</strong> just placed an order.
+          <strong>${escapeHtml(customerName)}</strong>'s order has been paid and is ready for fulfilment.
         </p>
 
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:4px;">
@@ -161,6 +161,8 @@ export function buildNewOrderEmail(order: WooOrderResponse) {
 export async function notifyStaffOfNewOrder(
   order: WooOrderResponse,
 ): Promise<void> {
+  if (!order.date_paid) return;
+
   try {
     const recipients = await getStaffNotificationEmails();
 

@@ -156,7 +156,7 @@ describe("POST /api/create-order", () => {
     );
   });
 
-  it("notifies staff of the new order after it is created", async () => {
+  it("does not notify staff before the new order has been paid", async () => {
     const createdOrder = { id: 123, total: "1350.00" };
     resolveDeliveryQuote.mockReturnValueOnce({
       code: "nairobi-doorstep",
@@ -171,10 +171,10 @@ describe("POST /api/create-order", () => {
 
     await POST(request(baseOrder) as never);
 
-    expect(notifyStaffOfNewOrder).toHaveBeenCalledWith(createdOrder);
+    expect(notifyStaffOfNewOrder).not.toHaveBeenCalled();
   });
 
-  it("still returns the created order when the staff notification fails", async () => {
+  it("returns the created unpaid order without invoking email delivery", async () => {
     resolveDeliveryQuote.mockReturnValueOnce({
       code: "nairobi-doorstep",
       fee: 350,
@@ -185,7 +185,6 @@ describe("POST /api/create-order", () => {
       freeDeliveryRemaining: 0,
     });
     createOrder.mockResolvedValueOnce({ id: 123, total: "1350.00" });
-    notifyStaffOfNewOrder.mockRejectedValueOnce(new Error("SMTP down"));
 
     const response = await POST(request(baseOrder) as never);
 
@@ -194,5 +193,6 @@ describe("POST /api/create-order", () => {
       id: 123,
       total: "1350.00",
     });
+    expect(notifyStaffOfNewOrder).not.toHaveBeenCalled();
   });
 });

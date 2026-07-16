@@ -5,6 +5,38 @@
   margin-bottom: 1.25rem;
 }
 
+.queueTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0;
+  border: 0;
+
+  button {
+    min-height: 36px;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--admin-border, #dce8ee);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--admin-muted, #667482);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 750;
+
+    &[aria-pressed="true"] {
+      border-color: var(--admin-accent, #22984f);
+      background: var(--admin-accent-soft, #e7f6ed);
+      color: var(--admin-accent, #22984f);
+    }
+  }
+}
+
+.actionHint {
+  margin: 0 0 0.4rem !important;
+}
+
 .filterControl {
   display: inline-flex;
   align-items: center;

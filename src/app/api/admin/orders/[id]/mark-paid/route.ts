@@ -3,6 +3,7 @@ import { requireAdminSession } from "@/lib/admin/require-admin";
 import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
 import { getOrder } from "@/lib/fetch/getOrder";
 import { updateOrder } from "@/lib/fetch/updateOrder";
+import { notifyStaffOfNewOrder } from "@/lib/notifications/notify-new-order";
 
 const markPaidSchema = z.object({
   transactionRef: z.string().trim().min(1),
@@ -78,6 +79,8 @@ export async function POST(
       transaction_id: parsed.data.transactionRef,
       meta_data: metaData,
     });
+
+    await notifyStaffOfNewOrder(order as WooOrderResponse);
 
     return Response.json({ order });
   } catch (err) {

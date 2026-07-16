@@ -35,7 +35,7 @@ const baseOrder: WooOrderResponse = {
   payment_method_title: "Cash on Delivery",
   customer_note: "",
   date_created: "2026-07-12T10:00:00",
-  date_paid: null,
+  date_paid: "2026-07-12T10:05:00",
   date_completed: null,
   needs_payment: false,
   needs_processing: true,
@@ -167,6 +167,13 @@ describe("notifyStaffOfNewOrder", () => {
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({ recipient: "manager@jkorganics.com" }),
     );
+  });
+
+  it("does not email staff for an order that has not been paid", async () => {
+    await notifyStaffOfNewOrder({ ...baseOrder, date_paid: null });
+
+    expect(findMany).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("does not throw when there are no staff recipients", async () => {

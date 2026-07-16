@@ -11,15 +11,20 @@ vi.mock("@/lib/fetch/updateOrder", () => ({
 vi.mock("@/lib/fetch/getOrder", () => ({
   getOrder: vi.fn(),
 }));
+vi.mock("@/lib/notifications/notify-new-order", () => ({
+  notifyStaffOfNewOrder: vi.fn(),
+}));
 
 import { requireAdminSession } from "@/lib/admin/require-admin";
 import { getOrder } from "@/lib/fetch/getOrder";
 import { updateOrder } from "@/lib/fetch/updateOrder";
+import { notifyStaffOfNewOrder } from "@/lib/notifications/notify-new-order";
 import { POST } from "./route";
 
 const mockedRequireAdminSession = vi.mocked(requireAdminSession);
 const mockedGetOrder = vi.mocked(getOrder);
 const mockedUpdateOrder = vi.mocked(updateOrder);
+const mockedNotifyStaff = vi.mocked(notifyStaffOfNewOrder);
 const adminSession = {
   user: { id: "1", email: "admin@jk.test", role: "min_admin" },
 } as never;
@@ -28,6 +33,7 @@ describe("POST /api/admin/orders/[id]/mark-paid", () => {
   beforeEach(() => {
     mockedRequireAdminSession.mockReset();
     mockedUpdateOrder.mockReset();
+    mockedNotifyStaff.mockReset();
     mockedRequireAdminSession.mockResolvedValue({
       error: null,
       status: 200,
@@ -79,7 +85,12 @@ describe("POST /api/admin/orders/[id]/mark-paid", () => {
   });
 
   it("marks a Woo order paid with manual payment metadata", async () => {
-    const order = { id: 42, status: "processing", transaction_id: "MPESA123" };
+    const order = {
+      id: 42,
+      status: "processing",
+      transaction_id: "MPESA123",
+      date_paid: "2026-07-16T10:00:00",
+    };
     mockedUpdateOrder.mockResolvedValue(order);
 
     const response = await POST(
@@ -108,6 +119,7 @@ describe("POST /api/admin/orders/[id]/mark-paid", () => {
         },
       ],
     });
+    expect(mockedNotifyStaff).toHaveBeenCalledWith(order);
   });
 
   it("rejects orders that are not awaiting online payment", async () => {
