@@ -73,13 +73,47 @@ describe("SingleOrderAccount customer tracking", () => {
 
     expect(screen.getByText("Order #10442")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /being prepared/i }),
+      screen.getByRole("heading", { name: /preparing/i, level: 1 }),
     ).toBeInTheDocument();
     expect(screen.getByText("Placed")).toBeInTheDocument();
-    expect(screen.getByText("Processing")).toBeInTheDocument();
+    expect(screen.getAllByText("Preparing").length).toBeGreaterThan(0);
+    expect(screen.getByText("Dispatched")).toBeInTheDocument();
     expect(screen.getByText("Out for delivery")).toBeInTheDocument();
     expect(screen.getByText("Delivered")).toBeInTheDocument();
     expect(screen.getByText("Updates sent to you")).toBeInTheDocument();
+  });
+
+  it("shows the pickup point once a pickup order is ready for collection", () => {
+    const pickupOrder: DashboardOrder = {
+      ...order,
+      shipping_lines: [
+        { method_id: "local_pickup", method_title: "Local Pickup", total: "0" },
+      ],
+      meta_data: [
+        {
+          key: "_pickup_point_name",
+          value: "Nairobi CBD Pickup – Stanbank House",
+        },
+        {
+          key: "_pickup_point_address",
+          value: "Stanbank House, Moi Avenue, Nairobi",
+        },
+        { key: "_jk_fulfillment_status", value: "ready_for_pickup" },
+      ],
+    };
+
+    render(<SingleOrderAccount order={pickupOrder} />);
+
+    expect(
+      screen.getByRole("heading", { name: /ready for pickup/i, level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Picked up")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nairobi CBD Pickup – Stanbank House"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Stanbank House, Moi Avenue, Nairobi"),
+    ).toBeInTheDocument();
   });
 
   it("shows admins a fulfilment-ready product preview with image, quantity, SKU, options, and notes", () => {

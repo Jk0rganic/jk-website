@@ -4,8 +4,18 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  getFulfillmentMetaValue,
+  getFulfillmentStatusInfo,
+  getFulfillmentStatusOptions,
+} from "@/lib/checkout/fulfillment-status";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
 import { isOrderAwaitingPayment } from "@/lib/checkout/is-order-awaiting-payment";
+import {
+  getFulfillmentHistory,
+  getStatusHistory,
+  type OrderHistoryEntry,
+} from "@/lib/checkout/order-history";
 import { formatDate } from "@/utils/formatDate";
 import SingleOrderAccount from "../../../(resources)/dashboard-comp/(pages-comp)/orders/comp/single-order-acc/page";
 import { AdminBadge } from "../../components/ui/admin-badge";
@@ -61,6 +71,22 @@ function getCustomerName(order: DashboardOrder) {
     .join(" ");
 }
 
+function fulfillmentBadgeTone(
+  stageIndex: number,
+  stageCount: number,
+): BadgeTone {
+  if (stageIndex <= 0) return "neutral";
+  if (stageIndex >= stageCount) return "success";
+  return "info";
+}
+
+function formatHistoryEntry(
+  entry: OrderHistoryEntry,
+  labelFor: (value: string) => string,
+) {
+  return `${labelFor(entry.value)} — ${entry.by} · ${new Date(entry.at).toLocaleString()}`;
+}
+
 export default function AdminSingleOrder({
   order,
 }: {
@@ -69,6 +95,8 @@ export default function AdminSingleOrder({
   const router = useRouter();
   const [status, setStatus] = useState(order?.status ?? "pending");
   const [saving, setSaving] = useState(false);
+  const [fulfillmentStatus, setFulfillmentStatus] = useState("");
+  const [fulfillmentSaving, setFulfillmentSaving] = useState(false);
   const [paymentPromptSending, setPaymentPromptSending] = useState(false);
   const [markPaidSaving, setMarkPaidSaving] = useState(false);
   const [transactionRef, setTransactionRef] = useState("");
@@ -82,6 +110,10 @@ export default function AdminSingleOrder({
   useEffect(() => {
     setStatus(order?.status ?? "pending");
   }, [order?.status]);
+
+  useEffect(() => {
+    setFulfillmentStatus(getFulfillmentMetaValue(order?.meta_data) ?? "");
+  }, [order?.meta_data]);
 
   useEffect(() => {
     if (!order?.id) return;
@@ -131,6 +163,28 @@ export default function AdminSingleOrder({
   const canPromptPayment = isOrderAwaitingPayment(currentOrder);
   const display = getOrderDisplayInfo(currentOrder);
   const customerName = getCustomerName(currentOrder);
+  const fulfillmentOptions = getFulfillmentStatusOptions(currentOrder);
+  const fulfillmentInfo = getFulfillmentStatusInfo(currentOrder);
+  const fulfillmentLabelFor = (value: string) =>
+    fulfillmentOptions.find((option) => option.value === value)?.label ?? value;
+  const statusLabelFor = (value: string) =>
+    STATUS_OPTIONS.find((option) => option.value === value)?.label ?? value;
+  const statusHistory = getStatusHistory(currentOrder.meta_data);
+  const fulfillmentHistory = getFulfillmentHistory(currentOrder.meta_data);
+  const activity = [
+    ...statusHistory.map((entry) => ({
+      key: `status-${entry.at}-${entry.value}`,
+      entry,
+      text: formatHistoryEntry(entry, statusLabelFor),
+    })),
+    ...fulfillmentHistory.map((entry) => ({
+      key: `fulfillment-${entry.at}-${entry.value}`,
+      entry,
+      text: formatHistoryEntry(entry, fulfillmentLabelFor),
+    })),
+  ].sort(
+    (a, b) => new Date(b.entry.at).getTime() - new Date(a.entry.at).getTime(),
+  );
 
   async function handleStatusUpdate() {
     if (status === currentOrder.status) return;
@@ -158,6 +212,44 @@ export default function AdminSingleOrder({
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleFulfillmentUpdate() {
+    const currentValue = getFulfillmentMetaValue(currentOrder.meta_data) ?? "";
+
+    if (!fulfillmentStatus || fulfillmentStatus === currentValue) return;
+
+    setFulfillmentSaving(true);
+
+    try {
+      const res = await fetch(
+        `/api/admin/orders/${currentOrder.id}/fulfillment`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fulfillmentStatus }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update fulfillment status");
+      }
+
+      toast.success(
+        `Order #${currentOrder.id} fulfillment set to ${fulfillmentLabelFor(fulfillmentStatus)}`,
+      );
+      router.refresh();
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Failed to update fulfillment status",
+      );
+    } finally {
+      setFulfillmentSaving(false);
     }
   }
 
@@ -332,6 +424,39 @@ export default function AdminSingleOrder({
                   {display.orderLabel}
                 </AdminBadge>
                 {display.orderHint && <p>{display.orderHint}</p>}
+                {statusHistory.length > 0 && (
+                  <p className={k.updatedBy}>
+                    Updated by {statusHistory[statusHistory.length - 1].by} ·{" "}
+                    {new Date(
+                      statusHistory[statusHistory.length - 1].at,
+                    ).toLocaleString()}
+                  </p>
+                )}
+              </div>
+              <div>
+                <span>Fulfillment</span>
+                <AdminBadge
+                  tone={fulfillmentBadgeTone(
+                    fulfillmentInfo.stageIndex,
+                    fulfillmentInfo.stages.length,
+                  )}
+                >
+                  {fulfillmentInfo.isException
+                    ? "—"
+                    : fulfillmentInfo.stageIndex > 0
+                      ? fulfillmentInfo.stages[fulfillmentInfo.stageIndex - 1]
+                          .label
+                      : "Not started"}
+                </AdminBadge>
+                {fulfillmentHistory.length > 0 && (
+                  <p className={k.updatedBy}>
+                    Updated by{" "}
+                    {fulfillmentHistory[fulfillmentHistory.length - 1].by} ·{" "}
+                    {new Date(
+                      fulfillmentHistory[fulfillmentHistory.length - 1].at,
+                    ).toLocaleString()}
+                  </p>
+                )}
               </div>
               <div>
                 <span>Payment</span>
@@ -370,6 +495,37 @@ export default function AdminSingleOrder({
                 disabled={saving || status === currentOrder.status}
               >
                 {saving ? "Saving…" : "Update status"}
+              </button>
+            </div>
+
+            <div className={k.statusControl}>
+              <label htmlFor="fulfillment-status">Fulfillment status</label>
+              <select
+                id="fulfillment-status"
+                value={fulfillmentStatus}
+                onChange={(e) => setFulfillmentStatus(e.target.value)}
+                disabled={fulfillmentSaving}
+              >
+                <option value="" disabled>
+                  Select a stage
+                </option>
+                {fulfillmentOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={handleFulfillmentUpdate}
+                disabled={
+                  fulfillmentSaving ||
+                  !fulfillmentStatus ||
+                  fulfillmentStatus ===
+                    (getFulfillmentMetaValue(currentOrder.meta_data) ?? "")
+                }
+              >
+                {fulfillmentSaving ? "Saving…" : "Update fulfillment"}
               </button>
             </div>
 
@@ -430,6 +586,23 @@ export default function AdminSingleOrder({
                 </div>
               </form>
             ) : null}
+          </AdminPanel>
+
+          <AdminPanel
+            title="Order activity"
+            description="Who changed status or fulfillment, and when."
+          >
+            {activity.length === 0 ? (
+              <p className={k.empty}>No status changes recorded yet.</p>
+            ) : (
+              <div className={k.notesList}>
+                {activity.map(({ key, text }) => (
+                  <article className={k.noteItem} key={key}>
+                    <p>{text}</p>
+                  </article>
+                ))}
+              </div>
+            )}
           </AdminPanel>
         </aside>
       </div>

@@ -429,6 +429,24 @@ $border: 0.1px solid rgba(0, 0, 0, 0.2);
   font-weight: 700;
 }
 
+.pickup_ready_notice {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  background: #e8f5ec;
+  color: #1f5c33;
+  font-size: 0.86rem;
+
+  strong {
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
 .tracking_grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);

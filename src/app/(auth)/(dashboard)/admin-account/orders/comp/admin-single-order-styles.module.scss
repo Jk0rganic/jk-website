@@ -124,6 +124,13 @@
   }
 }
 
+.updatedBy {
+  margin: 0;
+  color: var(--admin-muted, #667482);
+  font-size: 0.76rem;
+  font-style: italic;
+}
+
 .statusControl {
   display: grid;
   gap: 0.55rem;

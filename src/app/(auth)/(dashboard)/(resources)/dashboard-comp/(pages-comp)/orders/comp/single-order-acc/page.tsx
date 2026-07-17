@@ -1,4 +1,8 @@
 import OrderPaymentStatusPoller from "@/app/(payment)/payment/comp/order-payment-status-poller";
+import {
+  getFulfillmentStatusInfo,
+  isPickupOrder,
+} from "@/lib/checkout/fulfillment-status";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
 import {
   formatDeliveryTypeLabel,
@@ -67,41 +71,20 @@ export default function SingleOrderAccount({
   const shippingTotal = shippingLines?.total || 0;
   const shippingTitle = shippingLines?.method_title || "N/A";
   const subtotal = Number(total) - Number(shippingTotal);
-  const stageIndex =
-    status === "completed"
-      ? 4
-      : status === "processing"
-        ? 2
-        : status === "cancelled" || status === "refunded"
-          ? 1
-          : 1;
-  const isException = status === "cancelled" || status === "refunded";
-  const trackingHeadline =
-    status === "completed"
-      ? "Delivered"
-      : status === "cancelled"
-        ? "Order cancelled"
-        : status === "refunded"
-          ? "Order refunded"
-          : status === "processing"
-            ? "Being prepared"
-            : "Order placed";
-  const trackingSub =
-    status === "completed"
-      ? "Delivered — we hope you enjoy your order!"
-      : status === "cancelled"
-        ? "This order will not be delivered."
-        : status === "refunded"
-          ? "This order has been refunded to your original payment method."
-          : status === "processing"
-            ? "Your items are being picked and packed at our warehouse."
-            : "We've received your order and it's queued for packing.";
-  const trackingStages = [
-    "Placed",
-    "Processing",
-    "Out for delivery",
-    "Delivered",
-  ];
+  const pickup = isPickupOrder(order);
+  const fulfillment = getFulfillmentStatusInfo(order);
+  const isException = fulfillment.isException;
+  const trackingHeadline = fulfillment.customerHeadline;
+  const trackingSub = fulfillment.customerSub;
+  const trackingStages = ["Placed", ...fulfillment.stages.map((s) => s.label)];
+  const stageIndex = fulfillment.stageIndex + 1;
+  const readyForPickupIndex =
+    fulfillment.stages.findIndex((s) => s.value === "ready_for_pickup") + 1;
+  const showPickupLocation =
+    pickup &&
+    !isException &&
+    readyForPickupIndex > 0 &&
+    fulfillment.stageIndex >= readyForPickupIndex;
 
   if (!isAdmin) {
     return (
@@ -161,6 +144,16 @@ export default function SingleOrderAccount({
                 : "This order was refunded to the original payment method."}
             </div>
           ) : null}
+
+          {showPickupLocation && deliveryInfo.pickupPointName ? (
+            <div className={k.pickup_ready_notice}>
+              <strong>📍 Collect at:</strong>
+              <p>{deliveryInfo.pickupPointName}</p>
+              {deliveryInfo.pickupPointAddress ? (
+                <p>{deliveryInfo.pickupPointAddress}</p>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         <section className={k.tracking_grid}>
@@ -177,26 +170,28 @@ export default function SingleOrderAccount({
                   <small>SMS + Email · {orderDate}</small>
                 </div>
               </article>
-              {stageIndex >= 2 && !isException ? (
-                <article>
-                  <span>2</span>
-                  <div>
-                    <h3>Preparing your order</h3>
-                    <p>Your items are being picked and packed.</p>
-                    <small>SMS · Updated</small>
-                  </div>
-                </article>
-              ) : null}
-              {stageIndex >= 3 && !isException ? (
-                <article>
-                  <span>3</span>
-                  <div>
-                    <h3>Out for delivery</h3>
-                    <p>Your delivery is on the way.</p>
-                    <small>SMS + Email · Updated</small>
-                  </div>
-                </article>
-              ) : null}
+              {!isException &&
+                fulfillment.stages.map((stage, index) => {
+                  const milestoneIndex = index + 2;
+
+                  if (fulfillment.stageIndex < index + 1) return null;
+
+                  return (
+                    <article key={stage.value}>
+                      <span>{milestoneIndex}</span>
+                      <div>
+                        <h3>{stage.label}</h3>
+                        <p>{stage.description}</p>
+                        <small>
+                          {index === fulfillment.stages.length - 1
+                            ? "SMS + Email"
+                            : "SMS"}{" "}
+                          · Updated
+                        </small>
+                      </div>
+                    </article>
+                  );
+                })}
             </div>
           </div>
 
