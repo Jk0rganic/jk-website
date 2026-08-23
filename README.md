@@ -110,6 +110,13 @@ INTASEND_WEBHOOK_CHALLENGE=
 CRON_SECRET=
 NEXT_PUBLIC_APP_URL=
 
+# Optional WAHA notification to the staff WhatsApp group. If omitted, WhatsApp
+# notifications are disabled and paid-order email notifications continue normally.
+WAHA_URL=
+WAHA_API_KEY=
+WAHA_SESSION=default
+WAHA_ORDER_GROUP_ID=
+
 # IntaSend dashboard: set webhook URL to {NEXT_PUBLIC_APP_URL}/api/intasend/webhook
 # Vercel cron hits /api/intasend/reconcile every 5 minutes (set CRON_SECRET in Vercel)
 

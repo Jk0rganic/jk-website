@@ -7,6 +7,7 @@ import {
 import { BRAND_COLORS, BRAND_LOGO_SQUARE_URL, BRAND_NAME } from "@/lib/brand";
 import { getOrderDisplayInfo } from "@/lib/checkout/get-order-display";
 import { sendEmail } from "@/lib/nodemailer/send-mail";
+import { sendNewOrderWhatsAppNotification } from "@/lib/notifications/waha-new-order";
 import prisma from "@/lib/prisma";
 
 const STAFF_ROLES = [SUPER_ADMIN_ROLE, ADMIN_ROLE, STORE_MANAGER_ROLE];
@@ -158,36 +159,48 @@ export function buildNewOrderEmail(order: WooOrderResponse) {
 }
 
 // Swallows all errors internally so a notification failure never breaks checkout.
+async function notifyStaffByEmail(order: WooOrderResponse) {
+  const recipients = await getStaffNotificationEmails();
+
+  if (!recipients.length) {
+    console.warn("[NEW_ORDER_NOTIFICATION] No staff email recipients found");
+    return;
+  }
+
+  const { subject, html } = buildNewOrderEmail(order);
+  const results = await Promise.allSettled(
+    recipients.map((recipient) =>
+      sendEmail({ recipient, subject, body: html }),
+    ),
+  );
+
+  for (const [index, result] of results.entries()) {
+    if (result.status === "rejected") {
+      console.error(
+        `[NEW_ORDER_EMAIL_ERROR] Failed to notify ${recipients[index]}:`,
+        result.reason,
+      );
+    }
+  }
+}
+
 export async function notifyStaffOfNewOrder(
   order: WooOrderResponse,
 ): Promise<void> {
   if (!order.date_paid) return;
 
-  try {
-    const recipients = await getStaffNotificationEmails();
+  const results = await Promise.allSettled([
+    notifyStaffByEmail(order),
+    sendNewOrderWhatsAppNotification(order),
+  ]);
 
-    if (!recipients.length) {
-      console.warn("[NEW_ORDER_NOTIFICATION] No staff recipients found");
-      return;
+  const channels = ["email", "WhatsApp"];
+  for (const [index, result] of results.entries()) {
+    if (result.status === "rejected") {
+      console.error(
+        `[NEW_ORDER_NOTIFICATION_ERROR] ${channels[index]} notification failed:`,
+        result.reason,
+      );
     }
-
-    const { subject, html } = buildNewOrderEmail(order);
-
-    const results = await Promise.allSettled(
-      recipients.map((recipient) =>
-        sendEmail({ recipient, subject, body: html }),
-      ),
-    );
-
-    for (const [index, result] of results.entries()) {
-      if (result.status === "rejected") {
-        console.error(
-          `[NEW_ORDER_NOTIFICATION_ERROR] Failed to notify ${recipients[index]}:`,
-          result.reason,
-        );
-      }
-    }
-  } catch (error) {
-    console.error("[NEW_ORDER_NOTIFICATION_ERROR]", error);
   }
 }
