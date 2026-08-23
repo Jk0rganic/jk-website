@@ -4,6 +4,7 @@ JK Organics is a modern e-commerce platform focused on providing high-quality or
 
 ## Features
 
+
 * Product catalog with categories and filtering
 * Product detail pages with variations and pricing
 * Shopping cart functionality
