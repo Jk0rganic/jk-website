@@ -119,8 +119,10 @@ export default function DeliveryLocationSelector({
       setValue("parcel_office_id", "", { shouldValidate: true });
       return;
     }
+    // County changed: require a fresh town from that county's list.
+    setValue("parcel_town", "", { shouldValidate: false });
     setValue("parcel_office_id", "", { shouldValidate: true });
-  }, [isValidCounty, isDoorToDoor, setValue]);
+  }, [isValidCounty, isDoorToDoor, selectedCounty, setValue]);
 
   return (
     <div className={k.delivery_location}>
